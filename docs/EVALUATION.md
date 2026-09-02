@@ -121,6 +121,17 @@ test sets they share, so `base` evaluated on `full_<ds>` gives the paired baseli
   (merge shards by concatenating their `episodes.jsonl` into one directory).
 * `--limit N` and `mock/*` models make dry runs cheap (`tests/smoke_offline.sh`).
 
+## Did training cost general ability?
+
+The four arms above measure the agent task only. `docs/FORGETTING.md` covers the other
+half of the question: whether the trained student still answers ordinary MMLU, GSM8K and
+HellaSwag questions as well as the base model did, and whether it can still reply in a
+plain format rather than the agent's JSON. One GPU, about five minutes:
+
+```bash
+sbatch -p <gpu-partition> slurm/eval_forgetting.sbatch runs/train/uniform/adapter trained_uniform
+```
+
 ## Fairness checklist
 
 * Same question files, corpora, tool executor, prompts, budget and hidden-budget setting

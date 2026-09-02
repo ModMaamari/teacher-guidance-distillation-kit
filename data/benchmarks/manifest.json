@@ -1,0 +1,39 @@
+{
+  "seed": 13,
+  "benchmarks": {
+    "mmlu": {
+      "n": 1710,
+      "source": "cais/mmlu",
+      "split": "test",
+      "license": "MIT",
+      "homepage": "https://github.com/hendrycks/test",
+      "requested": 1710,
+      "kind": "mcq",
+      "file": "mmlu.jsonl.gz",
+      "sha256_uncompressed": "95546b67cecfefc74b54ef5776883fe2539786c312783260e1d6f06e005a4eaf"
+    },
+    "gsm8k": {
+      "n": 1319,
+      "source": "openai/gsm8k",
+      "split": "test",
+      "license": "MIT",
+      "homepage": "https://github.com/openai/grade-school-math",
+      "requested": "all",
+      "kind": "numeric",
+      "file": "gsm8k.jsonl.gz",
+      "sha256_uncompressed": "1f726dde64fa29f4056bff61c918572373c21437d9f4d09b03182e79bc81d5bc"
+    },
+    "hellaswag": {
+      "n": 1500,
+      "source": "Rowan/hellaswag",
+      "split": "validation",
+      "license": "MIT",
+      "homepage": "https://rowanzellers.com/hellaswag/",
+      "requested": 1500,
+      "kind": "mcq",
+      "file": "hellaswag.jsonl.gz",
+      "sha256_uncompressed": "2e08c82a8773637ae9ec3ff7128e7c9cf0725629b10c27e9afc5d139adb222b6"
+    }
+  },
+  "note": "Prepared by scripts/prepare_benchmarks.py with the recorded seed; re-running it reproduces these files. Checksums are of the uncompressed content: gunzip -c <file> | sha256sum"
+}

@@ -89,3 +89,34 @@ def test_hybrid_client_routes_local_student():
     out = asyncio.run(c.get_completion("Question: x\nPrevious actions: []\n", model=LOCAL_STUDENT, return_raw=True))
     assert "search" in out["text"] and out["usage"]["prompt_tokens"] > 0
     assert asyncio.run(c.get_completion("p", model="mock/t")) == "teacher:mock/t"
+
+
+def test_benchmark_answer_parsers():
+    """The forgetting check scores generatively, so its parsers must be exact about what
+    counts as the requested format and lenient only as a documented fallback."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "eval_benchmarks", Path(__file__).resolve().parents[1] / "scripts" / "eval_benchmarks.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    assert mod.parse_mcq("B") == ("B", "B")
+    assert mod.parse_mcq("B.") == ("B", "B")
+    assert mod.parse_mcq("A) 0") == ("A", "A")
+    assert mod.parse_mcq("The answer is C") == (None, "C")          # lenient only
+    assert mod.parse_mcq('{"answer": "D"}') == (None, "D")          # agent-format relapse
+    assert mod.parse_mcq("hello") == (None, None)                    # unparseable
+    assert mod.parse_mcq("") == (None, None)
+
+    assert mod.parse_numeric("#### 18") == ("18", "18")
+    assert mod.parse_numeric("blah\n#### 1,200") == ("1200", "1200")
+    assert mod.parse_numeric("The answer is 42") == (None, "42")
+    assert mod.parse_numeric("") == (None, None)
+
+    row = {"kind": "mcq", "gold": "B", "choices": ["a", "b", "c", "d"], "question": "q"}
+    assert mod.score(row, "B")["strict_correct"] == 1
+    assert mod.score(row, "The answer is B")["strict_correct"] == 0
+    assert mod.score(row, "The answer is B")["lenient_correct"] == 1
+    assert mod.score(row, "zzz")["format_fail"] == 1
+    num = {"kind": "numeric", "gold": "18", "choices": [], "question": "q"}
+    assert mod.score(num, "#### 18.00")["strict_correct"] == 1

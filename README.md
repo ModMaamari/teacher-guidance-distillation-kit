@@ -17,6 +17,8 @@ The kit ships the data, the harness, and one command per stage:
 | evaluate an arm | `scripts/eval.py --arm student\|guided\|teacher` | GPU / API |
 | judge final answers | `scripts/judge.py` | judge API |
 | results tables + significance | `scripts/collect_results.py` | CPU |
+| forgetting check on MMLU / GSM8K / HellaSwag | `scripts/eval_benchmarks.py` | 1 GPU |
+| forgetting statistics + box plots | `scripts/forgetting_report.py` | CPU |
 
 Every long-running script writes to a fixed directory, appends results as they land,
 skips finished work on re-run, and keeps a `status.json` you can watch.
@@ -29,6 +31,7 @@ data/questions/<ds>/     2,000 questions each for HotpotQA, 2WikiMultihopQA and 
                          (gzipped, with provenance manifests)
 data/episodes/           7,999 teacher-guided episodes (student granite-4.1-3b,
                          teacher DeepSeek-V4-Flash), gzipped, plus an index
+data/benchmarks/         MMLU, GSM8K and HellaSwag eval items for the forgetting check
 data/splits/             test question files, pool assignment, stats, leakage report.
                          The SFT train/dev files are NOT shipped: build them once with
                          `make data` (~2 min, byte-identical on every machine)
@@ -37,7 +40,8 @@ tgd/                     library code shared by the scripts
 scripts/                 the stage commands above
 slurm/                   sbatch templates + a one-command pipeline for HPC clusters
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
-docs/                    OVERVIEW, DATA, TRAINING, EVALUATION, PROVIDERS, REPRODUCE, RESULTS
+docs/                    OVERVIEW, DATA, TRAINING, EVALUATION, FORGETTING, PROVIDERS,
+                         REPRODUCE, RESULTS
 ```
 
 ## The four evaluation arms
@@ -94,7 +98,8 @@ Without Slurm, run the same stages by hand — `docs/REPRODUCE.md` lists every c
 
 With granite-4.1-3b as student, DeepSeek-V4-Flash as teacher and Kimi-K2.6 as judge, on
 the 747 held-out questions (judge-correct): base 29.8 %, guided 60.5 %, trained 65.5 %,
-teacher 72.3 %. The trained student needs no teacher at inference and 0.43× the tokens
+teacher 72.3 %. The trained student pays 1.4 points of general ability for that gain
+(`docs/FORGETTING.md`). The trained student needs no teacher at inference and 0.43× the tokens
 of the guided student. Full tables, per-dataset numbers, the leave-one-dataset-out
 transfer results and confidence intervals are in `docs/RESULTS.md`.
 

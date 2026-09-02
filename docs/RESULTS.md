@@ -63,8 +63,28 @@ For comparison, the uniform student (trained on all four) scores on the held-out
 | MuSiQue | 229 | 53.3 % | 10.5 % | 32.0 % |
 | StrategyQA | 273 | 66.7 % | 17.9 % | 62.6 % |
 
+## Cost in general ability (forgetting check)
+
+Base weights vs the same weights plus the all-4 adapter, on 4,529 held-out items of three
+standard benchmarks, answered in ordinary chat format (`docs/FORGETTING.md`):
+
+| Benchmark | n | Base | Trained | Δ pts | 95 % CI | McNemar p |
+|---|---|---|---|---|---|---|
+| MMLU | 1,710 | 64.1 % | 63.2 % | −0.9 | [−2.1, +0.3] | 0.18 |
+| GSM8K | 1,319 | 89.3 % | 87.1 % | −2.2 | [−3.8, −0.7] | 0.007 |
+| HellaSwag | 1,500 | 75.3 % | 74.2 % | −1.1 | [−2.5, +0.3] | 0.14 |
+| **pooled** | **4,529** | **76.9 %** | **75.5 %** | **−1.4** | [−2.1, −0.5] | 0.001 |
+
+Only GSM8K moves significantly on its own; the pooled drop is real but small. Format
+compliance is intact in both arms (100 % of multiple-choice replies in the requested
+shape, 99.3 % on GSM8K against the base's 99.9 %, nothing unparseable), so the training
+did not push the student into answering everything in the agent's JSON format. Set
+against +35.6 points of judge-correct accuracy on the agent task, the trade is roughly
+25 points gained per point of general ability lost.
+
 ## Caveats
 
 * One training seed and one decoding seed; the CIs cover question sampling only.
 * A single judge model; EM/F1/cover are reported so the judge's leniency can be inspected (it is systematically kinder than cover-match to verbose but correct answers, for every arm).
 * Per-episode API cost is the provider's reported price at run time; GPU cost is not included in the tables.
+* The forgetting benchmarks are answered zero-shot in chat format, not with the log-likelihood scoring public leaderboards use, so those absolute numbers are not comparable to published ones; the comparison between the two arms is unaffected.
