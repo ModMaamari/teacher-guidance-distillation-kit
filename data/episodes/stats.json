@@ -1,0 +1,35 @@
+{
+  "2wikimultihopqa": {
+    "episodes": 2000,
+    "correct": 1385,
+    "grounded": 1629,
+    "errors": 0,
+    "steps": 5832
+  },
+  "hotpotqa": {
+    "episodes": 2000,
+    "correct": 1296,
+    "grounded": 1802,
+    "errors": 0,
+    "steps": 5708
+  },
+  "musique": {
+    "episodes": 2000,
+    "correct": 595,
+    "grounded": 1491,
+    "errors": 0,
+    "steps": 5944
+  },
+  "strategyqa": {
+    "episodes": 1999,
+    "correct": 1111,
+    "grounded": 1139,
+    "errors": 0,
+    "steps": 5913
+  },
+  "teacher_models_used": {
+    "deepseek-ai/DeepSeek-V4-Flash": 5475,
+    "deepseek-ai/DeepSeek-V4-Flash-0731": 2524
+  },
+  "student_model": "ibm-granite/granite-4.1-3b"
+}

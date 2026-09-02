@@ -1,0 +1,29 @@
+{
+  "split": "lodo/fold_hotpotqa",
+  "train_datasets": [
+    "2wikimultihopqa",
+    "musique",
+    "strategyqa"
+  ],
+  "unseen_dataset": "hotpotqa",
+  "train_examples": 10180,
+  "dev_examples": 281,
+  "train_questions": 2783,
+  "per_dataset_examples": {
+    "2wikimultihopqa": 4801,
+    "musique": 1938,
+    "strategyqa": 3722
+  },
+  "test_sets": {
+    "heldout_2wikimultihopqa": 170,
+    "heldout_musique": 203,
+    "heldout_strategyqa": 185,
+    "full_hotpotqa": 2000
+  },
+  "train_test_qid_overlap": {
+    "heldout_2wikimultihopqa": 0,
+    "heldout_musique": 0,
+    "heldout_strategyqa": 0,
+    "full_hotpotqa": 0
+  }
+}

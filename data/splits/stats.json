@@ -1,0 +1,208 @@
+{
+  "per_dataset": {
+    "2wikimultihopqa": {
+      "trainable": 1830,
+      "correct": 1385,
+      "train_examples": 4801,
+      "train_episodes": 1262,
+      "heldout_test": 170,
+      "dropped_ungrounded_gold": 28,
+      "dropped_placeholder": 3,
+      "episodes_without_examples": 1,
+      "dropped_malformed_target": 1
+    },
+    "hotpotqa": {
+      "trainable": 1811,
+      "correct": 1296,
+      "train_examples": 4374,
+      "train_episodes": 1176,
+      "heldout_test": 189,
+      "dropped_ungrounded_gold": 30,
+      "dropped_placeholder": 14,
+      "episodes_without_examples": 5
+    },
+    "musique": {
+      "trainable": 1797,
+      "correct": 595,
+      "train_examples": 1938,
+      "train_episodes": 517,
+      "heldout_test": 203,
+      "dropped_ungrounded_gold": 61
+    },
+    "strategyqa": {
+      "trainable": 1814,
+      "correct": 1111,
+      "train_examples": 3722,
+      "train_episodes": 1004,
+      "heldout_test": 185,
+      "dropped_duplicate_of_heldout": 1,
+      "dropped_placeholder": 5,
+      "episodes_without_examples": 2
+    }
+  },
+  "test_sets": {
+    "heldout_hotpotqa": 189,
+    "full_hotpotqa": 2000,
+    "heldout_2wikimultihopqa": 170,
+    "full_2wikimultihopqa": 2000,
+    "heldout_musique": 203,
+    "full_musique": 2000,
+    "heldout_strategyqa": 185,
+    "full_strategyqa": 1999
+  },
+  "splits": {
+    "uniform": {
+      "split": "uniform",
+      "train_datasets": [
+        "hotpotqa",
+        "2wikimultihopqa",
+        "musique",
+        "strategyqa"
+      ],
+      "unseen_dataset": null,
+      "train_examples": 14458,
+      "dev_examples": 377,
+      "train_questions": 3959,
+      "per_dataset_examples": {
+        "hotpotqa": 4374,
+        "2wikimultihopqa": 4801,
+        "musique": 1938,
+        "strategyqa": 3722
+      },
+      "test_sets": {
+        "heldout_hotpotqa": 189,
+        "heldout_2wikimultihopqa": 170,
+        "heldout_musique": 203,
+        "heldout_strategyqa": 185
+      },
+      "train_test_qid_overlap": {
+        "heldout_hotpotqa": 0,
+        "heldout_2wikimultihopqa": 0,
+        "heldout_musique": 0,
+        "heldout_strategyqa": 0
+      }
+    },
+    "lodo/fold_hotpotqa": {
+      "split": "lodo/fold_hotpotqa",
+      "train_datasets": [
+        "2wikimultihopqa",
+        "musique",
+        "strategyqa"
+      ],
+      "unseen_dataset": "hotpotqa",
+      "train_examples": 10180,
+      "dev_examples": 281,
+      "train_questions": 2783,
+      "per_dataset_examples": {
+        "2wikimultihopqa": 4801,
+        "musique": 1938,
+        "strategyqa": 3722
+      },
+      "test_sets": {
+        "heldout_2wikimultihopqa": 170,
+        "heldout_musique": 203,
+        "heldout_strategyqa": 185,
+        "full_hotpotqa": 2000
+      },
+      "train_test_qid_overlap": {
+        "heldout_2wikimultihopqa": 0,
+        "heldout_musique": 0,
+        "heldout_strategyqa": 0,
+        "full_hotpotqa": 0
+      }
+    },
+    "lodo/fold_2wikimultihopqa": {
+      "split": "lodo/fold_2wikimultihopqa",
+      "train_datasets": [
+        "hotpotqa",
+        "musique",
+        "strategyqa"
+      ],
+      "unseen_dataset": "2wikimultihopqa",
+      "train_examples": 9801,
+      "dev_examples": 233,
+      "train_questions": 2697,
+      "per_dataset_examples": {
+        "hotpotqa": 4374,
+        "musique": 1938,
+        "strategyqa": 3722
+      },
+      "test_sets": {
+        "heldout_hotpotqa": 189,
+        "heldout_musique": 203,
+        "heldout_strategyqa": 185,
+        "full_2wikimultihopqa": 2000
+      },
+      "train_test_qid_overlap": {
+        "heldout_hotpotqa": 0,
+        "heldout_musique": 0,
+        "heldout_strategyqa": 0,
+        "full_2wikimultihopqa": 0
+      }
+    },
+    "lodo/fold_musique": {
+      "split": "lodo/fold_musique",
+      "train_datasets": [
+        "hotpotqa",
+        "2wikimultihopqa",
+        "strategyqa"
+      ],
+      "unseen_dataset": "musique",
+      "train_examples": 12563,
+      "dev_examples": 334,
+      "train_questions": 3442,
+      "per_dataset_examples": {
+        "hotpotqa": 4374,
+        "2wikimultihopqa": 4801,
+        "strategyqa": 3722
+      },
+      "test_sets": {
+        "heldout_hotpotqa": 189,
+        "heldout_2wikimultihopqa": 170,
+        "heldout_strategyqa": 185,
+        "full_musique": 2000
+      },
+      "train_test_qid_overlap": {
+        "heldout_hotpotqa": 0,
+        "heldout_2wikimultihopqa": 0,
+        "heldout_strategyqa": 0,
+        "full_musique": 0
+      }
+    },
+    "lodo/fold_strategyqa": {
+      "split": "lodo/fold_strategyqa",
+      "train_datasets": [
+        "hotpotqa",
+        "2wikimultihopqa",
+        "musique"
+      ],
+      "unseen_dataset": "strategyqa",
+      "train_examples": 10830,
+      "dev_examples": 283,
+      "train_questions": 2955,
+      "per_dataset_examples": {
+        "hotpotqa": 4374,
+        "2wikimultihopqa": 4801,
+        "musique": 1938
+      },
+      "test_sets": {
+        "heldout_hotpotqa": 189,
+        "heldout_2wikimultihopqa": 170,
+        "heldout_musique": 203,
+        "full_strategyqa": 1999
+      },
+      "train_test_qid_overlap": {
+        "heldout_hotpotqa": 0,
+        "heldout_2wikimultihopqa": 0,
+        "heldout_musique": 0,
+        "full_strategyqa": 0
+      }
+    }
+  },
+  "config": {
+    "heldout_fraction": 0.1,
+    "dev_fraction": 0.03,
+    "salt": "m1lodo",
+    "dev_salt": "m1lodo-dev"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "dataset": "strategyqa",
+  "source": "strategyqa",
+  "split": "train",
+  "schema_version": "1.0",
+  "input_examples": 2000,
+  "converted": 1999,
+  "corpus_docs": 24982,
+  "skipped_total": 1,
+  "skipped_reasons": {
+    "unconvertible": 1
+  },
+  "gold_granularity": "paragraph",
+  "license": "MIT",
+  "questions_file": "strategyqa_questions.jsonl",
+  "corpus_file": "strategyqa_corpus.jsonl",
+  "questions_sha256": "cb226ed2512ae22d563e807770c9b808bffa1cbb76e4cd240f4c30cc78d7b147",
+  "corpus_sha256": "0f4a509738bf8cb27a4cf63ebe56ccde87d92db2f34744659cb9ddad722e5dc0",
+  "homepage": "https://allenai.org/data/strategyqa",
+  "notes": "Implicit multi-hop, boolean answers. Candidate sets are CONSTRUCTED (gold + seeded distractors) because the source ships no distractors.",
+  "source_input": "strategyqa_train.json + strategyqa_train_paragraphs.json (official release, https://allenai.org/data/strategyqa)",
+  "limit": 2000,
+  "shuffle": true,
+  "seed": 13,
+  "num_distractors": 8
+}

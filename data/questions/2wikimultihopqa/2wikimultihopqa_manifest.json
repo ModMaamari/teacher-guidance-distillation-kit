@@ -1,0 +1,23 @@
+{
+  "dataset": "2wikimultihopqa",
+  "source": "2wikimultihopqa",
+  "split": "train",
+  "schema_version": "1.0",
+  "input_examples": 2000,
+  "converted": 2000,
+  "corpus_docs": 20000,
+  "skipped_total": 0,
+  "skipped_reasons": {},
+  "gold_granularity": "sentence",
+  "license": "Apache-2.0",
+  "questions_file": "2wikimultihopqa_questions.jsonl",
+  "corpus_file": "2wikimultihopqa_corpus.jsonl",
+  "questions_sha256": "b78a304080027f70ae5aae5f13e764de4c1737f39fb159910ca4c258420767ae",
+  "corpus_sha256": "107e53804843fdc4165c0ed8d1e5e3ea4b4f1ad96450b4d0273852abf5d7af91",
+  "homepage": "https://github.com/Alab-NII/2wikimultihop",
+  "notes": "2-4 hop; adds symbolic evidence triples; bridge_comparison is 4-hop.",
+  "source_input": "hf:framolfese/2WikiMultihopQA",
+  "limit": 2000,
+  "shuffle": true,
+  "seed": 13
+}

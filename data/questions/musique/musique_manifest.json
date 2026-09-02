@@ -1,0 +1,23 @@
+{
+  "dataset": "musique",
+  "source": "musique",
+  "split": "train",
+  "schema_version": "1.0",
+  "input_examples": 2000,
+  "converted": 2000,
+  "corpus_docs": 40000,
+  "skipped_total": 0,
+  "skipped_reasons": {},
+  "gold_granularity": "paragraph",
+  "license": "CC BY 4.0",
+  "questions_file": "musique_questions.jsonl",
+  "corpus_file": "musique_corpus.jsonl",
+  "questions_sha256": "0d444017d6a9b5b2412e509efc7a55ff3c4af725d6d57e00adb09bc66a5477ca",
+  "corpus_sha256": "40ed21e6c5e53fcc9ca7978207fec64b5cc2fd88632628d685c88e38d14db21b",
+  "homepage": "https://github.com/StonyBrookNLP/musique",
+  "notes": "2-4 hop, shortcut-resistant; paragraph-level gold; ships answer aliases.",
+  "source_input": "hf:dgslibisey/MuSiQue",
+  "limit": 2000,
+  "shuffle": true,
+  "seed": 13
+}

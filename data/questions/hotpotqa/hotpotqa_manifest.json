@@ -1,0 +1,23 @@
+{
+  "dataset": "hotpotqa",
+  "source": "hotpotqa",
+  "split": "train",
+  "schema_version": "1.0",
+  "input_examples": 2000,
+  "converted": 2000,
+  "corpus_docs": 19900,
+  "skipped_total": 0,
+  "skipped_reasons": {},
+  "gold_granularity": "sentence",
+  "license": "CC BY-SA 4.0",
+  "questions_file": "hotpotqa_questions.jsonl",
+  "corpus_file": "hotpotqa_corpus.jsonl",
+  "questions_sha256": "410cd10b1e13456193d7e6871b4b46f946ad66664ce4a632b38704f0379a3b68",
+  "corpus_sha256": "79d83c78c8adac6417603d84ff7adafca51ab314392408fe7aa5557160594364",
+  "homepage": "https://hotpotqa.github.io/",
+  "notes": "2-hop bridge/comparison; distractor setting ships 10 paragraphs per question.",
+  "source_input": "hf:hotpotqa/hotpot_qa",
+  "limit": 2000,
+  "shuffle": true,
+  "seed": 13
+}

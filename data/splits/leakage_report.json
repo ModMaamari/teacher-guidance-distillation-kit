@@ -1,0 +1,198 @@
+{
+  "salt": "m1lodo",
+  "heldout_fraction": 0.1,
+  "heldout_subset_of_full": true,
+  "splits": {
+    "uniform": {
+      "train_dev_examples": 14835,
+      "train_questions": 3959,
+      "pool_mismatch": 0,
+      "placeholder": 0,
+      "schema_bad": 0,
+      "tests": {
+        "heldout_hotpotqa": {
+          "n_test": 189,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_2wikimultihopqa": {
+          "n_test": 170,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_musique": {
+          "n_test": 203,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_strategyqa": {
+          "n_test": 185,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        }
+      },
+      "problems": []
+    },
+    "lodo/fold_2wikimultihopqa": {
+      "train_dev_examples": 10034,
+      "train_questions": 2697,
+      "pool_mismatch": 0,
+      "placeholder": 0,
+      "schema_bad": 0,
+      "tests": {
+        "heldout_hotpotqa": {
+          "n_test": 189,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_musique": {
+          "n_test": 203,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_strategyqa": {
+          "n_test": 185,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "full_2wikimultihopqa": {
+          "n_test": 2000,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        }
+      },
+      "problems": []
+    },
+    "lodo/fold_hotpotqa": {
+      "train_dev_examples": 10461,
+      "train_questions": 2783,
+      "pool_mismatch": 0,
+      "placeholder": 0,
+      "schema_bad": 0,
+      "tests": {
+        "heldout_2wikimultihopqa": {
+          "n_test": 170,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_musique": {
+          "n_test": 203,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_strategyqa": {
+          "n_test": 185,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "full_hotpotqa": {
+          "n_test": 2000,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        }
+      },
+      "problems": []
+    },
+    "lodo/fold_musique": {
+      "train_dev_examples": 12897,
+      "train_questions": 3442,
+      "pool_mismatch": 0,
+      "placeholder": 0,
+      "schema_bad": 0,
+      "tests": {
+        "heldout_hotpotqa": {
+          "n_test": 189,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_2wikimultihopqa": {
+          "n_test": 170,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_strategyqa": {
+          "n_test": 185,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "full_musique": {
+          "n_test": 2000,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        }
+      },
+      "problems": []
+    },
+    "lodo/fold_strategyqa": {
+      "train_dev_examples": 11113,
+      "train_questions": 2955,
+      "pool_mismatch": 0,
+      "placeholder": 0,
+      "schema_bad": 0,
+      "tests": {
+        "heldout_hotpotqa": {
+          "n_test": 189,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_2wikimultihopqa": {
+          "n_test": 170,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "heldout_musique": {
+          "n_test": 203,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        },
+        "full_strategyqa": {
+          "n_test": 1999,
+          "qid_overlap": 0,
+          "question_text_in_train": 0,
+          "near_duplicate_questions": 0,
+          "heldout_pool_mismatch": 0
+        }
+      },
+      "problems": []
+    }
+  },
+  "status": "OK"
+}
