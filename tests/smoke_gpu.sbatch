@@ -19,6 +19,9 @@ rm -rf "$W"; mkdir -p "$W"
 Q=data/splits/test/heldout_hotpotqa_questions.jsonl
 C=data/questions/hotpotqa/hotpotqa_corpus.jsonl.gz
 STUDENT_MODEL=${STUDENT_MODEL:-ibm-granite/granite-4.1-3b}
+for f in data/splits/uniform/train.jsonl data/splits/uniform/dev.jsonl "$Q" "$C"; do
+  [ -f "$f" ] || { echo "missing $f -- run 'make data' first (it builds the SFT train/dev files)"; exit 1; }
+done
 step() { echo; echo "=== $(date -u +%T) $* ==="; }
 
 step "1/5 train (smoke: 64 examples, 8 steps)"
