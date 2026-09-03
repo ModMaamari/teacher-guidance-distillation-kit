@@ -51,6 +51,10 @@ def discover(root: Path):
             run, arm, bench = "greedy", rel[0], rel[1]
         else:
             continue
+        # ignore anything that is not a benchmark directory: a temperature sweep or any
+        # other side experiment living under the same root must not be read as a replicate
+        if bench not in BENCH_ORDER:
+            continue
         found.setdefault(run, {}).setdefault(arm, {})[bench] = p
     return found
 
@@ -228,6 +232,8 @@ def main() -> int:
     ap.add_argument("--runs", default="runs/forgetting")
     ap.add_argument("--out", default="runs/forgetting/report")
     ap.add_argument("--base-arm", default="base")
+    ap.add_argument("--trained-arm", default=None,
+                    help="which arm to compare against the base (default: the first other arm found)")
     ap.add_argument("--metric", choices=["strict_correct", "lenient_correct"], default="strict_correct")
     args = ap.parse_args()
     root, out = Path(args.runs), Path(args.out)
@@ -243,7 +249,16 @@ def main() -> int:
     if not other:
         print(f"only one arm found ({arms}); nothing to compare")
         return 1
-    trained = other[0]
+    if args.trained_arm:
+        if args.trained_arm not in other:
+            print(f"--trained-arm {args.trained_arm} not found; available: {other}")
+            return 1
+        trained = args.trained_arm
+    else:
+        trained = other[0]
+        if len(other) > 1:
+            print(f"note: comparing {args.base_arm} against {trained}; "
+                  f"other arms present ({other}) are ignored -- pass --trained-arm to choose")
     benches = [b for b in BENCH_ORDER if any(b in found[r].get(a, {}) for r in runs for a in arms)]
 
     # per (run, arm, benchmark) accuracy on the items both arms answered in that run

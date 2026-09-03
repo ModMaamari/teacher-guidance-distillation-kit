@@ -29,6 +29,9 @@ tokens only (TRL `completion_only_loss`), using the model's own chat template.
 | `--eval-steps` / `--save-steps` | 200 / 200 | dev loss and checkpoint cadence |
 | `--seed` | 13 | |
 | `--smoke` | — | 64 examples, 8 steps: validates the pipeline in ~2 min |
+| `--kl-coef` | 0 (off) | KL toward the frozen base on completion tokens; keeps the student samplable. See `docs/STABILITY.md` |
+| `--kl-direction` | `reverse` | `reverse` = mode-seeking (recommended); `forward` = mass-covering, fights the task objective |
+| `--health-every` | 0 (off) | sample held-out prompts at temperature 0.7 every N steps and log how many parse |
 
 bf16 + gradient checkpointing; the 3B student peaks at ~26 GB GPU memory and trains the
 uniform split in ~4 GPU-hours on a 80 GB-class GPU (1,810 optimizer steps, ~8 s/step).
@@ -55,6 +58,16 @@ watch -n 30 cat runs/train/uniform/status.json
 base model with `scripts/serve_vllm.sh --lora <name>=runs/train/<name>/adapter` and
 evaluate it with `--served-model <name>`; or evaluate in-process with
 `scripts/eval.py --student hf --adapter runs/train/<name>/adapter`.
+
+`--smoke` runs on CPU as well (64 examples, 8 steps, fp32) if no GPU is visible, which makes it
+a usable pre-flight check on a laptop before queueing a real job. Keep `--max-length` at its
+default when you do: a prompt longer than the limit truncates the completion away, and a run
+that trains on no completion tokens reports a loss of exactly 0. The trainer now checks a few
+real batches at startup and refuses to run when that happens.
+
+With `--kl-coef > 0` the trainer needs real logits, so it switches off TRL's memory-chunked
+cross-entropy and runs a micro-batch of 1 at four times the gradient accumulation. Expect about
+40 % more wall time for the extra base-model forward pass.
 
 ## On a Slurm cluster
 

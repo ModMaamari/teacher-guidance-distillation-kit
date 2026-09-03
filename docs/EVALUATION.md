@@ -132,6 +132,19 @@ plain format rather than the agent's JSON. One GPU, about five minutes:
 sbatch -p <gpu-partition> slurm/eval_forgetting.sbatch runs/train/uniform/adapter trained_uniform
 ```
 
+## Can the student be sampled?
+
+Every number above uses greedy decoding, which is the right default for a comparison — and the
+one setting that hides a specific failure: a fine-tuned student can keep ranking the right token
+first while losing the calibration sampling depends on. Check it before using the model in any
+workflow that samples:
+
+```bash
+sbatch -p <gpu-partition> slurm/eval_stability.sbatch runs/train/uniform/adapter trained
+```
+
+`docs/STABILITY.md` has the measurement, the mechanism and the two fixes.
+
 ## Fairness checklist
 
 * Same question files, corpora, tool executor, prompts, budget and hidden-budget setting

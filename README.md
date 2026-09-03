@@ -19,6 +19,8 @@ The kit ships the data, the harness, and one command per stage:
 | results tables + significance | `scripts/collect_results.py` | CPU |
 | forgetting check on MMLU / GSM8K / HellaSwag | `scripts/eval_benchmarks.py` | 1 GPU |
 | forgetting statistics + box plots | `scripts/forgetting_report.py` | CPU |
+| decoding-stability check (can it be sampled?) | `slurm/eval_stability.sbatch` | 1 GPU |
+| next-token distribution diagnostic | `scripts/diag_distributions.py` | 1 GPU |
 
 Every long-running script writes to a fixed directory, appends results as they land,
 skips finished work on re-run, and keeps a `status.json` you can watch.
@@ -40,8 +42,8 @@ tgd/                     library code shared by the scripts
 scripts/                 the stage commands above
 slurm/                   sbatch templates + a one-command pipeline for HPC clusters
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
-docs/                    OVERVIEW, DATA, TRAINING, EVALUATION, FORGETTING, PROVIDERS,
-                         REPRODUCE, RESULTS
+docs/                    OVERVIEW, EXPERIMENTS, DATA, TRAINING, EVALUATION, FORGETTING,
+                         STABILITY, PROVIDERS, REPRODUCE, RESULTS
 ```
 
 ## The four evaluation arms
@@ -83,6 +85,8 @@ TEACHER=oai-teacher/<model> JUDGE=oai-judge/<model> bash slurm/run_pipeline.sh -
 ```
 
 Without Slurm, run the same stages by hand — `docs/REPRODUCE.md` lists every command.
+To run your own experiments — a different student, teacher, dataset or training objective —
+start from `docs/EXPERIMENTS.md`.
 
 ## Bring your own models
 
@@ -99,7 +103,10 @@ Without Slurm, run the same stages by hand — `docs/REPRODUCE.md` lists every c
 With granite-4.1-3b as student, DeepSeek-V4-Flash as teacher and Kimi-K2.6 as judge, on
 the 747 held-out questions (judge-correct): base 29.8 %, guided 60.5 %, trained 65.5 %,
 teacher 72.3 %. The trained student pays 1.4 points of general ability for that gain
-(`docs/FORGETTING.md`). The trained student needs no teacher at inference and 0.43× the tokens
+(`docs/FORGETTING.md`) — and, trained with plain SFT, it can only be decoded greedily:
+sampling it at temperature 0.3 produces nothing usable. That failure, how to detect it and
+two ways to prevent it are in `docs/STABILITY.md`; it is the single most surprising result
+in this kit, and the reason `--kl-coef` and `--min-p` exist. The trained student needs no teacher at inference and 0.43× the tokens
 of the guided student. Full tables, per-dataset numbers, the leave-one-dataset-out
 transfer results and confidence intervals are in `docs/RESULTS.md`.
 

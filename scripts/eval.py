@@ -63,7 +63,8 @@ def finalize(out: Path, args, log, extra=None) -> dict:
     agg.update({"arm": args.arm, "questions": args.questions, "corpus": args.corpus,
                 "budget": args.budget, "hidden_budget": args.hidden_budget,
                 "student": {"backend": args.student, "model": args.model, "adapter": args.adapter,
-                            "served_model": args.served_model, "temperature": args.student_temperature},
+                            "served_model": args.served_model, "temperature": args.student_temperature,
+                            "top_p": args.top_p, "min_p": args.min_p, "top_k": args.top_k},
                 "teacher_router": args.teacher.split(",") if args.teacher else None,
                 "agent_model": args.agent_model, "seed": args.seed, **(extra or {})})
     write_json(out / "metrics.json", agg)
@@ -94,6 +95,12 @@ def main() -> int:
     ap.add_argument("--adapter", default=None, help="LoRA adapter dir (hf backend)")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--student-temperature", type=float, default=0.0)
+    ap.add_argument("--top-p", type=float, default=0.95, help="nucleus threshold (sampled runs)")
+    ap.add_argument("--min-p", type=float, default=0.0,
+                    help="relative truncation: keep tokens with p >= min_p * p_max. Use this "
+                         "instead of top-p when a fine-tuned student's distribution has flattened "
+                         "(docs/STABILITY.md); 0.1 is a good starting point")
+    ap.add_argument("--top-k", type=int, default=0, help="keep only the k most likely tokens")
     ap.add_argument("--batch-size", type=int, default=16, help="student arm: episodes decoded in lockstep")
     # teacher / agent
     ap.add_argument("--teacher", default=None, help="guided arm: teacher model id(s), comma = fallback chain")
@@ -161,7 +168,8 @@ def main() -> int:
             from tgd.vllm_backend import VllmPolicy, wait_ready
             served = wait_ready(args.server_url, args.served_model, timeout_s=300)
             policy = VllmPolicy(args.server_url, args.served_model, seed=args.seed,
-                                max_parallel=max(args.batch_size, args.concurrency, 4))
+                                max_parallel=max(args.batch_size, args.concurrency, 4),
+                                top_p=args.top_p, min_p=args.min_p, top_k=args.top_k)
             log.info(f"vLLM student: {args.server_url} model={args.served_model} (served: {served})")
         elif args.student == "mock":
             from tgd.mock_policy import MockPolicy

@@ -14,9 +14,18 @@
 #   sbatch slurm/eval_forgetting.sbatch runs/train/uniform/adapter trained_uniform
 #
 # RUNS=5 repeats every (arm, benchmark) five times with distinct sampling seeds at
-# TEMPERATURE (default 0.7 when RUNS>1), so the spread across replicates measures
+# TEMPERATURE (default 0.3 when RUNS>1), so the spread across replicates measures
 # decoding noise and the comparison can be tested for significance. RUNS=1 (default)
 # runs once, greedy and deterministic.
+#
+# Why 0.3 and not something higher: a heavily fine-tuned student can be well behaved at
+# its argmax yet degenerate when sampled, because SFT drives output entropy down and
+# leaves the model poorly calibrated on prompts unlike its training data. Measured on
+# this project's own student, replies collapse into token salad at T=0.7 (7 of 16 usable
+# at concurrency 1 AND 16, so temperature-driven, not batching) while the base model is
+# untouched at the same setting. Both arms are stable at 0.3 and at greedy. If your
+# replicates show one arm collapsing, raise nothing -- lower the temperature and treat
+# the collapse itself as a result, which is what SWEEP below measures.
 #
 # Resumable: a finished (arm, benchmark, run) triple is skipped on resubmission.
 set -uo pipefail
@@ -30,7 +39,7 @@ PORT=${PORT:-8300}
 BENCHMARKS=${BENCHMARKS:-"mmlu gsm8k hellaswag"}
 STUDENT_MODEL=${STUDENT_MODEL:-ibm-granite/granite-4.1-3b}
 RUNS=${RUNS:-1}
-if [ "$RUNS" -gt 1 ]; then TEMPERATURE=${TEMPERATURE:-0.7}; else TEMPERATURE=${TEMPERATURE:-0.0}; fi
+if [ "$RUNS" -gt 1 ]; then TEMPERATURE=${TEMPERATURE:-0.3}; else TEMPERATURE=${TEMPERATURE:-0.0}; fi
 SEEDS=${SEEDS:-"13 17 23 29 31 37 41 43 47 53"}
 
 [ -f "$ADAPTER/adapter_config.json" ] || { echo "no adapter at $ADAPTER"; exit 1; }
@@ -56,8 +65,16 @@ for seed in $SEEDS; do
       $PY_TRAIN scripts/eval_benchmarks.py --benchmarks "data/benchmarks/$b.jsonl.gz" \
           --server-url "http://127.0.0.1:$PORT" --served-model "$served" --arm "$arm" \
           --run "$run" --temperature "$TEMPERATURE" --seed "$seed" \
-          --out "$d" --concurrency "${CONCURRENCY:-48}" > "$d.stdout" 2>&1 \
+          --out "$d" --concurrency "${CONCURRENCY:-32}" > "$d.stdout" 2>&1 \
         || { rc=$?; echo "  !! $run/$arm/$b incomplete (rc=$rc); last lines:"; tail -15 "$d.stdout"; RC=3; }
+      # canary: a healthy model answers in the requested shape almost always. A collapse
+      # here is a decoding or serving problem, not an accuracy result -- do not report it.
+      [ -f "$d/metrics.json" ] && $PY_BASE -c "
+import json,sys
+m=json.load(open('$d/metrics.json'))['benchmarks']['$b']
+print(f\"  $run/$arm/$b: strict {m['strict_accuracy']:.3f} | lenient {m['lenient_accuracy']:.3f} | format-ok {m['strict_format_ok']:.3f}\")
+sys.exit(9 if m['strict_format_ok'] < 0.80 else 0)" \
+        || { echo "  !! CANARY: $run/$arm/$b replies collapsed -- lower TEMPERATURE and see docs/FORGETTING.md"; RC=4; }
     done
   done
 done

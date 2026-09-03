@@ -38,11 +38,20 @@ class VllmPolicy:
         seed: Optional[int] = None,
         timeout_s: float = DEFAULT_TIMEOUT_S,
         max_parallel: int = 32,
+        top_p: float = 0.95,
+        min_p: float = 0.0,
+        top_k: int = 0,
     ):
         self.server_url = server_url.rstrip("/")
         self.model_name = model_name
         self.seed = seed
         self.timeout_s = timeout_s
+        # Truncation controls. A fine-tuned model whose probability mass has spread across
+        # the vocabulary needs a threshold RELATIVE to the top token (min_p) -- an absolute
+        # mass threshold (top_p) admits the whole flat tail. See docs/STABILITY.md.
+        self.top_p = top_p
+        self.min_p = min_p
+        self.top_k = top_k
         self._client = httpx.Client(timeout=timeout_s)
         self._pool = ThreadPoolExecutor(max_workers=max_parallel)
         self.last_stats: List[Dict[str, Any]] = []
@@ -57,7 +66,11 @@ class VllmPolicy:
             "temperature": temperature if temperature and temperature > 0 else 0.0,
         }
         if temperature and temperature > 0:
-            body["top_p"] = 0.95
+            body["top_p"] = self.top_p
+            if self.min_p:
+                body["min_p"] = self.min_p
+            if self.top_k:
+                body["top_k"] = self.top_k
             if self.seed is not None:
                 body["seed"] = self.seed
         t0 = time.time()

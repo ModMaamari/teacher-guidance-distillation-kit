@@ -120,3 +120,92 @@ def test_benchmark_answer_parsers():
     assert mod.score(row, "zzz")["format_fail"] == 1
     num = {"kind": "numeric", "gold": "18", "choices": [], "question": "q"}
     assert mod.score(num, "#### 18.00")["strict_correct"] == 1
+
+
+def _load_script(name):
+    import importlib.util
+    path = Path(__file__).resolve().parents[1] / "scripts" / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(f"_script_{name}", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_kl_direction_matches_its_definition():
+    """The argument order of F.kl_div is easy to get backwards, and getting it backwards
+    silently trains the opposite objective. Pin it against the definition."""
+    import torch
+
+    train = _load_script("train_sft")
+    torch.manual_seed(0)
+    student = torch.randn(8, 32)
+    base = torch.randn(8, 32)
+
+    p_s = torch.softmax(student, -1)
+    p_b = torch.softmax(base, -1)
+    expect_forward = (p_b * (p_b.log() - p_s.log())).sum(-1).mean()   # KL(base || student)
+    expect_reverse = (p_s * (p_s.log() - p_b.log())).sum(-1).mean()   # KL(student || base)
+
+    assert torch.allclose(train.kl_term(student, base, "forward"), expect_forward, atol=1e-5)
+    assert torch.allclose(train.kl_term(student, base, "reverse"), expect_reverse, atol=1e-5)
+    assert train.kl_term(student, student, "reverse").abs() < 1e-5    # zero against itself
+
+    # Masking the supervised token changes the value but keeps the term finite and non-negative.
+    tgt = torch.randint(0, 32, (8,))
+    masked = train.kl_term(student, base, "reverse", target_ids=tgt)
+    assert torch.isfinite(masked) and masked >= 0
+    assert not torch.allclose(masked, expect_reverse, atol=1e-5)
+
+
+def test_truncation_params_are_sent_only_when_sampling():
+    """Greedy must stay greedy: no truncation knob may leak into a temperature-0 request."""
+    from tgd.vllm_backend import VllmPolicy
+
+    sent = {}
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"content": "ok"}}], "usage": {}}
+
+    class FakeClient:
+        def post(self, url, json):
+            sent.clear()
+            sent.update(json)
+            return FakeResponse()
+
+    pol = VllmPolicy(min_p=0.1, top_k=50, top_p=0.9, seed=7)
+    pol._client = FakeClient()
+    msgs = [{"role": "user", "content": "hi"}]
+
+    pol._one(msgs, 16, 0.0)
+    assert sent["temperature"] == 0.0
+    assert not {"top_p", "min_p", "top_k", "seed"} & set(sent)
+
+    pol._one(msgs, 16, 0.7)
+    assert (sent["top_p"], sent["min_p"], sent["top_k"], sent["seed"]) == (0.9, 0.1, 50, 7)
+
+    pol2 = VllmPolicy()                      # defaults: nucleus only, no min_p / top_k
+    pol2._client = FakeClient()
+    pol2._one(msgs, 16, 0.7)
+    assert "min_p" not in sent and "top_k" not in sent
+
+
+def test_diagnostic_prompt_builders_read_the_shipped_data():
+    """The stability diagnostics must load the gzipped episodes and benchmark files as shipped."""
+    root = Path(__file__).resolve().parents[1]
+    diag = _load_script("diag_distributions")
+
+    episodes = root / "data/episodes/episodes.jsonl.gz"
+    if episodes.exists():
+        rows = diag.agent_prompts(str(episodes), 4)
+        assert 0 < len(rows) <= 4
+        assert all(r.get("messages") for r in rows)
+
+    mmlu = root / "data/benchmarks/mmlu/test.jsonl"
+    if mmlu.exists():
+        rows = diag.mmlu_prompts(str(mmlu), 4)
+        assert 0 < len(rows) <= 4
+        assert all(r.get("messages") for r in rows)

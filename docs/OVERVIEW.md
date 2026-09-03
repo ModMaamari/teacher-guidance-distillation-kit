@@ -15,7 +15,16 @@
         scripts/eval.py --arm student|guided|teacher      ──►  runs/eval/<arm>/<test-set>/episodes.jsonl
         scripts/judge.py             │  any judge API     ──►  runs/judge/verdicts.jsonl
         scripts/collect_results.py   │                    ──►  runs/results/{results.json, RESULTS.md}
+                                     │
+        scripts/eval_benchmarks.py   │  forgetting check   ──►  runs/forgetting/
+        scripts/merge_adapter.py     │  adapter ──► standalone weights, for the diagnostics below
+        scripts/diag_distributions.py│  next-token entropy / top-1 / valid mass
+        scripts/sweep_decoding.py    │  task metrics across temperature and truncation
 ```
+
+The first two rows are the expensive part. Everything below the split line runs off a
+finished adapter, so the diagnostics and the forgetting check can be repeated cheaply while
+you iterate on training.
 
 ## Code map
 
@@ -29,6 +38,8 @@
 | `tgd/episodes.py`, `tgd/splits.py`, `tgd/metrics.py`, `tgd/io.py`, `tgd/logging_utils.py` | publishable episode view, hash split, aggregate metrics, JSONL I/O, logging |
 | `templates/workflows/` | the harness workflow definitions per step budget; `templates/prompts/` prompt fragments |
 | `templates/simulations/` | collection templates written by `collect_episodes.py` |
+| `scripts/merge_adapter.py`, `scripts/diag_distributions.py`, `scripts/sweep_decoding.py`, `scripts/diag_consistency.py` | decoding-stability toolkit: fold the LoRA into base weights, measure the next-token distribution on in- and out-of-distribution prompts, sweep temperature against truncation, and separate sampling noise from a genuine cliff (`docs/STABILITY.md`) |
+| `scripts/prepare_benchmarks.py`, `scripts/eval_benchmarks.py`, `scripts/forgetting_report.py` | the forgetting check: build MMLU / GSM8K / HellaSwag eval splits, score any arm on them, then aggregate repeated runs into statistics and box plots (`docs/FORGETTING.md`) |
 
 ## Conventions
 

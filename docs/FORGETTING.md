@@ -64,7 +64,7 @@ scripts/serve_vllm.sh --lora trained=runs/train/uniform/adapter &
 ### Repeated runs
 
 A single greedy pass gives no measure of its own noise. `RUNS=5` repeats every
-(arm, benchmark) five times with distinct sampling seeds at `TEMPERATURE` (0.7 by
+(arm, benchmark) five times with distinct sampling seeds at `TEMPERATURE` (0.3 by
 default when `RUNS>1`), so the spread across replicates *is* the decoding noise:
 
 ```bash
@@ -78,7 +78,40 @@ accuracies, an item-level exact McNemar test over all R x N decisions, and box p
 the per-run distributions (`boxplot.svg`, inline SVG, no plotting dependency).
 
 `BENCHMARKS="mmlu gsm8k"` limits the set; `CONCURRENCY=` tunes throughput; `SEEDS=` sets
-the seed list. Each
+the seed list.
+
+### Sampling robustness — read this before raising the temperature
+
+A student fine-tuned hard on one narrow format can be perfectly well behaved at its
+argmax and fall apart when sampled. SFT drives output entropy down, and on prompts
+unlike the training data the model is left poorly calibrated: greedy decoding still
+picks a sensible token, but sampling reaches into a tail that has become garbage.
+
+Measured on this project's own student, on MMLU items:
+
+| Decoding | Base model | Trained student |
+|---|---|---|
+| greedy (T=0) | replies in format | replies in format |
+| T=0.3 | replies in format | replies in format |
+| T=0.7 | replies in format | **collapses into token salad** |
+
+The collapse is identical at concurrency 1 and 16, so it is temperature-driven, not a
+batching or serving artefact. Two consequences:
+
+* Replicates default to T=0.3, where both arms are stable. If a run collapses, the
+  canary in the job script fails it loudly rather than letting a serving or decoding
+  problem be written up as catastrophic forgetting.
+* The collapse is itself a finding worth measuring, not just avoiding. `SWEEP=` runs the
+  same benchmark subset across temperatures for both arms, which turns brittleness into
+  a curve you can report:
+
+```bash
+SWEEP="0.0 0.3 0.5 0.7 1.0" SWEEP_N=400 sbatch slurm/eval_forgetting.sbatch <adapter> <arm>
+```
+
+Report the greedy numbers as the point estimate and the sweep as the robustness result;
+a model that is only usable greedily is a materially different product from one that
+tolerates sampling, even when their greedy accuracies match. Each
 `(arm, benchmark)` writes `predictions.jsonl` (one row per item, with the raw reply),
 `metrics.json`, `status.json` and a `.done` marker, and is skipped on resubmission — so
 an interrupted run continues where it stopped.
