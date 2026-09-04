@@ -39,6 +39,28 @@ architecture rescales logits under a field TRL's chunked path does not read, it 
 run. `--loss-type` overrides the choice if you need to. The chunked path is a memory optimisation, so the safe
 path needs a smaller micro-batch and more accumulation — `docs/TRAINING.md` has the numbers.
 
+## What the fix bought
+
+The same training run, same data, same hyperparameters and seed, with only the loss path
+corrected. 300 held-out questions, budget 3:
+
+| Decoding | Broken cover | Fixed cover | Fixed EM |
+|---|---|---|---|
+| greedy | 61.0 % | 61.0 % | 0.340 |
+| T 0.7, nucleus | **0.0 %** | **59.7 %** | 0.333 |
+| T 0.3, min-p 0.1 | 0.0 % | **61.7 %** | 0.330 |
+
+**Greedy is unchanged to within a rounding error** — 61.0 % against 61.0 %, EM 0.340 against
+0.343. That is the signature of the bug confirming itself: dividing logits by a constant cannot
+reorder them, so greedy, which reads only the ranking, never noticed. Everything that samples
+was destroyed, and is now fine. The next-token distribution went from entropy 10.9 with 1.2 % of
+its mass on valid tokens to entropy 0.22 with 100 %.
+
+The practical lesson is the uncomfortable one: **a greedy evaluation cannot detect this class of
+bug at all.** Both models score identically on it. If the only number you look at is greedy
+accuracy, a model with a badly broken output distribution is indistinguishable from a correct
+one.
+
 ## What it looked like before the cause was known
 
 Everything below was measured on the miscalibrated checkpoint. It is kept because the
@@ -166,9 +188,9 @@ silently, so **check the loss path before reaching for any training-side mitigat
 seed. The KL sweep above was run *before* the scaling bug was found, so it measures what the KL
 term does to an already-healthy short run — its conclusions about the cost of the constraint
 stand, but "the KL term fixes the cliff" does not: the cliff was a bug, and the fix is the
-guard. The task numbers for a correctly-trained full-data student are being re-measured; treat
-any full-data figure elsewhere in this kit as provisional until `docs/RESULTS.md` says
-otherwise.
+guard. **With the loss path corrected, the KL term buys nothing here**: the corrected student is
+stable at every temperature with `--kl-coef 0`, and every non-zero coefficient measured cost
+task accuracy. Leave it off unless a diagnostic on your own model says otherwise.
 
 ### And measure it during training
 

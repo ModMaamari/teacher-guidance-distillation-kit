@@ -125,12 +125,12 @@ McNemar test.
 Measured for the student in `docs/RESULTS.md` (granite-4.1-3b, LoRA on 14,458
 guidance-as-thought examples), 4,529 items per arm, greedy decoding.
 
-> **Provisional, for the same reason as `docs/RESULTS.md`.** This adapter was trained through
-> a loss path that miscalibrates logits for this architecture (`docs/STABILITY.md`). Greedy
-> decoding depends only on the token ranking, which the bug leaves intact, so the paired
-> comparison below is internally valid — both arms answered the same items through the same
-> server. But the trained arm is not the model a corrected run produces, and the gap is being
-> re-measured.
+> **Still valid, for the reason given in `docs/RESULTS.md`.** This adapter was trained through
+> a loss path that miscalibrates logits for this architecture (`docs/STABILITY.md`). That bug is
+> a monotonic transform of the logits, so greedy decoding — which depends only on the token
+> ranking — is unaffected, and a corrected retrain reproduced the greedy agent-task numbers to
+> within 0.3 points. The paired comparison below stands. It has not been re-run under sampling,
+> which the corrected model now supports.
 
 | Benchmark | Base | Trained | Δ | McNemar p |
 |---|---|---|---|---|
