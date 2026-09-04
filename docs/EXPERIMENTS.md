@@ -17,7 +17,7 @@ Then train and evaluate with your own student:
 
 ```bash
 sbatch -p <partition> slurm/train.sbatch data/splits/uniform runs/train/mine \
-    --model Qwen/Qwen2.5-3B-Instruct --kl-coef 0.05 --health-every 200
+    --model Qwen/Qwen2.5-3B-Instruct --kl-coef 0.03 --health-every 200
 sbatch -p <partition> slurm/eval_student.sbatch \
     "mine=mine:runs/train/mine/adapter" "heldout_hotpotqa heldout_musique" \
     --model Qwen/Qwen2.5-3B-Instruct
@@ -35,7 +35,7 @@ STUDENT_MODEL=Qwen/Qwen2.5-3B-Instruct sbatch -p <partition> \
 | **judge** | `judge.py --judge <id>`, `--prompt-file` for a custom rubric | the judge never sees the trajectory or which arm produced an answer |
 | **datasets** | `--datasets` on `build_splits.py` and `collect_episodes.py` | add `data/questions/<name>/<name>_{questions,corpus}.jsonl[.gz]` in the documented format — `docs/DATA.md` §4 |
 | **split design** | `--heldout-fraction`, `--salt`, `--dev-fraction` | a different salt gives a different, equally valid held-out set; always re-run `check_leakage.py` |
-| **training objective** | `--kl-coef`, `--kl-direction`, `--kl-mask-target`, `--lr`, `--epochs`, `--lora-r` | `docs/STABILITY.md` explains what the KL does and which direction to prefer |
+| **training objective** | `--kl-coef`, `--kl-direction`, `--kl-mask-target`, `--lr`, `--epochs`, `--lora-r` | `docs/STABILITY.md` has the measured trade-off curve, and why training length matters more |
 | **decoder** | `--student-temperature`, `--top-p`, `--min-p`, `--top-k` on `eval.py` | relative truncation matters for fine-tuned students — `docs/STABILITY.md` |
 | **budget / prompts** | `--budget`, `--hidden-budget`, `--no-plan` | the agent's step budget and whether it is told what it is |
 
@@ -55,22 +55,32 @@ both catch failures that the headline evaluation cannot see.
 
 ## Choosing a KL coefficient
 
-The regulariser trades task performance for calibration, and the exchange rate depends on the
-direction (`docs/STABILITY.md`). To find your own point, train short runs on a subsample and
-read two numbers off each:
+First check whether you need one at all. The failure this guards against tracked training
+length, not the objective: a short no-KL run was healthy where a long one was not
+(`docs/STABILITY.md`). Run `scripts/diag_distributions.py` on an early checkpoint before
+spending anything here.
+
+If you do need one, the regulariser trades task performance for calibration. Measured on this
+project's student the coefficient mattered far more than the direction, and the useful range sat
+at or below 0.03, so sweep downward from there:
 
 ```bash
-for coef in 0 0.03 0.1; do
+for coef in 0 0.003 0.01 0.03; do
   sbatch -p <partition> slurm/train.sbatch data/splits/uniform runs/train/kl$coef \
       --limit 6000 --epochs 1 --kl-coef $coef --health-every 100
 done
-# then, per run: agent cover at greedy, and OOD top-1
+# then, per run: agent cover and exact match at greedy, and OOD top-1
 sbatch -p <partition> slurm/eval_stability.sbatch runs/train/kl0.03/adapter kl003
 ```
 
+Keep every point at the same `--limit` and `--epochs`. Comparing a KL run against a baseline
+trained on more data confounds the constraint's cost with the budget difference, which is worth
+about 9 points of cover here — roughly the size of the effect being measured.
+
 A healthy point keeps agent cover near the `--kl-coef 0` run while pulling out-of-distribution
 top-1 back toward the base model's. If cover falls toward the *untrained* baseline, the
-coefficient is too high — that is what happened here at forward-KL 0.1.
+coefficient is too high. **Watch exact match separately**: it fell by roughly three quarters at
+every coefficient tested here, including ones where cover looked acceptable.
 
 ## Costs to plan around, measured on this hardware
 

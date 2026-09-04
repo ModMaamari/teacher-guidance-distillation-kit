@@ -209,3 +209,17 @@ def test_diagnostic_prompt_builders_read_the_shipped_data():
         rows = diag.mmlu_prompts(str(mmlu), 4)
         assert 0 < len(rows) <= 4
         assert all(r.get("messages") for r in rows)
+
+
+def test_position_profile_buckets_partition_every_index():
+    """Each completion position must fall in exactly one bucket, or the profile silently
+    drops or double-counts tokens."""
+    prof = _load_script("diag_position_profile")
+    for k in list(range(300)) + [999, 100000]:
+        hits = [(a, b) for a, b in prof.BUCKETS if a <= k < b]
+        assert len(hits) == 1, f"position {k} matched {len(hits)} buckets"
+    assert prof.BUCKETS[0] == (0, 1)          # the first generated token, measured alone
+    assert prof.BUCKETS[-1][1] == float("inf")   # last bucket open-ended: nothing is dropped
+    assert prof.summarise([]) == {}
+    s = prof.summarise([1.0, 2.0, 3.0])
+    assert s["n"] == 3 and s["median"] == 2.0

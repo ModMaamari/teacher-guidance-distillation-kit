@@ -35,18 +35,23 @@ MERGED=$OUT/merged
 mkdir -p "$OUT"
 [ -f "$ADAPTER/adapter_config.json" ] || { echo "no adapter at $ADAPTER"; exit 1; }
 
-echo "=== 1/4 merge the adapter into the base weights"
+echo "=== 1/5 merge the adapter into the base weights"
 $PY_TRAIN scripts/merge_adapter.py --base "$BASE" --adapter "$ADAPTER" --out "$MERGED" || exit 1
 
-echo "=== 2/4 next-token distributions (the calibration diagnostic)"
+echo "=== 2/5 next-token distributions (the calibration diagnostic)"
 $PY_TRAIN scripts/diag_distributions.py --models "base=$BASE" "$ARM=$MERGED" \
     --n 200 --out "$OUT/diag" || echo "!! distributions failed"
 
-echo "=== 3/4 decoding sweep on MMLU"
+echo "=== 3/5 decoding sweep on MMLU"
 $PY_TRAIN scripts/sweep_decoding.py --models "$ARM=$MERGED" --n 100 --out "$OUT/diag" \
     || echo "!! decoding sweep failed"
 
-echo "=== 4/4 the agent task under three decoders"
+echo "=== 4/5 where along the completion the distribution goes flat"
+$PY_TRAIN scripts/diag_position_profile.py --models "base=$BASE" "$ARM=$MERGED" \
+    --data data/splits/uniform/dev.jsonl --n 48 --out "$OUT/diag_positions" \
+    || echo "!! position profile failed"
+
+echo "=== 5/5 the agent task under three decoders"
 MODEL=$MERGED start_server "$PORT" || exit 1
 trap stop_server EXIT
 run () {  # run <label> <temperature> [extra eval args]

@@ -66,33 +66,72 @@ checkpoint works: **the temperature must be low and the truncation must be relat
 
 ### At training: regularise toward the base
 
-`scripts/train_sft.py --kl-coef 0.05` pulls every completion token toward the frozen base
+`scripts/train_sft.py --kl-coef 0.03` pulls every completion token toward the frozen base
 model's own distribution. The base distribution comes from the same weights with the adapter
 switched off, so it costs one extra forward pass and no extra parameters.
 
-`--kl-direction` decides what is penalised, and the choice matters more than the coefficient:
+`--kl-direction` decides what is penalised:
 
 * **`reverse`** (default) — KL(student ‖ base), *mode-seeking*: penalises probability mass where
   the base has none, which is exactly the junk tail, while leaving the student free to sharpen
   on the correct token. This is the direction [MiniLLM](https://arxiv.org/abs/2306.08543) uses
   for LLM distillation and that RLHF/DPO use for their reference constraint.
 * **`forward`** — KL(base ‖ student), *mass-covering*: penalises the student for withdrawing
-  mass from anything the base found plausible. That fights the cross-entropy directly. Measured
-  here at coefficient 0.1 it fixed the calibration completely (OOD top-1 0.006 → 0.934, stable
-  at every temperature, and it forgot *less*: pooled general-benchmark gap 1.4 → 0.6 points) and
-  cost most of the task: agent cover fell from 61 % to 29 %, barely above the untrained base.
+  mass from anything the base found plausible, which fights the cross-entropy directly.
 
-So: forward KL is a documented way to trade the task away for calibration. Reverse KL is the
-direction to start from. `--kl-mask-target` excludes the target token from the divergence
-entirely, so only the shape of the alternatives is constrained.
+The theory says the direction should matter a great deal. **Measured, it barely does.** A sweep
+on this project's student, every point trained identically on 6,000 examples for 375 steps:
 
-Pick a coefficient by sweeping — 0.03 and 0.1 bracket the useful range — and read the trade-off
-off the two numbers that matter: agent cover at greedy, and OOD top-1.
+| Variant | Exact match | Greedy cover | Nucleus 0.7 | min-p 0.3 |
+|---|---|---|---|---|
+| no KL | **0.287** | **51.7 %** | not measured | not measured |
+| reverse, coef 0.03 | 0.073 | 42.3 % | 42.3 % | 43.3 % |
+| reverse, coef 0.1 | 0.077 | 30.7 % | 32.0 % | 35.3 % |
+| forward, coef 0.1 | 0.060 | 29.0 % | not measured | not measured |
+| reverse 0.1, `--kl-mask-target` | 0.080 | 28.3 % | 30.7 % | 23.3 % |
+| untrained base | — | 23.3 % | — | — |
 
-**What is measured and what is not.** The cliff itself, its mechanism, the decoder mitigations
-and the forward-KL result above are all measured on this project's student. The reverse-KL
-setting is argued from the objective and from the distillation literature, not yet measured
-here — it is the obvious first experiment to run, and `docs/EXPERIMENTS.md` sets it up.
+Read three things off that table.
+
+**The coefficient dominates the direction.** Reverse and forward at the same 0.1 differ by 1.7
+points; reverse at 0.03 versus 0.1 differ by 11.6. Pick the coefficient carefully and the
+direction second.
+
+**Every KL setting removes the cliff.** Cover varies by a few points across three decoders
+instead of collapsing to zero. That part works exactly as advertised, at every coefficient tested.
+
+**The constraint is not free, and exact match pays most.** Cover falls 9.4 points at the cheapest
+setting that was tried; exact match falls by roughly three quarters at *every* setting, including
+that one. If exact match is what you care about, none of these points is good enough yet — sweep
+below 0.03.
+
+`--kl-mask-target` excludes the target token from the divergence, so only the shape of the
+alternatives is constrained. It produced the best calibration measured here (better than base,
+in distribution) and the worst task score. It is the wrong end of the curve.
+
+### Before you reach for any of this: try training less
+
+The student that produced the cliff was trained for 2 epochs on the full dataset. A student
+trained on 6,000 examples for 1 epoch, **same objective, no KL at all**, is not damaged:
+
+| Plain SFT run | In-distribution entropy | Top-1 | Valid mass |
+|---|---|---|---|
+| 2 epochs, full data | 11.076 | 0.001 | 0.2 % |
+| 1 epoch, 6,000 examples | 0.000 | 1.000 | 100 % |
+| untrained base | 0.048 | 0.992 | 99.5 % |
+
+Roughly a tenfold difference in gradient updates separates a healthy student from an unsamplable
+one. **Cross-entropy does not inherently produce this failure; prolonged training on this data
+does.** So run `scripts/diag_distributions.py` at a couple of checkpoints before assuming you
+need a KL term, and treat early stopping as the first thing to try. The short run above also
+scored the best task numbers of any variant in the sweep table.
+
+**What is measured and what is not.** Every number on this page comes from this project's
+student, one seed. The short no-KL run's *agent* numbers at temperature were not measured when
+this was written — its distribution numbers predict it holds up, which is a prediction, not a
+result. It also differs from the long run in both dataset size and epoch count, so "too many
+steps" and "a second pass over the same data" are not separated. Re-run both on your own
+student before relying on either.
 
 ### And measure it during training
 

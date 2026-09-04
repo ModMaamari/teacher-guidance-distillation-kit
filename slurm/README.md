@@ -11,7 +11,7 @@
 
 Pass partition/account as normal sbatch options: `sbatch -p <partition> -A <account> slurm/train.sbatch ...`.
 Edit the `#SBATCH` headers if your cluster needs different memory/time defaults or a
-`--gres` syntax such as `--gres=gpu:a100:1`.
+`--gres` syntax such as `--gres=gpu:<type>:1`.
 
 `common.sh` (sourced by all of them) points every cache and `HOME` into the project
 directory, loads `.env`, prints the node and GPU, and provides `start_server` /
