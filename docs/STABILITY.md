@@ -88,7 +88,20 @@ Measured on this project's own pre-fix checkpoint, against a full retrain of the
 | valid-token mass | 1.2 % | **100 %** | 100 % |
 
 The repair also reproduces the checkpoint's own training log: loss 0.263 measured against
-0.269 logged, where the unrepaired model measured 6.568.
+0.269 logged, where the unrepaired model measured 6.568. And it restores the task under
+sampling, which is the whole point:
+
+| Agent task, 300 held-out questions | before | config repair | full retrain |
+|---|---|---|---|
+| greedy cover | 60.9 % | 60.7 % | 61.0 % |
+| T 0.7 cover | **0.0 %** | **60.0 %** | 59.7 % |
+| T 0.7 exact match | — | 0.293 | 0.333 |
+| T 0.7 invalid steps | 899 / 900 | 18 / 853 | 23 / 856 |
+
+Cover under sampling is indistinguishable from a full retrain (0.1 SE apart). Exact match is
+4 points lower, which is 1.1 SE at this sample size — consistent with noise, and these are two
+different training runs, so exact equality was never expected. If exact match is what you
+optimise for, retrain; for everything else the config edit is equivalent and free.
 
 Three cautions. **Only apply this to a checkpoint that disagrees with its own training log** —
 on a healthy model the same edit *introduces* the bug, which is why the script reports before it
