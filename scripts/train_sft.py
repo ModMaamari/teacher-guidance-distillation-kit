@@ -71,47 +71,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 
 import tgd  # noqa: F401
 from tgd.io import load_jsonl
+from tgd.logit_scale import (autoscale_batch, chunked_loss_conflict,  # noqa: E402
+                             describe as describe_scaling)
 from tgd.logging_utils import setup_logger, write_json
-
-
-# Architectures that rescale logits before the softmax, and the config field each one
-# uses. TRL's memory-chunked cross-entropy bypasses the model's forward pass and reads
-# `logit_scale`, defaulting to 1.0 when it is absent -- so for any model whose field is
-# named something else, training optimises logits at a different scale than inference
-# produces. The ranking survives (a constant divisor is monotonic) but the calibration does
-# not: greedy decoding looks fine while sampling draws from a distribution the model was
-# never trained on. See docs/STABILITY.md.
-SCALING_FIELDS = ("logits_scaling", "logit_scale", "final_logit_softcapping")
-# Above this, the logits tensor alone is a large fraction of a mid-range GPU; the softmax
-# needs a second buffer of the same size, so the practical ceiling is roughly half of it.
-MAX_LOGIT_TENSOR_GB = 4.0
-TRL_CHUNKED_READS = "logit_scale"
-
-
-def autoscale_batch(batch_size: int, grad_accum: int, max_length: int, vocab: int):
-    """Trade micro-batch for accumulation when the full logit tensor would be too large.
-
-    Returns (batch_size, grad_accum, gb) with the effective batch preserved. `gb` is the
-    size of the logit tensor at the ORIGINAL micro-batch, for the log line.
-    """
-    gb = batch_size * max_length * vocab * 4 / 1024 ** 3
-    if batch_size > 1 and gb > MAX_LOGIT_TENSOR_GB:
-        return 1, grad_accum * batch_size, gb
-    return batch_size, grad_accum, gb
-
-
-def logit_scaling_conflict(config) -> str | None:
-    """Return a message if TRL's chunked loss would train at the wrong logit scale."""
-    present = {f: getattr(config, f, None) for f in SCALING_FIELDS}
-    present = {f: v for f, v in present.items() if v not in (None, 1.0)}
-    if not present:
-        return None
-    if TRL_CHUNKED_READS in present:
-        return None      # TRL reads this one itself, so the scales agree
-    field, value = next(iter(present.items()))
-    return (f"this model rescales logits via config.{field}={value}, but TRL's chunked "
-            f"cross-entropy reads config.{TRL_CHUNKED_READS} (absent here, so it uses 1.0). "
-            f"Training would optimise logits {value}x the ones inference produces.")
 
 
 def kl_term(student_logits, base_logits, direction: str, target_ids=None):
@@ -228,9 +190,10 @@ def main() -> int:
     log.info(f"model loaded in {time.time() - t0:.1f}s | cuda={torch.cuda.is_available()} "
              f"gpus={torch.cuda.device_count()}")
 
+    log.info(describe_scaling(model.config))
     # Pick the loss path before building the config: a scaling mismatch silently produces a
     # model that decodes greedily but cannot be sampled.
-    conflict = logit_scaling_conflict(model.config)
+    conflict = chunked_loss_conflict(model.config)
     if conflict and args.loss_type == "auto":
         log.warning(conflict + " Using loss_type='nll' instead.")
     use_nll = args.kl_coef > 0 or args.loss_type == "nll" or (conflict and args.loss_type == "auto")

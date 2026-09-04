@@ -39,6 +39,27 @@ architecture rescales logits under a field TRL's chunked path does not read, it 
 run. `--loss-type` overrides the choice if you need to. The chunked path is a memory optimisation, so the safe
 path needs a smaller micro-batch and more accumulation — `docs/TRAINING.md` has the numbers.
 
+## What is guarded, and where
+
+You should not be able to hit this again by following the kit. `tgd/logit_scale.py` holds the
+one implementation; these use it:
+
+| Script | Guard |
+|---|---|
+| `train_sft.py` | picks the safe loss path automatically, refuses the unsafe one, and rescales the micro-batch to fit; logs the model's scaling at startup |
+| `merge_adapter.py` | verifies the merged config kept the base's scaling; **deletes the merged model and fails** if not, rather than leaving a silently-wrong checkpoint on disk |
+| `diag_distributions.py`, `diag_position_profile.py`, `sweep_decoding.py`, `diag_consistency.py` | print the model's scaling next to every measurement |
+| `eval.py` | prints it whenever it is about to sample a local checkpoint |
+
+The diagnostics and the KL term all read `model(...).logits`, which is *post*-scaling — what
+inference actually produces — so they measure the right thing by construction. vLLM applies the
+scaling from the config too; that was confirmed here, since the broken model failed identically
+under vLLM and under transformers.
+
+Two habits matter more than any of the above. **Never evaluate only at greedy** — it cannot see
+this class of bug. And run `--health-every 200` during training: sampling eight held-out prompts
+would have caught this on the first run, hours in rather than a week later.
+
 ## What the fix bought
 
 The same training run, same data, same hyperparameters and seed, with only the loss path

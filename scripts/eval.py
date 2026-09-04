@@ -182,6 +182,18 @@ def main() -> int:
             policy = PolicyModel(args.model, args.adapter, device=args.device)
             log.info(f"HF student: {args.model} adapter={args.adapter}")
 
+    # Sampling is where a miscalibrated model shows up; greedy hides it completely
+    # (docs/STABILITY.md). If we are about to sample a local checkpoint, say what its logit
+    # scaling is, so a wrong one is visible in the log rather than only in the scores.
+    if args.student_temperature > 0 and Path(args.model).exists():
+        try:
+            from transformers import AutoConfig
+            from tgd.logit_scale import describe as describe_scaling
+            log.info(f"sampling at T={args.student_temperature} | "
+                     f"{describe_scaling(AutoConfig.from_pretrained(args.model))}")
+        except Exception as e:                     # never let a log line break an eval
+            log.debug(f"could not read logit scaling from {args.model}: {e}")
+
     if args.arm == "student":
         from tgd.hf_agent_loop import run_episodes_batched
         run_episodes_batched(policy, todo, retriever, budget=args.budget,

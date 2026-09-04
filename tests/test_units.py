@@ -229,26 +229,26 @@ def test_logit_scaling_conflict_detection():
     """TRL's chunked loss reads config.logit_scale. A model that rescales logits under a
     different field name trains at the wrong scale — greedy still works, sampling breaks —
     so the mismatch has to be caught before training, not after evaluation."""
-    train = _load_script("train_sft")
+    from tgd.logit_scale import chunked_loss_conflict
 
     class Cfg:
         pass
 
     granite = Cfg()
     granite.logits_scaling = 10.0            # Granite's field; TRL never reads it
-    msg = train.logit_scaling_conflict(granite)
+    msg = chunked_loss_conflict(granite)
     assert msg and "logits_scaling" in msg and "10.0" in msg
 
     understood = Cfg()
     understood.logit_scale = 4.0             # the field TRL itself applies
-    assert train.logit_scaling_conflict(understood) is None
+    assert chunked_loss_conflict(understood) is None
 
     plain = Cfg()                            # no rescaling at all
-    assert train.logit_scaling_conflict(plain) is None
+    assert chunked_loss_conflict(plain) is None
 
     neutral = Cfg()
     neutral.logits_scaling = 1.0             # present but a no-op
-    assert train.logit_scaling_conflict(neutral) is None
+    assert chunked_loss_conflict(neutral) is None
 
 
 def test_autoscale_batch_preserves_effective_batch():
@@ -269,3 +269,43 @@ def test_autoscale_batch_preserves_effective_batch():
     # Small enough to leave alone: short sequences, or an already-minimal micro-batch.
     assert train.autoscale_batch(4, 4, 512, V)[:2] == (4, 4)
     assert train.autoscale_batch(1, 16, L, V)[:2] == (1, 16)
+
+
+def test_merge_that_loses_logit_scaling_is_caught():
+    """Merging writes a fresh config.json. A rescaling field that does not survive it makes
+    every later inference run at the wrong scale — invisible to greedy, fatal to sampling."""
+    from tgd.logit_scale import merge_lost_scaling, scaling_fields
+
+    class Cfg:
+        pass
+
+    base = Cfg()
+    base.logits_scaling = 10.0
+
+    good = Cfg()
+    good.logits_scaling = 10.0
+    assert merge_lost_scaling(base, good) is None
+
+    dropped = Cfg()                       # field gone entirely
+    msg = merge_lost_scaling(base, dropped)
+    assert msg and "logits_scaling" in msg
+
+    changed = Cfg()
+    changed.logits_scaling = 1.0          # present but neutralised
+    assert merge_lost_scaling(base, changed) is not None
+
+    plain = Cfg()                         # base had nothing to lose
+    assert merge_lost_scaling(plain, plain) is None
+    assert scaling_fields(plain) == {}
+
+
+def test_every_model_loading_script_reports_logit_scaling():
+    """A silent scale is how this bug survived a week. Every script that loads a model for
+    inference must print what rescaling that model applies."""
+    import re
+    root = Path(__file__).resolve().parents[1]
+    for name in ("diag_distributions", "diag_position_profile", "sweep_decoding",
+                 "diag_consistency", "merge_adapter", "train_sft"):
+        src = (root / "scripts" / f"{name}.py").read_text()
+        assert re.search(r"from tgd\.logit_scale import", src), f"{name} does not import the check"
+        assert re.search(r"describe", src), f"{name} does not report logit scaling"

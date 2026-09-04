@@ -21,7 +21,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 
 import argparse
+import shutil
 from pathlib import Path
+
+from tgd.logit_scale import describe, merge_lost_scaling  # noqa: E402
 
 
 def main() -> int:
@@ -42,6 +45,8 @@ def main() -> int:
 
     print(f"loading base {args.base}")
     model = AutoModelForCausalLM.from_pretrained(args.base, dtype=torch.bfloat16)
+    base_config = model.config
+    print(f"  {describe(base_config)}")
     print(f"applying adapter {args.adapter}")
     model = PeftModel.from_pretrained(model, args.adapter)
     model = model.merge_and_unload()
@@ -49,6 +54,18 @@ def main() -> int:
     model.save_pretrained(str(out), safe_serialization=True)
     tok = AutoTokenizer.from_pretrained(args.adapter if (Path(args.adapter) / "tokenizer_config.json").exists() else args.base)
     tok.save_pretrained(str(out))
+
+    # Merging writes a fresh config.json. If a logit-rescaling field did not survive it,
+    # every later inference on this model runs at the wrong scale -- greedy would look
+    # perfect and sampling would produce junk. Check before anyone depends on it.
+    from transformers import AutoConfig
+    lost = merge_lost_scaling(base_config, AutoConfig.from_pretrained(str(out)))
+    if lost:
+        print(f"ERROR: {lost}")
+        print("       Refusing to leave a silently-wrong model on disk; removing it.")
+        shutil.rmtree(out, ignore_errors=True)
+        return 2
+
     print(f"merged model saved to {out}")
     return 0
 

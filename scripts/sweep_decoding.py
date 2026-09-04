@@ -22,6 +22,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 
 import argparse
+
+from tgd.logit_scale import describe as describe_scaling  # noqa: E402
 import json
 import re
 import sys
@@ -78,6 +80,7 @@ def main() -> int:
         print(f"\nloading {name}")
         tok = AutoTokenizer.from_pretrained(path)
         model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.bfloat16, device_map=args.device)
+        print(f"  {describe_scaling(model.config)}")
         model.eval()
         for cfg in CONFIGS:
             torch.manual_seed(args.seed)

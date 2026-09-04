@@ -43,7 +43,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 
-from tgd.io import read_jsonl  # noqa: E402  (gz-aware: the shipped data is gzipped)
+from tgd.io import read_jsonl
+from tgd.logit_scale import describe as describe_scaling  # noqa: E402  # noqa: E402  (gz-aware: the shipped data is gzipped)
 
 MCQ_SYSTEM = "You are a helpful assistant answering multiple-choice questions."
 MCQ_TEMPLATE = """{question}
@@ -115,6 +116,7 @@ def main() -> int:
         print(f"\nloading {name} from {path}")
         tok = AutoTokenizer.from_pretrained(path)
         model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.bfloat16, device_map=args.device)
+        print(f"  {describe_scaling(model.config)}")
         model.eval()
         for set_name, prompts in prompt_sets.items():
             stats = []
