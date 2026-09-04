@@ -44,9 +44,9 @@ tgd/                     library code shared by the scripts
 scripts/                 the stage commands above
 slurm/                   sbatch templates + a one-command pipeline for HPC clusters
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
-docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATA, TRAINING, EVALUATION,
-                         FORGETTING, STABILITY, TROUBLESHOOTING, PROVIDERS, REPRODUCE,
-                         RESULTS
+docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATASET, DATA, TRAINING,
+                         EVALUATION, FORGETTING, STABILITY, TROUBLESHOOTING, PROVIDERS,
+                         REPRODUCE, RESULTS
 ```
 
 ## The four evaluation arms

@@ -42,6 +42,11 @@ you iterate on training.
 | `scripts/merge_adapter.py`, `scripts/diag_distributions.py`, `scripts/diag_position_profile.py`, `scripts/sweep_decoding.py`, `scripts/diag_consistency.py` | decoding-stability toolkit: fold the LoRA into base weights, measure the next-token distribution on in- and out-of-distribution prompts, locate where along a completion it flattens, sweep temperature against truncation, and separate sampling noise from a genuine cliff (`docs/STABILITY.md`) |
 | `scripts/prepare_benchmarks.py`, `scripts/eval_benchmarks.py`, `scripts/forgetting_report.py` | the forgetting check: build MMLU / GSM8K / HellaSwag eval splits, score any arm on them, then aggregate repeated runs into statistics and box plots (`docs/FORGETTING.md`) |
 
+## The data
+
+`docs/DATASET.md` explains the units — question, episode, step, training sample — and how the
+shipped data was collected and filtered. `docs/DATA.md` is the per-file reference.
+
 ## Conventions
 
 * Every long job takes a fixed `--out` directory, appends results as they land, writes

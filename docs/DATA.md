@@ -1,5 +1,10 @@
 # Data
 
+Field-by-field reference for every shipped file. **New to this dataset? Read
+`docs/DATASET.md` first** — it explains what a question, episode, step and training sample
+are, how the data was built, and why half of it never reaches training. This page assumes
+that vocabulary.
+
 ## 1. Question files — `data/questions/<dataset>/`
 
 | Dataset | Questions | Docs per question | Answer type | Source | License |
