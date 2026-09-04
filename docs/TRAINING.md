@@ -60,6 +60,11 @@ base model with `scripts/serve_vllm.sh --lora <name>=runs/train/<name>/adapter` 
 evaluate it with `--served-model <name>`; or evaluate in-process with
 `scripts/eval.py --student hf --adapter runs/train/<name>/adapter`.
 
+**Using a different student.** Every check here is architecture-agnostic: before training,
+the trainer compares the loss it is about to optimise against the model's own forward pass on a
+real batch, and refuses to start if they disagree. You do not need to know anything about how
+your model handles logits. See `docs/STABILITY.md`.
+
 **One thing to check on a new model.** TRL's default memory-chunked loss reads logit rescaling
 from `config.logit_scale`. Architectures that use a different field name (Granite's is
 `logits_scaling`) would train at the wrong scale — greedy fine, sampling broken. The trainer

@@ -344,3 +344,52 @@ def test_eval_reports_scaling_before_sampling():
     src = (Path(__file__).resolve().parents[1] / "scripts" / "eval.py").read_text()
     assert "student_temperature > 0" in src
     assert "describe_scaling" in src or "logit_scale" in src
+
+
+def test_loss_path_check_catches_a_mismatch_no_field_name_would_reveal():
+    """The field-name guard only knows architectures we have met. This check is the general
+    one: it compares the loss a trainer would optimise against the model's own forward pass,
+    so it catches any loss path that reconstructs logits differently — including one whose
+    config field we have never heard of."""
+    import torch
+    from tgd.logit_scale import loss_path_matches_forward
+
+    torch.manual_seed(0)
+    V, T = 128, 24
+    # Structured logits, as any pretrained model has. (Near-uniform logits cannot reveal a
+    # scale mismatch at all — see the function's docstring.)
+    raw = torch.randn(1, T, V) * 4.0
+    ids = torch.randint(0, V, (1, T))
+    labels = ids.clone()
+    labels[:, :8] = -100                       # prompt tokens carry no loss
+    SCALE = 10.0
+
+    class Out:
+        def __init__(self, logits=None, loss=None):
+            self.logits, self.loss = logits, loss
+
+    class Model:
+        """forward() rescales its logits, as e.g. Granite does."""
+        def __init__(self, honest):
+            self.honest = honest
+
+        def __call__(self, input_ids=None, attention_mask=None, labels=None):
+            scaled = raw / SCALE                       # what inference emits
+            if labels is None:
+                return Out(logits=scaled)
+            # honest: loss from the same logits inference will use.
+            # broken: loss from the UNSCALED logits, which is what a chunked path that
+            # missed the rescaling field would optimise.
+            z = scaled if self.honest else raw
+            z = z[..., :-1, :].reshape(-1, V)
+            t = labels[..., 1:].reshape(-1)
+            return Out(loss=torch.nn.functional.cross_entropy(z, t, ignore_index=-100))
+
+    batch = {"input_ids": ids, "attention_mask": torch.ones_like(ids), "labels": labels}
+
+    ref, actual, ok = loss_path_matches_forward(Model(honest=True), batch)
+    assert ok, f"a matching loss path must pass (ref {ref}, actual {actual})"
+
+    ref, actual, ok = loss_path_matches_forward(Model(honest=False), batch)
+    assert not ok, f"a rescaling mismatch must fail (ref {ref}, actual {actual})"
+    assert abs(ref - actual) > 1.0

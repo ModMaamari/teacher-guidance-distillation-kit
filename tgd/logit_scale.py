@@ -87,6 +87,53 @@ def autoscale_batch(batch_size: int, grad_accum: int, max_length: int, vocab: in
     return batch_size, grad_accum, gb
 
 
+def loss_path_matches_forward(model, batch, tol: float = 0.02):
+    """Does the loss the trainer will optimise match the distribution inference produces?
+
+    This is the architecture-agnostic version of the field-name check above, and the one
+    that actually decides. Instead of guessing which config field a model uses to transform
+    its logits, it measures the invariant directly, on a real batch:
+
+    * **reference** — call the model *without* labels to get its logits, exactly as inference
+      produces them (every transform the architecture applies is already in them), and
+      compute the completion-token cross-entropy by hand.
+    * **actual** — call the model *with* labels, which routes through whatever loss path the
+      trainer has installed.
+
+    If a loss path bypasses the model's forward and reconstructs logits differently — TRL's
+    chunked cross-entropy reading the wrong scaling field, a custom kernel, a future
+    optimisation nobody has written yet — these two disagree. If they agree, training is
+    optimising the distribution that will actually be sampled, whatever the architecture.
+
+    Returns ``(reference, actual, ok)``. Losses are means over supervised tokens, so they
+    are directly comparable; `tol` is relative.
+
+    One limitation, stated because it is easy to mis-test: this compares *losses*, so it can
+    only see a transform that changes them. A randomly-initialised model has near-uniform
+    logits, and scaling near-uniform logits barely moves the cross-entropy, so the check
+    reads clean on one. It is sharp on any model with real structure — measured on a
+    pretrained 3B student, the same mismatch showed as 1.47 against 13.06, a 790 %
+    disagreement against a 2 % tolerance. Fine-tuning always starts from pretrained weights,
+    so this matters only if you point the check at noise.
+    """
+    import torch
+
+    ids = batch["input_ids"]
+    mask = batch.get("attention_mask")
+    labels = batch["labels"]
+    with torch.no_grad():
+        # Without labels, even a patched forward returns real logits: the chunked path only
+        # skips the lm_head matmul when it has labels to compute a loss from.
+        logits = model(input_ids=ids, attention_mask=mask).logits[..., :-1, :].float()
+        target = labels[..., 1:]
+        reference = torch.nn.functional.cross_entropy(
+            logits.reshape(-1, logits.shape[-1]), target.reshape(-1), ignore_index=-100)
+        actual = model(input_ids=ids, attention_mask=mask, labels=labels).loss
+    reference, actual = float(reference), float(actual)
+    ok = abs(reference - actual) <= tol * max(1.0, abs(reference))
+    return reference, actual, ok
+
+
 def describe(config) -> str:
     """One line for a startup log: what this model does with its logits."""
     present = scaling_fields(config)

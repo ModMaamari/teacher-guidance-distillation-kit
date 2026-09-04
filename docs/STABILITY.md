@@ -39,6 +39,33 @@ architecture rescales logits under a field TRL's chunked path does not read, it 
 run. `--loss-type` overrides the choice if you need to. The chunked path is a memory optimisation, so the safe
 path needs a smaller micro-batch and more accumulation — `docs/TRAINING.md` has the numbers.
 
+## Using this with any student model
+
+The bug was found on Granite, but nothing about it is Granite-specific: it happens whenever the
+loss a trainer optimises is computed differently from the logits the model emits. Other
+architectures rescale logits too (Gemma softcaps, Cohere scales), and the next one may use a
+field name nobody has written down yet.
+
+So the kit does not rely on recognising field names. Before training starts, it **measures the
+invariant directly** on a real batch: compute the completion-token cross-entropy from the
+model's own forward pass, compute the loss the trainer is about to optimise, and compare. If a
+loss path reconstructs logits differently — for any reason, on any architecture — the two
+numbers disagree and the run stops before spending a GPU-hour.
+
+```
+loss-path check: training loss 0.4131 matches the model's own forward pass 0.4129
+                 -- training and inference agree
+```
+
+On the student here the mismatch showed as **1.47 against 13.06**, a 790 % disagreement against
+a 2 % tolerance. The field-name check below still runs first, because it can name the cause and
+fix it automatically; the measurement is what actually decides.
+
+One limitation, worth knowing before you test it: the check compares losses, so it only sees a
+transform that changes them. A *randomly initialised* model has near-uniform logits and scaling
+them barely moves the cross-entropy, so the check reads clean on one. Fine-tuning always starts
+from pretrained weights, so this matters only if you point it at noise.
+
 ## What is guarded, and where
 
 You should not be able to hit this again by following the kit. `tgd/logit_scale.py` holds the
@@ -46,7 +73,7 @@ one implementation; these use it:
 
 | Script | Guard |
 |---|---|
-| `train_sft.py` | picks the safe loss path automatically, refuses the unsafe one, and rescales the micro-batch to fit; logs the model's scaling at startup |
+| `train_sft.py` | **measures that the training loss matches the model's own forward pass, and refuses to start if not** — architecture-agnostic; also picks the safe loss path, refuses the unsafe one, rescales the micro-batch to fit, and logs the model's scaling |
 | `merge_adapter.py` | verifies the merged config kept the base's scaling; **deletes the merged model and fails** if not, rather than leaving a silently-wrong checkpoint on disk |
 | `diag_distributions.py`, `diag_position_profile.py`, `sweep_decoding.py`, `diag_consistency.py` | print the model's scaling next to every measurement |
 | `eval.py` | prints it whenever it is about to sample a local checkpoint |

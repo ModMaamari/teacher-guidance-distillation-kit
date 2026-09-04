@@ -72,7 +72,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 import tgd  # noqa: F401
 from tgd.io import load_jsonl
 from tgd.logit_scale import (autoscale_batch, chunked_loss_conflict,  # noqa: E402
-                             describe as describe_scaling)
+                             describe as describe_scaling, loss_path_matches_forward)
 from tgd.logging_utils import setup_logger, write_json
 
 
@@ -352,9 +352,12 @@ def main() -> int:
     # healthy until evaluation. Check on a sample of real batches before spending the GPU.
     kept = total = 0
     probe = trainer.get_train_dataloader()
+    first_batch = None
     for i, batch in enumerate(probe):
         if i >= 4:
             break
+        if first_batch is None:
+            first_batch = batch
         lab = batch["labels"]
         kept += int((lab != -100).any(dim=-1).sum())
         total += int(lab.shape[0])
@@ -367,6 +370,33 @@ def main() -> int:
         log.warning(f"only {frac:.0%} of sampled examples keep completion tokens at "
                     f"--max-length {args.max_length}; the rest contribute no loss.")
     log.info(f"supervision check: {frac:.0%} of sampled examples carry completion tokens")
+
+    # The authoritative check, and the only one that works for an architecture nobody
+    # anticipated: does the loss the trainer is about to optimise match the distribution
+    # this model produces at inference? A loss path that reconstructs logits differently --
+    # a rescaling field read under the wrong name, a custom kernel -- shows up here as a
+    # numeric disagreement, whatever the cause. Greedy evaluation cannot see it later.
+    if first_batch is not None:
+        try:
+            device = next(model.parameters()).device
+            probe_batch = {k: v.to(device) for k, v in first_batch.items()
+                           if k in ("input_ids", "attention_mask", "labels")}
+            ref, actual, ok = loss_path_matches_forward(trainer.model_wrapped or model, probe_batch)
+            if ok:
+                log.info(f"loss-path check: training loss {actual:.4f} matches the model's own "
+                         f"forward pass {ref:.4f} -- training and inference agree")
+            else:
+                log.error(
+                    f"loss-path check FAILED: the trainer would optimise a loss of {actual:.4f} "
+                    f"while this model's forward pass gives {ref:.4f} on the same batch. The "
+                    f"training objective does not match the distribution inference produces, so "
+                    f"the result would decode correctly at greedy and produce junk when sampled. "
+                    f"Pass --loss-type nll (which routes through the model's own forward), and "
+                    f"see docs/STABILITY.md.")
+                return 2
+        except Exception as e:      # a probe must never be the reason a real run cannot start
+            log.warning(f"loss-path check could not run ({type(e).__name__}: {e}); "
+                        f"verify sampling manually with scripts/diag_distributions.py")
 
     if args.health_every:
         trainer.add_callback(Health(trainer, (dev_rows or train_rows)[:args.health_prompts]))
