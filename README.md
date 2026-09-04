@@ -22,6 +22,7 @@ The kit ships the data, the harness, and one command per stage:
 | decoding-stability check (can it be sampled?) | `slurm/eval_stability.sbatch` | 1 GPU |
 | next-token distribution diagnostic | `scripts/diag_distributions.py` | 1 GPU |
 | where along a completion the distribution flattens | `scripts/diag_position_profile.py` | 1 GPU |
+| repair a checkpoint trained before the loss-path guard | `scripts/repair_logit_scale.py` | CPU |
 
 Every long-running script writes to a fixed directory, appends results as they land,
 skips finished work on re-run, and keeps a `status.json` you can watch.

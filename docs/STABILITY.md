@@ -66,6 +66,36 @@ transform that changes them. A *randomly initialised* model has near-uniform log
 them barely moves the cross-entropy, so the check reads clean on one. Fine-tuning always starts
 from pretrained weights, so this matters only if you point it at noise.
 
+## I already trained models before this guard existed
+
+You may not need to retrain them. If a checkpoint was trained through a loss path that
+optimised *unscaled* logits, the weights are not damaged — they were optimised to produce
+well-calibrated unscaled logits, and inference is dividing them by a constant it should not.
+Telling inference to stop dividing hands back the distribution training produced.
+
+```bash
+python scripts/repair_logit_scale.py --model runs/train/uniform/merged --dry-run   # report
+python scripts/repair_logit_scale.py --model runs/train/uniform/merged             # repair
+python scripts/diag_distributions.py --models "repaired=<that dir>" --n 150 --out runs/check
+```
+
+Measured on this project's own pre-fix checkpoint, against a full retrain of the same run:
+
+| | before | config repair | full retrain |
+|---|---|---|---|
+| OOD entropy | 10.908 | **0.165** | 0.222 |
+| OOD top-1 | 0.006 | **0.933** | 0.910 |
+| valid-token mass | 1.2 % | **100 %** | 100 % |
+
+The repair also reproduces the checkpoint's own training log: loss 0.263 measured against
+0.269 logged, where the unrepaired model measured 6.568.
+
+Three cautions. **Only apply this to a checkpoint that disagrees with its own training log** —
+on a healthy model the same edit *introduces* the bug, which is why the script reports before it
+writes and keeps a backup. **Verify afterwards** with `diag_distributions.py`; entropy should be
+well under 1 nat and valid-token mass 100 %. And **greedy results never needed repairing** —
+they are identical either way, so anything you already published from greedy decoding stands.
+
 ## What is guarded, and where
 
 You should not be able to hit this again by following the kit. `tgd/logit_scale.py` holds the

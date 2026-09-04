@@ -393,3 +393,40 @@ def test_loss_path_check_catches_a_mismatch_no_field_name_would_reveal():
     ref, actual, ok = loss_path_matches_forward(Model(honest=False), batch)
     assert not ok, f"a rescaling mismatch must fail (ref {ref}, actual {actual})"
     assert abs(ref - actual) > 1.0
+
+
+def test_repair_tool_is_reversible_and_refuses_the_wrong_target(tmp_path):
+    """Repairing a checkpoint edits a config field, so it must (a) leave a way back and
+    (b) decline a model that never rescaled anything — where the edit would introduce the
+    very bug it exists to fix."""
+    import json
+    import subprocess
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    script = root / "scripts" / "repair_logit_scale.py"
+
+    def run(d, *flags):
+        return subprocess.run([sys.executable, str(script), "--model", str(d), *flags],
+                              capture_output=True, text=True).stdout
+
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    (plain / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    assert "nothing to repair" in run(plain)
+    assert not (plain / "config.json.pre_repair").exists()
+
+    scaled = tmp_path / "scaled"
+    scaled.mkdir()
+    (scaled / "config.json").write_text(json.dumps({"model_type": "granite",
+                                                    "logits_scaling": 10.0}))
+    run(scaled, "--dry-run")
+    assert not (scaled / "config.json.pre_repair").exists(), "dry-run must not write"
+
+    run(scaled)
+    assert json.loads((scaled / "config.json").read_text())["logits_scaling"] == 1.0
+    assert (scaled / "config.json.pre_repair").exists()
+    assert "already repaired" in run(scaled)          # idempotent, and says so
+
+    run(scaled, "--restore")
+    assert json.loads((scaled / "config.json").read_text())["logits_scaling"] == 10.0
