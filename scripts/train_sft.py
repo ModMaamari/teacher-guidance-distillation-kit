@@ -82,7 +82,22 @@ from tgd.logging_utils import setup_logger, write_json
 # not: greedy decoding looks fine while sampling draws from a distribution the model was
 # never trained on. See docs/STABILITY.md.
 SCALING_FIELDS = ("logits_scaling", "logit_scale", "final_logit_softcapping")
+# Above this, the logits tensor alone is a large fraction of a mid-range GPU; the softmax
+# needs a second buffer of the same size, so the practical ceiling is roughly half of it.
+MAX_LOGIT_TENSOR_GB = 4.0
 TRL_CHUNKED_READS = "logit_scale"
+
+
+def autoscale_batch(batch_size: int, grad_accum: int, max_length: int, vocab: int):
+    """Trade micro-batch for accumulation when the full logit tensor would be too large.
+
+    Returns (batch_size, grad_accum, gb) with the effective batch preserved. `gb` is the
+    size of the logit tensor at the ORIGINAL micro-batch, for the log line.
+    """
+    gb = batch_size * max_length * vocab * 4 / 1024 ** 3
+    if batch_size > 1 and gb > MAX_LOGIT_TENSOR_GB:
+        return 1, grad_accum * batch_size, gb
+    return batch_size, grad_accum, gb
 
 
 def logit_scaling_conflict(config) -> str | None:
@@ -148,6 +163,9 @@ def main() -> int:
     ap.add_argument("--eval-steps", type=int, default=200)
     ap.add_argument("--save-steps", type=int, default=200)
     ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--no-autoscale-batch", action="store_true",
+                    help="keep --batch-size as given even when the non-chunked loss would "
+                         "materialise a very large logit tensor")
     ap.add_argument("--loss-type", choices=["auto", "nll", "chunked_nll"], default="auto",
                     help="auto: use nll when the model rescales logits or when --kl-coef > 0, "
                          "else TRL's memory-chunked default")
@@ -220,6 +238,23 @@ def main() -> int:
         log.error(conflict + " Refusing to run: pass --loss-type nll, or --loss-type "
                   "chunked_nll is only safe for models without logit rescaling.")
         return 2
+
+    # The chunked path exists to avoid materialising [batch, seq, vocab] logits. Without it
+    # that tensor is real, and at the default micro-batch it is large enough to OOM partway
+    # through an epoch -- when the first batch of full-length sequences arrives, not at step 0.
+    # Trade micro-batch for accumulation so the effective batch, and the run, are unchanged.
+    if use_nll and not args.no_autoscale_batch:
+        new_bs, new_ga, gb = autoscale_batch(args.batch_size, args.grad_accum,
+                                             args.max_length, len(tokenizer))
+        if new_bs != args.batch_size:
+            factor = args.batch_size
+            args.batch_size, args.grad_accum = new_bs, new_ga
+            log.warning(
+                f"loss_type=nll materialises a {gb:.1f} GB logit tensor at micro-batch "
+                f"{factor} (seq {args.max_length} x vocab {len(tokenizer)}). Using "
+                f"--batch-size 1 --grad-accum {args.grad_accum} instead: same effective "
+                f"batch ({args.batch_size * args.grad_accum}), ~25% more wall time. "
+                f"Pass --no-autoscale-batch to keep your own values.")
 
     peft_config = LoraConfig(r=args.lora_r, lora_alpha=args.lora_alpha, lora_dropout=args.lora_dropout,
                              target_modules="all-linear", task_type="CAUSAL_LM")

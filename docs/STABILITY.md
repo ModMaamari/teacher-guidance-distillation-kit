@@ -36,7 +36,8 @@ architecture, same config, opposite verdict. That control rules out the measurem
 **The guard.** `scripts/train_sft.py` now inspects the model config before training. If the
 architecture rescales logits under a field TRL's chunked path does not read, it switches to
 `loss_type="nll"` and says so; `--loss-type chunked_nll` on such a model is refused rather than
-run. `--loss-type` overrides the choice if you need to.
+run. `--loss-type` overrides the choice if you need to. The chunked path is a memory optimisation, so the safe
+path needs a smaller micro-batch and more accumulation — `docs/TRAINING.md` has the numbers.
 
 ## What it looked like before the cause was known
 

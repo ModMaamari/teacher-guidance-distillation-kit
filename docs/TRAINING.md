@@ -66,6 +66,22 @@ from `config.logit_scale`. Architectures that use a different field name (Granit
 detects this and switches loss paths, logging a warning; if you see that warning, it is working
 as intended.
 
+**Budget memory for it.** The chunked path exists to avoid materialising the full
+`[batch, sequence, vocab]` logit tensor, so switching away from it costs exactly that memory:
+
+| Micro-batch | Sequence | Vocab | Logit tensor (fp32) |
+|---|---|---|---|
+| 4 | 8192 | 100k | 12.3 GB, plus a same-size softmax buffer |
+| 2 | 8192 | 100k | 6.1 GB |
+| 1 | 8192 | 100k | 3.1 GB |
+
+A run that fits comfortably with `chunked_nll` can fail with `nll` partway through the first
+epoch, when it first meets a batch of full-length sequences. Keep the *effective* batch by
+trading micro-batch for accumulation — `--batch-size 1 --grad-accum 16` is the same optimiser
+step as `--batch-size 4 --grad-accum 4`, and resuming from a checkpoint across that change is
+safe because the sample count the trainer skips is identical. Expect roughly 25 % more wall
+time per step.
+
 `--smoke` runs on CPU as well (64 examples, 8 steps, fp32) if no GPU is visible, which makes it
 a usable pre-flight check on a laptop before queueing a real job. Keep `--max-length` at its
 default when you do: a prompt longer than the limit truncates the completion away, and a run

@@ -249,3 +249,23 @@ def test_logit_scaling_conflict_detection():
     neutral = Cfg()
     neutral.logits_scaling = 1.0             # present but a no-op
     assert train.logit_scaling_conflict(neutral) is None
+
+
+def test_autoscale_batch_preserves_effective_batch():
+    """Switching off TRL's chunked loss makes the [batch, seq, vocab] logit tensor real.
+    At the default micro-batch that is >12 GB and OOMs partway through an epoch, so the
+    trainer trades micro-batch for accumulation — the effective batch must not change."""
+    train = _load_script("train_sft")
+    V, L = 100352, 8192
+
+    bs, ga, gb = train.autoscale_batch(4, 4, L, V)
+    assert (bs, ga) == (1, 16)           # effective batch 16, unchanged
+    assert 12.0 < gb < 12.5              # the allocation that actually failed
+
+    for orig_bs, orig_ga in [(4, 4), (2, 8), (8, 2)]:
+        bs, ga, _ = train.autoscale_batch(orig_bs, orig_ga, L, V)
+        assert bs * ga == orig_bs * orig_ga
+
+    # Small enough to leave alone: short sequences, or an already-minimal micro-batch.
+    assert train.autoscale_batch(4, 4, 512, V)[:2] == (4, 4)
+    assert train.autoscale_batch(1, 16, L, V)[:2] == (1, 16)
