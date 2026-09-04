@@ -1,11 +1,48 @@
 # Decoding stability — can the trained student be sampled?
 
 A model can be excellent at greedy decoding and unusable when sampled. Greedy needs only the
-*ranking* of the top token; sampling needs its *probability* to be right. Supervised fine-tuning
-can preserve the first while destroying the second, and no greedy evaluation will ever show it.
+*ranking* of the top token; sampling needs its *probability* to be right. A training/inference
+mismatch can preserve the first while destroying the second, and no greedy evaluation will ever
+show it.
 
-This happened to the student shipped with this kit, and it is worth knowing about before you
-train your own.
+This happened to a student trained with this kit. **The cause was a two-line configuration bug,
+diagnosed only after a week of work that assumed it was a property of the objective.** The bug
+is now guarded against in `scripts/train_sft.py`; this page documents the failure, the guard,
+and — because the same signature can have other causes — how to measure it on your own model.
+
+## The bug, first
+
+Some architectures divide their logits by a constant before the softmax. Granite does, via
+`config.logits_scaling` (10.0). TRL's memory-chunked cross-entropy (`loss_type="chunked_nll"`,
+its default) bypasses the model's forward pass and applies its own scaling read from
+`config.logit_scale` — a field Granite does not define, so it silently defaults to 1.0.
+
+The result: training optimises logits **ten times larger** than the ones inference produces.
+Dividing logits by a constant is monotonic, so the token *ranking* is untouched and greedy
+decoding looks perfect. The *calibration* is destroyed, and sampling collapses.
+
+Verified directly. Scoring one saved checkpoint two ways on the file its trainer evaluated:
+
+| View of the same weights | Loss | Entropy |
+|---|---|---|
+| as inference produces them | 6.568 | 11.071 |
+| logits multiplied back by 10 | **0.263** | **0.218** |
+| what the training log recorded | **0.269** | **0.229** |
+
+The training log is reproduced to within 0.007. A model trained identically but with
+`loss_type="nll"` matches its own log with no adjustment (0.282 measured, 0.297 logged) — same
+architecture, same config, opposite verdict. That control rules out the measurement itself.
+
+**The guard.** `scripts/train_sft.py` now inspects the model config before training. If the
+architecture rescales logits under a field TRL's chunked path does not read, it switches to
+`loss_type="nll"` and says so; `--loss-type chunked_nll` on such a model is refused rather than
+run. `--loss-type` overrides the choice if you need to.
+
+## What it looked like before the cause was known
+
+Everything below was measured on the miscalibrated checkpoint. It is kept because the
+*symptoms* are what you will see first, whatever the underlying cause — a genuinely
+over-trained model, a bad merge, or a quantisation step can all present this way.
 
 ## What it looked like
 
@@ -109,29 +146,28 @@ below 0.03.
 alternatives is constrained. It produced the best calibration measured here (better than base,
 in distribution) and the worst task score. It is the wrong end of the curve.
 
-### Before you reach for any of this: try training less
+### Before you reach for any of this: check for the scaling bug
 
-The student that produced the cliff was trained for 2 epochs on the full dataset. A student
-trained on 6,000 examples for 1 epoch, **same objective, no KL at all**, is not damaged:
+The two runs that looked like "healthy short training vs damaged long training" differed in
+their **loss path**, not only their length:
 
-| Plain SFT run | In-distribution entropy | Top-1 | Valid mass |
+| Plain SFT run | Loss path | In-distribution entropy | Top-1 |
 |---|---|---|---|
-| 2 epochs, full data | 11.076 | 0.001 | 0.2 % |
-| 1 epoch, 6,000 examples | 0.000 | 1.000 | 100 % |
-| untrained base | 0.048 | 0.992 | 99.5 % |
+| 2 epochs, full data | `chunked_nll` | 11.076 | 0.001 |
+| 1 epoch, 6,000 examples | `nll` | 0.000 | 1.000 |
+| untrained base | — | 0.048 | 0.992 |
 
-Roughly a tenfold difference in gradient updates separates a healthy student from an unsamplable
-one. **Cross-entropy does not inherently produce this failure; prolonged training on this data
-does.** So run `scripts/diag_distributions.py` at a couple of checkpoints before assuming you
-need a KL term, and treat early stopping as the first thing to try. The short run above also
-scored the best task numbers of any variant in the sweep table.
+It is tempting to read that as over-training. It is not: the confound is the loss path, and the
+verification above settles it. With the guard in place this specific failure cannot recur
+silently, so **check the loss path before reaching for any training-side mitigation.**
 
-**What is measured and what is not.** Every number on this page comes from this project's
-student, one seed. The short no-KL run's *agent* numbers at temperature were not measured when
-this was written — its distribution numbers predict it holds up, which is a prediction, not a
-result. It also differs from the long run in both dataset size and epoch count, so "too many
-steps" and "a second pass over the same data" are not separated. Re-run both on your own
-student before relying on either.
+**What is measured and what is not.** Every number on this page comes from one student and one
+seed. The KL sweep above was run *before* the scaling bug was found, so it measures what the KL
+term does to an already-healthy short run — its conclusions about the cost of the constraint
+stand, but "the KL term fixes the cliff" does not: the cliff was a bug, and the fix is the
+guard. The task numbers for a correctly-trained full-data student are being re-measured; treat
+any full-data figure elsewhere in this kit as provisional until `docs/RESULTS.md` says
+otherwise.
 
 ### And measure it during training
 

@@ -29,6 +29,7 @@ tokens only (TRL `completion_only_loss`), using the model's own chat template.
 | `--eval-steps` / `--save-steps` | 200 / 200 | dev loss and checkpoint cadence |
 | `--seed` | 13 | |
 | `--smoke` | — | 64 examples, 8 steps: validates the pipeline in ~2 min |
+| `--loss-type` | `auto` | `auto` picks `nll` when the model rescales logits or the KL term is on, else TRL's chunked default. Leave it alone unless you know why. See `docs/STABILITY.md` |
 | `--kl-coef` | 0 (off) | KL toward the frozen base on completion tokens; keeps the student samplable. See `docs/STABILITY.md` |
 | `--kl-direction` | `reverse` | `reverse` = mode-seeking (recommended); `forward` = mass-covering, fights the task objective |
 | `--health-every` | 0 (off) | sample held-out prompts at temperature 0.7 every N steps and log how many parse |
@@ -58,6 +59,12 @@ watch -n 30 cat runs/train/uniform/status.json
 base model with `scripts/serve_vllm.sh --lora <name>=runs/train/<name>/adapter` and
 evaluate it with `--served-model <name>`; or evaluate in-process with
 `scripts/eval.py --student hf --adapter runs/train/<name>/adapter`.
+
+**One thing to check on a new model.** TRL's default memory-chunked loss reads logit rescaling
+from `config.logit_scale`. Architectures that use a different field name (Granite's is
+`logits_scaling`) would train at the wrong scale — greedy fine, sampling broken. The trainer
+detects this and switches loss paths, logging a warning; if you see that warning, it is working
+as intended.
 
 `--smoke` runs on CPU as well (64 examples, 8 steps, fp32) if no GPU is visible, which makes it
 a usable pre-flight check on a laptop before queueing a real job. Keep `--max-length` at its

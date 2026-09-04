@@ -74,6 +74,31 @@ from tgd.io import load_jsonl
 from tgd.logging_utils import setup_logger, write_json
 
 
+# Architectures that rescale logits before the softmax, and the config field each one
+# uses. TRL's memory-chunked cross-entropy bypasses the model's forward pass and reads
+# `logit_scale`, defaulting to 1.0 when it is absent -- so for any model whose field is
+# named something else, training optimises logits at a different scale than inference
+# produces. The ranking survives (a constant divisor is monotonic) but the calibration does
+# not: greedy decoding looks fine while sampling draws from a distribution the model was
+# never trained on. See docs/STABILITY.md.
+SCALING_FIELDS = ("logits_scaling", "logit_scale", "final_logit_softcapping")
+TRL_CHUNKED_READS = "logit_scale"
+
+
+def logit_scaling_conflict(config) -> str | None:
+    """Return a message if TRL's chunked loss would train at the wrong logit scale."""
+    present = {f: getattr(config, f, None) for f in SCALING_FIELDS}
+    present = {f: v for f, v in present.items() if v not in (None, 1.0)}
+    if not present:
+        return None
+    if TRL_CHUNKED_READS in present:
+        return None      # TRL reads this one itself, so the scales agree
+    field, value = next(iter(present.items()))
+    return (f"this model rescales logits via config.{field}={value}, but TRL's chunked "
+            f"cross-entropy reads config.{TRL_CHUNKED_READS} (absent here, so it uses 1.0). "
+            f"Training would optimise logits {value}x the ones inference produces.")
+
+
 def kl_term(student_logits, base_logits, direction: str, target_ids=None):
     """KL between the student's and the frozen base's next-token distributions.
 
@@ -123,6 +148,9 @@ def main() -> int:
     ap.add_argument("--eval-steps", type=int, default=200)
     ap.add_argument("--save-steps", type=int, default=200)
     ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--loss-type", choices=["auto", "nll", "chunked_nll"], default="auto",
+                    help="auto: use nll when the model rescales logits or when --kl-coef > 0, "
+                         "else TRL's memory-chunked default")
     ap.add_argument("--kl-coef", type=float, default=0.0,
                     help="strength of the KL toward the frozen base (0 = plain SFT). 0.03-0.1 is the "
                          "range explored here; higher values trade task performance for calibration")
@@ -181,6 +209,17 @@ def main() -> int:
         args.model, dtype=torch.bfloat16 if on_gpu else torch.float32)
     log.info(f"model loaded in {time.time() - t0:.1f}s | cuda={torch.cuda.is_available()} "
              f"gpus={torch.cuda.device_count()}")
+
+    # Pick the loss path before building the config: a scaling mismatch silently produces a
+    # model that decodes greedily but cannot be sampled.
+    conflict = logit_scaling_conflict(model.config)
+    if conflict and args.loss_type == "auto":
+        log.warning(conflict + " Using loss_type='nll' instead.")
+    use_nll = args.kl_coef > 0 or args.loss_type == "nll" or (conflict and args.loss_type == "auto")
+    if conflict and args.loss_type == "chunked_nll":
+        log.error(conflict + " Refusing to run: pass --loss-type nll, or --loss-type "
+                  "chunked_nll is only safe for models without logit rescaling.")
+        return 2
 
     peft_config = LoraConfig(r=args.lora_r, lora_alpha=args.lora_alpha, lora_dropout=args.lora_dropout,
                              target_modules="all-linear", task_type="CAUSAL_LM")
@@ -281,8 +320,10 @@ def main() -> int:
         seed=args.seed,
         report_to=[],
         completion_only_loss=True,
-        # TRL's default chunked cross-entropy returns no logits, which the KL term needs.
-        **({"loss_type": "nll"} if args.kl_coef > 0 else {}),
+        # "nll" routes through the model's own forward pass, so any logit rescaling the
+        # architecture applies is honoured; it is also required for the KL term, which
+        # needs real logits. "chunked_nll" is TRL's memory-saving default.
+        **({"loss_type": "nll"} if use_nll else {}),
     )
 
     class Status(TrainerCallback):

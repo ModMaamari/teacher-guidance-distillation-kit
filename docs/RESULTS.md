@@ -2,6 +2,15 @@
 
 Student `ibm-granite/granite-4.1-3b`; teacher `DeepSeek-V4-Flash` (served through an OpenAI-compatible API); judge `Kimi-K2.6` (with MiniMax-M3 / Mistral-Medium as fallbacks; 99.9 % of verdicts came from Kimi). Budget 3, hidden; greedy student decoding; teacher temperature 0.1. One seed. Numbers are what `scripts/collect_results.py` reports; confidence intervals are paired bootstrap over questions.
 
+> **The trained-student arm is being re-measured.** The checkpoint behind every "trained
+> student" number on this page was trained through TRL's memory-chunked loss, which for this
+> architecture optimises logits at 10x the scale inference produces
+> (`docs/STABILITY.md`). Greedy decoding — which is what these runs used — depends only on the
+> token ranking, and the ranking is unaffected, so these numbers are *internally* valid as a
+> greedy comparison. But they come from a model that cannot be sampled, and a correctly-trained
+> student may differ. The base, guided and teacher arms are unaffected: no fine-tuning was
+> involved in any of them. Treat the trained-student row as provisional.
+
 > The shipped training split differs from the one these runs used by 26 examples (0.2 %): two hygiene filters — dropping examples that still contain the `[answer hidden]` mask token, and dropping the one training question whose text duplicates a held-out question — were added after the runs. The test set is identical.
 
 ## Group B — uniform split: four arms on the 747 held-out questions

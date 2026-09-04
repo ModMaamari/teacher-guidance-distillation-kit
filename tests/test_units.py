@@ -223,3 +223,29 @@ def test_position_profile_buckets_partition_every_index():
     assert prof.summarise([]) == {}
     s = prof.summarise([1.0, 2.0, 3.0])
     assert s["n"] == 3 and s["median"] == 2.0
+
+
+def test_logit_scaling_conflict_detection():
+    """TRL's chunked loss reads config.logit_scale. A model that rescales logits under a
+    different field name trains at the wrong scale — greedy still works, sampling breaks —
+    so the mismatch has to be caught before training, not after evaluation."""
+    train = _load_script("train_sft")
+
+    class Cfg:
+        pass
+
+    granite = Cfg()
+    granite.logits_scaling = 10.0            # Granite's field; TRL never reads it
+    msg = train.logit_scaling_conflict(granite)
+    assert msg and "logits_scaling" in msg and "10.0" in msg
+
+    understood = Cfg()
+    understood.logit_scale = 4.0             # the field TRL itself applies
+    assert train.logit_scaling_conflict(understood) is None
+
+    plain = Cfg()                            # no rescaling at all
+    assert train.logit_scaling_conflict(plain) is None
+
+    neutral = Cfg()
+    neutral.logits_scaling = 1.0             # present but a no-op
+    assert train.logit_scaling_conflict(neutral) is None

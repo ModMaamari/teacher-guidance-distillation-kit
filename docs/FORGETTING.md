@@ -123,7 +123,14 @@ McNemar test.
 ## Reference result
 
 Measured for the student in `docs/RESULTS.md` (granite-4.1-3b, LoRA on 14,458
-guidance-as-thought examples), 4,529 items per arm, greedy decoding:
+guidance-as-thought examples), 4,529 items per arm, greedy decoding.
+
+> **Provisional, for the same reason as `docs/RESULTS.md`.** This adapter was trained through
+> a loss path that miscalibrates logits for this architecture (`docs/STABILITY.md`). Greedy
+> decoding depends only on the token ranking, which the bug leaves intact, so the paired
+> comparison below is internally valid — both arms answered the same items through the same
+> server. But the trained arm is not the model a corrected run produces, and the gap is being
+> re-measured.
 
 | Benchmark | Base | Trained | Δ | McNemar p |
 |---|---|---|---|---|

@@ -55,10 +55,11 @@ both catch failures that the headline evaluation cannot see.
 
 ## Choosing a KL coefficient
 
-First check whether you need one at all. The failure this guards against tracked training
-length, not the objective: a short no-KL run was healthy where a long one was not
-(`docs/STABILITY.md`). Run `scripts/diag_distributions.py` on an early checkpoint before
-spending anything here.
+First check whether you need one at all. The failure that motivated this option turned out to be
+a logit-scaling bug, not a property of the objective (`docs/STABILITY.md`), and the trainer now
+guards against it. Run `scripts/diag_distributions.py` on an early checkpoint before spending
+anything here: if entropy is near `ln(vocab_size)` you have a scaling or merge problem, not
+something a regulariser should be papering over.
 
 If you do need one, the regulariser trades task performance for calibration. Measured on this
 project's student the coefficient mattered far more than the direction, and the useful range sat
