@@ -45,7 +45,8 @@ scripts/                 the stage commands above
 slurm/                   sbatch templates + a one-command pipeline for HPC clusters
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
 docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATA, TRAINING, EVALUATION,
-                         FORGETTING, STABILITY, PROVIDERS, REPRODUCE, RESULTS
+                         FORGETTING, STABILITY, TROUBLESHOOTING, PROVIDERS, REPRODUCE,
+                         RESULTS
 ```
 
 ## The four evaluation arms
@@ -87,6 +88,8 @@ TEACHER=oai-teacher/<model> JUDGE=oai-judge/<model> bash slurm/run_pipeline.sh -
 ```
 
 Without Slurm, run the same stages by hand — `docs/REPRODUCE.md` lists every command.
+When something breaks, or finishes but looks wrong, `docs/TROUBLESHOOTING.md` is organised by
+symptom and leads with the failures that produce no error at all.
 To run your own experiments — a different student, teacher, dataset or training objective —
 start from `docs/EXPERIMENTS.md`. For swapping the student specifically, `docs/MODELS.md`
 lists what the kit adapts automatically and what to check first.

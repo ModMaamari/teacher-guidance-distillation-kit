@@ -59,6 +59,12 @@ and no headline evaluation would show it.
 The second is the one people skip. `docs/STABILITY.md` explains why it matters more than it
 looks like it should.
 
+## If a new student misbehaves
+
+`docs/TROUBLESHOOTING.md` leads with the failures that produce no error — a model that is
+perfect at greedy and unusable when sampled is the one to know about before you trust any
+numbers from a new student.
+
 ## Library support
 
 Checked against the pinned versions: `granite`, `llama`, `lfm2` and `qwen3_5` all resolve.

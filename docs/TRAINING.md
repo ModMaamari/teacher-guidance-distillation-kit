@@ -60,6 +60,8 @@ base model with `scripts/serve_vllm.sh --lora <name>=runs/train/<name>/adapter` 
 evaluate it with `--served-model <name>`; or evaluate in-process with
 `scripts/eval.py --student hf --adapter runs/train/<name>/adapter`.
 
+When a run fails or finishes wrong, `docs/TROUBLESHOOTING.md` is organised by symptom.
+
 **Using a different student.** Every check here is architecture-agnostic: before training,
 the trainer compares the loss it is about to optimise against the model's own forward pass on a
 real batch, and refuses to start if they disagree. You do not need to know anything about how

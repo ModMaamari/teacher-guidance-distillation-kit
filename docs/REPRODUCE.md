@@ -111,6 +111,10 @@ runs/vllm_<port>_<job>.log            server logs
 
 ## 6. Troubleshooting
 
+Quick fixes for the setup problems you hit first. **`docs/TROUBLESHOOTING.md` is the fuller
+guide** — start there for anything that finished without an error but produced a result you do
+not trust, which is the harder and more expensive class of problem.
+
 | Symptom | Cause / fix |
 |---|---|
 | `PermissionError: ... /home/...` on a compute node | home is read-only there: the Slurm templates already redirect caches and `HOME` to the project; do the same in your own shell (`HF_HOME`, `XDG_CACHE_HOME`, `VLLM_CACHE_ROOT`, `TRITON_CACHE_DIR`, `TORCHINDUCTOR_CACHE_DIR`, `HOME`) |

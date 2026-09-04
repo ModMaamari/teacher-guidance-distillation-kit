@@ -145,6 +145,9 @@ sbatch -p <gpu-partition> slurm/eval_stability.sbatch runs/train/uniform/adapter
 
 `docs/STABILITY.md` has the measurement, the mechanism and the two fixes.
 
+If an evaluation finishes but the numbers look wrong, `docs/TROUBLESHOOTING.md` covers the
+common causes — stale `.done` markers silently skipping an arm is the one that bites most.
+
 ## Fairness checklist
 
 * Same question files, corpora, tool executor, prompts, budget and hidden-budget setting
