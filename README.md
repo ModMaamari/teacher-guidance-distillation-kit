@@ -44,8 +44,8 @@ tgd/                     library code shared by the scripts
 scripts/                 the stage commands above
 slurm/                   sbatch templates + a one-command pipeline for HPC clusters
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
-docs/                    OVERVIEW, EXPERIMENTS, DATA, TRAINING, EVALUATION, FORGETTING,
-                         STABILITY, PROVIDERS, REPRODUCE, RESULTS
+docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATA, TRAINING, EVALUATION,
+                         FORGETTING, STABILITY, PROVIDERS, REPRODUCE, RESULTS
 ```
 
 ## The four evaluation arms
@@ -88,7 +88,8 @@ TEACHER=oai-teacher/<model> JUDGE=oai-judge/<model> bash slurm/run_pipeline.sh -
 
 Without Slurm, run the same stages by hand — `docs/REPRODUCE.md` lists every command.
 To run your own experiments — a different student, teacher, dataset or training objective —
-start from `docs/EXPERIMENTS.md`.
+start from `docs/EXPERIMENTS.md`. For swapping the student specifically, `docs/MODELS.md`
+lists what the kit adapts automatically and what to check first.
 
 ## Bring your own models
 

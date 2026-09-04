@@ -35,12 +35,20 @@ MAX_LOGIT_TENSOR_GB = 4.0
 
 
 def scaling_fields(config) -> Dict[str, float]:
-    """The rescaling fields this config actually sets to something other than 1.0."""
+    """The rescaling fields this config actually sets to something other than 1.0.
+
+    Looks in the language sub-config as well as the top level: multimodal architectures keep
+    their language settings under ``config.text_config``, and TRL's chunked path reads from
+    there too, so a field hiding in it is exactly as dangerous as one at the top level.
+    """
+    from tgd.models import text_config
+
     found = {}
-    for f in SCALING_FIELDS:
-        v = getattr(config, f, None)
-        if v is not None and v != 1.0:
-            found[f] = v
+    for c in (config, text_config(config)):
+        for f in SCALING_FIELDS:
+            v = getattr(c, f, None)
+            if v is not None and v != 1.0:
+                found.setdefault(f, v)
     return found
 
 

@@ -26,6 +26,7 @@ import shutil
 from pathlib import Path
 
 from tgd.logit_scale import describe, merge_lost_scaling  # noqa: E402
+from tgd.models import load_lm  # noqa: E402
 
 
 def main() -> int:
@@ -69,7 +70,9 @@ def main() -> int:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     print(f"loading base {args.base}")
-    model = AutoModelForCausalLM.from_pretrained(args.base, dtype=torch.bfloat16)
+    model, auto_cls = load_lm(args.base, dtype=torch.bfloat16)
+    if auto_cls != "AutoModelForCausalLM":
+        print(f"  loaded via {auto_cls}")
     base_config = model.config
     print(f"  {describe(base_config)}")
     print(f"applying adapter {args.adapter}")

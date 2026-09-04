@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 import argparse
 
 from tgd.logit_scale import describe as describe_scaling  # noqa: E402
+from tgd.models import load_lm  # noqa: E402
 import json
 import sys
 from pathlib import Path
@@ -57,7 +58,7 @@ def main() -> int:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     tok = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=torch.bfloat16, device_map=args.device)
+    model, _ = load_lm(args.model, dtype=torch.bfloat16, device_map=args.device)
     print(f"  {describe_scaling(model.config)}")
     model.eval()
     prompts = mmlu_prompts(args.mmlu, args.n)

@@ -466,3 +466,53 @@ def test_merge_refuses_a_base_the_adapter_was_not_trained_on(tmp_path):
     (adapter / "adapter_config.json").write_text(json.dumps({"peft_type": "LORA"}))
     rc, out = run()
     assert rc == 2 and "does not record a base" in out
+
+
+def test_nested_text_config_is_inspected():
+    """Multimodal students keep their language settings under config.text_config. A logit
+    rescaling hiding there is exactly as dangerous as one at the top level, and TRL's chunked
+    path reads from there too."""
+    from tgd.logit_scale import scaling_fields
+    from tgd.models import text_config, vocab_size
+
+    class Text:
+        logits_scaling = 10.0
+        vocab_size = 151936
+
+    class Multimodal:
+        text_config = Text()
+
+    class Flat:
+        logits_scaling = 10.0
+        vocab_size = 100352
+
+    assert scaling_fields(Multimodal()) == {"logits_scaling": 10.0}
+    assert scaling_fields(Flat()) == {"logits_scaling": 10.0}
+    assert vocab_size(Multimodal()) == 151936
+    assert text_config(Flat()) is not None
+
+
+def test_vocab_size_never_underestimates_the_logit_width():
+    """It sizes the logits tensor for the memory guard. An embedding matrix padded past the
+    tokenizer length (seen here: 128000 config vs 125017 tokens) must not shrink the
+    estimate, or the guard lets an OOM through."""
+    from tgd.models import vocab_size
+
+    class Cfg:
+        vocab_size = 128000
+
+    class Tok:
+        def __len__(self):
+            return 125017
+
+    assert vocab_size(Cfg(), Tok()) == 128000
+    assert vocab_size(Cfg()) == 128000
+
+    class Resized:
+        vocab_size = 32000
+
+    class BigTok:
+        def __len__(self):
+            return 32128           # embeddings resized after the config was written
+
+    assert vocab_size(Resized(), BigTok()) == 32128

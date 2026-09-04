@@ -71,6 +71,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 
 import tgd  # noqa: F401
 from tgd.io import load_jsonl
+from tgd.models import load_lm, vocab_size  # noqa: E402
 from tgd.logit_scale import (autoscale_batch, chunked_loss_conflict,  # noqa: E402
                              describe as describe_scaling, loss_path_matches_forward)
 from tgd.logging_utils import setup_logger, write_json
@@ -185,8 +186,12 @@ def main() -> int:
     # bf16 needs a GPU. Falling back to fp32 on CPU keeps `--smoke` usable as a
     # pipeline check on a laptop; real training always runs on a GPU.
     on_gpu = torch.cuda.is_available()
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model, dtype=torch.bfloat16 if on_gpu else torch.float32)
+    # Not every student is a plain causal LM: some ship as vision-language / conditional
+    # generation architectures that are not in the causal-LM auto mapping at all.
+    model, auto_cls = load_lm(args.model, dtype=torch.bfloat16 if on_gpu else torch.float32)
+    if auto_cls != "AutoModelForCausalLM":
+        log.info(f"loaded via {auto_cls} (this architecture is not a plain causal LM); "
+                 f"SFT trains its text stack")
     log.info(f"model loaded in {time.time() - t0:.1f}s | cuda={torch.cuda.is_available()} "
              f"gpus={torch.cuda.device_count()}")
 
@@ -208,13 +213,15 @@ def main() -> int:
     # Trade micro-batch for accumulation so the effective batch, and the run, are unchanged.
     if use_nll and not args.no_autoscale_batch:
         new_bs, new_ga, gb = autoscale_batch(args.batch_size, args.grad_accum,
-                                             args.max_length, len(tokenizer))
+                                             args.max_length,
+                                             vocab_size(model.config, tokenizer))
         if new_bs != args.batch_size:
             factor = args.batch_size
             args.batch_size, args.grad_accum = new_bs, new_ga
             log.warning(
                 f"loss_type=nll materialises a {gb:.1f} GB logit tensor at micro-batch "
-                f"{factor} (seq {args.max_length} x vocab {len(tokenizer)}). Using "
+                f"{factor} (seq {args.max_length} x vocab "
+                f"{vocab_size(model.config, tokenizer)}). Using "
                 f"--batch-size 1 --grad-accum {args.grad_accum} instead: same effective "
                 f"batch ({args.batch_size * args.grad_accum}), ~25% more wall time. "
                 f"Pass --no-autoscale-batch to keep your own values.")
