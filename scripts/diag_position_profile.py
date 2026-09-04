@@ -80,7 +80,7 @@ def main() -> int:
     args = ap.parse_args()
 
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoTokenizer
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

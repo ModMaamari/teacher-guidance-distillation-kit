@@ -8,7 +8,7 @@ plan-phase calls when they are recorded.
 from __future__ import annotations
 
 import statistics
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 def _usage(call: Dict[str, Any]):

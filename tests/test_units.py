@@ -130,33 +130,6 @@ def _load_script(name):
     spec.loader.exec_module(mod)
     return mod
 
-
-def test_kl_direction_matches_its_definition():
-    """The argument order of F.kl_div is easy to get backwards, and getting it backwards
-    silently trains the opposite objective. Pin it against the definition."""
-    import torch
-
-    train = _load_script("train_sft")
-    torch.manual_seed(0)
-    student = torch.randn(8, 32)
-    base = torch.randn(8, 32)
-
-    p_s = torch.softmax(student, -1)
-    p_b = torch.softmax(base, -1)
-    expect_forward = (p_b * (p_b.log() - p_s.log())).sum(-1).mean()   # KL(base || student)
-    expect_reverse = (p_s * (p_s.log() - p_b.log())).sum(-1).mean()   # KL(student || base)
-
-    assert torch.allclose(train.kl_term(student, base, "forward"), expect_forward, atol=1e-5)
-    assert torch.allclose(train.kl_term(student, base, "reverse"), expect_reverse, atol=1e-5)
-    assert train.kl_term(student, student, "reverse").abs() < 1e-5    # zero against itself
-
-    # Masking the supervised token changes the value but keeps the term finite and non-negative.
-    tgt = torch.randint(0, 32, (8,))
-    masked = train.kl_term(student, base, "reverse", target_ids=tgt)
-    assert torch.isfinite(masked) and masked >= 0
-    assert not torch.allclose(masked, expect_reverse, atol=1e-5)
-
-
 def test_truncation_params_are_sent_only_when_sampling():
     """Greedy must stay greedy: no truncation knob may leak into a temperature-0 request."""
     from tgd.vllm_backend import VllmPolicy
@@ -305,7 +278,7 @@ def test_every_model_loading_script_reports_logit_scaling():
     import re
     root = Path(__file__).resolve().parents[1]
     for name in ("diag_distributions", "diag_position_profile", "sweep_decoding",
-                 "diag_consistency", "merge_adapter", "train_sft"):
+                 "merge_adapter", "train_sft"):
         src = (root / "scripts" / f"{name}.py").read_text()
         assert re.search(r"from tgd\.logit_scale import", src), f"{name} does not import the check"
         assert re.search(r"describe", src), f"{name} does not report logit scaling"

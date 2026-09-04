@@ -1,11 +1,9 @@
 """Merge a LoRA adapter into the base weights and save a standalone model.
 
-Why: vLLM's runtime LoRA path corrupts a fraction of sequences when sampling (T>0) under
-concurrent batching -- verified on this stack by probing one server: the base arm is
-clean at every concurrency, while the adapter arm degrades from 0/32 bad at concurrency
-8 to near-total garbage at 64. Greedy decoding is unaffected. Merging removes the LoRA
-code path, so both arms run through byte-identical inference and the comparison cannot be
-contaminated by a serving bug.
+Why: the diagnostics load a model directly with transformers rather than through a server,
+so they need standalone weights. Merging also removes the runtime LoRA code path from
+serving, so a trained arm and a base arm run through byte-identical inference and a
+comparison between them cannot be contaminated by a difference in the serving path.
 
 Usage::
 

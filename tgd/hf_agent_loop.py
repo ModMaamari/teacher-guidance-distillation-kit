@@ -490,12 +490,3 @@ def run_episodes_batched(
     return episodes
 
 
-def load_questions(path: str | Path, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    rows = []
-    with open(path) as fh:
-        for line in fh:
-            if line.strip():
-                rows.append(json.loads(line))
-            if limit and len(rows) >= limit:
-                break
-    return rows

@@ -27,7 +27,6 @@ the environment.
 from __future__ import annotations
 
 import glob
-import hashlib
 import json
 import re
 import sys
@@ -44,7 +43,6 @@ from agentsim.teacher_guidance.sft_export import DEFAULT_SYSTEM  # noqa: E402
 
 PLACEHOLDER = "[answer hidden]"
 
-TEACHER_CORRECT_THRESHOLD = 0.40
 
 
 # ---------------------------------------------------------------------------
@@ -66,15 +64,8 @@ def load_jsonl(path: str | Path) -> List[Dict[str, Any]]:
         return [json.loads(l) for l in fh if l.strip()]
 
 
-def teacher_score(episode: Dict[str, Any]) -> Optional[float]:
-    fm = episode.get("final_metrics") or {}
-    v = fm.get("teacher_answer_score")
-    return float(v) if v is not None else None
 
 
-def teacher_correct(episode: Dict[str, Any]) -> bool:
-    s = teacher_score(episode)
-    return s is not None and s >= TEACHER_CORRECT_THRESHOLD
 
 
 # ---------------------------------------------------------------------------
@@ -265,8 +256,3 @@ def build_episode_examples(episode: Dict[str, Any], run: str = "") -> List[Dict[
     return out
 
 
-def qid_split(qid: str, dev_fraction: float = 0.03) -> str:
-    """Deterministic train/dev assignment by qid hash (never split one question
-    across train and dev)."""
-    h = int(hashlib.sha256(str(qid).encode()).hexdigest(), 16) % 10_000
-    return "dev" if h < dev_fraction * 10_000 else "train"

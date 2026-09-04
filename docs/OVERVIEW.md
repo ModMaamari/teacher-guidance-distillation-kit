@@ -39,7 +39,7 @@ you iterate on training.
 | `tgd/episodes.py`, `tgd/splits.py`, `tgd/metrics.py`, `tgd/io.py`, `tgd/logging_utils.py` | publishable episode view, hash split, aggregate metrics, JSONL I/O, logging |
 | `templates/workflows/` | the harness workflow definitions per step budget; `templates/prompts/` prompt fragments |
 | `templates/simulations/` | collection templates written by `collect_episodes.py` |
-| `scripts/merge_adapter.py`, `scripts/diag_distributions.py`, `scripts/diag_position_profile.py`, `scripts/sweep_decoding.py`, `scripts/diag_consistency.py` | decoding-stability toolkit: fold the LoRA into base weights, measure the next-token distribution on in- and out-of-distribution prompts, locate where along a completion it flattens, sweep temperature against truncation, and separate sampling noise from a genuine cliff (`docs/STABILITY.md`) |
+| `scripts/merge_adapter.py`, `scripts/diag_distributions.py`, `scripts/diag_position_profile.py`, `scripts/sweep_decoding.py` | decoding-stability toolkit: fold the LoRA into base weights, measure the next-token distribution on in- and out-of-distribution prompts, locate where along a completion it flattens, sweep temperature against truncation (`docs/STABILITY.md`) |
 | `scripts/prepare_benchmarks.py`, `scripts/eval_benchmarks.py`, `scripts/forgetting_report.py` | the forgetting check: build MMLU / GSM8K / HellaSwag eval splits, score any arm on them, then aggregate repeated runs into statistics and box plots (`docs/FORGETTING.md`) |
 
 ## The data

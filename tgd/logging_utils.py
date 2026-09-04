@@ -21,12 +21,6 @@ def utc_ts() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def timestamped_dir(base: str | Path, tag: str = "") -> Path:
-    """Create and return ``<base>/<utc_ts>[_<tag>]/`` (parents included)."""
-    name = utc_ts() + (f"_{tag}" if tag else "")
-    path = Path(base) / name
-    path.mkdir(parents=True, exist_ok=True)
-    return path
 
 
 def setup_logger(name: str, log_file: str | Path | None = None) -> logging.Logger:

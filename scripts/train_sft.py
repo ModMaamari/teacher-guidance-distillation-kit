@@ -7,25 +7,11 @@ the model's own chat template and computes the loss on completion tokens only, s
 model learns to GENERATE the ``teacher_guidance`` block + thought + action and is never
 trained on the (long) prompt tokens.
 
-**Keeping the student samplable.** Plain SFT can leave a model that is excellent at greedy
-decoding and unusable when sampled: it keeps ranking the right token first while spreading its
-probability mass across the vocabulary, so greedy (which needs only the ranking) is fine and
-sampling (which needs calibrated probabilities) draws junk. Measured on this project's own
-student, the effect was total -- 61% cover at temperature 0 and 0% with 899/900 invalid actions
-at 0.3. See docs/STABILITY.md.
-
-``--kl-coef`` guards against that by pulling every completion token toward the frozen base
-model's own distribution. The base distribution comes from the SAME weights with the LoRA
-adapter switched off, so it costs one extra forward pass and no extra parameters.
-``--kl-direction`` chooses what is penalised:
-
-* ``reverse`` (default) -- KL(student || base), mode-seeking: penalises probability mass where
-  the base model has none, which is exactly the junk tail that breaks sampling, while leaving
-  the student free to sharpen on the correct token.
-* ``forward`` -- KL(base || student), mass-covering: penalises the student for withdrawing mass
-  from anything the base found plausible. That fights the cross-entropy directly; measured at
-  coefficient 0.1 it fixed the calibration completely and cost most of the task (61% -> 29%
-  cover). Use it only deliberately.
+**Keeping the student samplable.** A model can be excellent at greedy decoding and unusable
+when sampled, and no greedy evaluation will show it. Before training starts this script checks
+that the loss it is about to optimise matches the model's own forward pass; if they disagree it
+stops rather than producing a student that decodes correctly and samples junk. See
+``docs/STABILITY.md``.
 
 ``--health-every`` samples a few held-out prompts at temperature 0.7 during training and logs
 how many parse. That is the signal whose absence let the failure above reach evaluation
@@ -77,37 +63,6 @@ from tgd.logit_scale import (autoscale_batch, chunked_loss_conflict,  # noqa: E4
 from tgd.logging_utils import setup_logger, write_json
 
 
-def kl_term(student_logits, base_logits, direction: str, target_ids=None):
-    """KL between the student's and the frozen base's next-token distributions.
-
-    `forward` is KL(base || student): mass-covering, it pushes the student to keep
-    probability everywhere the base has some, which directly opposes the cross-entropy
-    term and in our runs cost most of the task gain. `reverse` is KL(student || base):
-    mode-seeking, it only penalises mass the student puts where the base has none, which
-    is exactly the flat tail that makes a fine-tuned model unsamplable. See docs/STABILITY.md.
-
-    Pass `target_ids` to exclude the supervised token itself, so the KL shapes the tail
-    without fighting the label.
-    """
-    import torch    # deferred so --help stays instant
-
-    if direction not in ("forward", "reverse"):
-        raise ValueError(f"kl direction must be 'forward' or 'reverse', got {direction!r}")
-    if target_ids is not None:
-        rows = torch.arange(student_logits.shape[0], device=student_logits.device)
-        student_logits = student_logits.clone()
-        base_logits = base_logits.clone()
-        student_logits[rows, target_ids] = -1e4
-        base_logits[rows, target_ids] = -1e4
-    log_s = torch.log_softmax(student_logits, dim=-1)
-    log_b = torch.log_softmax(base_logits, dim=-1)
-    # F.kl_div(input=log q, target=log p) computes KL(p || q), so the base goes in the
-    # target slot for forward and in the input slot for reverse.
-    if direction == "forward":
-        return torch.nn.functional.kl_div(log_s, log_b, log_target=True, reduction="batchmean")
-    return torch.nn.functional.kl_div(log_b, log_s, log_target=True, reduction="batchmean")
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default="ibm-granite/granite-4.1-3b", help="HF id or local path of the student")
@@ -130,19 +85,8 @@ def main() -> int:
                     help="keep --batch-size as given even when the non-chunked loss would "
                          "materialise a very large logit tensor")
     ap.add_argument("--loss-type", choices=["auto", "nll", "chunked_nll"], default="auto",
-                    help="auto: use nll when the model rescales logits or when --kl-coef > 0, "
-                         "else TRL's memory-chunked default")
-    ap.add_argument("--kl-coef", type=float, default=0.0,
-                    help="strength of the KL toward the frozen base (0 = plain SFT). 0.03-0.1 is the "
-                         "range explored here; higher values trade task performance for calibration")
-    ap.add_argument("--kl-direction", choices=["reverse", "forward"], default="reverse",
-                    help="reverse = KL(student||base), mode-seeking (recommended); "
-                         "forward = KL(base||student), mass-covering (fights the task objective)")
-    ap.add_argument("--kl-mask-target", action="store_true",
-                    help="exclude the target token from the KL, so only the shape of the alternatives "
-                         "is regularised and confidence on the correct token is entirely free")
-    ap.add_argument("--kl-max-positions", type=int, default=512,
-                    help="cap on completion positions used for the KL each step (bounds memory)")
+                    help="auto: use nll when the model rescales logits, else TRL's "
+                         "memory-chunked default")
     ap.add_argument("--health-every", type=int, default=0,
                     help="every N steps, sample --health-prompts held-out prompts at "
                          "--health-temperature and log how many parse as JSON (0 = off)")
@@ -201,7 +145,7 @@ def main() -> int:
     conflict = chunked_loss_conflict(model.config)
     if conflict and args.loss_type == "auto":
         log.warning(conflict + " Using loss_type='nll' instead.")
-    use_nll = args.kl_coef > 0 or args.loss_type == "nll" or (conflict and args.loss_type == "auto")
+    use_nll = args.loss_type == "nll" or (conflict and args.loss_type == "auto")
     if conflict and args.loss_type == "chunked_nll":
         log.error(conflict + " Refusing to run: pass --loss-type nll, or --loss-type "
                   "chunked_nll is only safe for models without logit rescaling.")
@@ -229,44 +173,6 @@ def main() -> int:
     peft_config = LoraConfig(r=args.lora_r, lora_alpha=args.lora_alpha, lora_dropout=args.lora_dropout,
                              target_modules="all-linear", task_type="CAUSAL_LM")
     do_eval = bool(dev_rows) and not args.smoke
-
-    class CalibratedSFTTrainer(SFTTrainer):
-        """SFT loss plus a KL toward the adapter-disabled base on completion tokens."""
-
-        def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
-            loss, outputs = super().compute_loss(model, inputs, return_outputs=True,
-                                                 num_items_in_batch=num_items_in_batch)
-            labels = inputs.get("labels")
-            if args.kl_coef <= 0 or labels is None or getattr(outputs, "logits", None) is None:
-                return (loss, outputs) if return_outputs else loss
-            shift_labels = labels[..., 1:]
-            mask = shift_labels != -100
-            if not bool(mask.any()):
-                return (loss, outputs) if return_outputs else loss
-            idx = mask.nonzero(as_tuple=False)
-            if idx.shape[0] > args.kl_max_positions:      # bound memory: sample positions
-                idx = idx[torch.randperm(idx.shape[0], device=idx.device)[:args.kl_max_positions]]
-            rows_i, cols_i = idx[:, 0], idx[:, 1]
-            tgt = shift_labels[rows_i, cols_i]
-            unwrapped = self.accelerator.unwrap_model(model)
-            with torch.no_grad():
-                with unwrapped.disable_adapter():
-                    base_logits = unwrapped(input_ids=inputs["input_ids"],
-                                            attention_mask=inputs.get("attention_mask")).logits[..., :-1, :]
-                base_sel = base_logits[rows_i, cols_i].float()
-            stud_sel = outputs.logits[..., :-1, :][rows_i, cols_i].float()
-            kl = kl_term(stud_sel, base_sel, args.kl_direction,
-                         target_ids=tgt if args.kl_mask_target else None)
-            if not torch.isfinite(kl):                   # never let one bad batch poison a run
-                log.warning(f"non-finite KL at step {self.state.global_step}; skipped this step")
-                return (loss, outputs) if return_outputs else loss
-            with torch.no_grad():
-                p = torch.softmax(stud_sel, dim=-1)
-                self._last_kl = float(kl)
-                self._last_entropy = float(-(p * torch.log(p.clamp_min(1e-12))).sum(-1).mean())
-                self._last_top1 = float(p.max(-1).values.mean())
-            return ((loss + args.kl_coef * kl, outputs) if return_outputs
-                    else loss + args.kl_coef * kl)
 
     class Health(TrainerCallback):
         """Periodically sample held-out prompts and log how many parse -- the check whose
@@ -326,8 +232,7 @@ def main() -> int:
         report_to=[],
         completion_only_loss=True,
         # "nll" routes through the model's own forward pass, so any logit rescaling the
-        # architecture applies is honoured; it is also required for the KL term, which
-        # needs real logits. "chunked_nll" is TRL's memory-saving default.
+        # architecture applies is honoured. "chunked_nll" is TRL's memory-saving default.
         **({"loss_type": "nll"} if use_nll else {}),
     )
 
@@ -343,12 +248,9 @@ def main() -> int:
                 "step": state.global_step, "max_steps": state.max_steps,
                 "epoch": round(state.epoch or 0, 3), "elapsed_s": round(elapsed),
                 "eta_s": round(eta), "last_log": {k: v for k, v in (logs or {}).items()},
-                "kl": {k: getattr(trainer, f"_last_{k}", None)
-                       for k in ("kl", "entropy", "top1")} if args.kl_coef > 0 else None,
             })
 
-    trainer_cls = CalibratedSFTTrainer if args.kl_coef > 0 else SFTTrainer
-    trainer = trainer_cls(
+    trainer = SFTTrainer(
         model=model, args=cfg,
         train_dataset=Dataset.from_list(train_rows),
         eval_dataset=Dataset.from_list(dev_rows) if do_eval else None,
@@ -413,9 +315,7 @@ def main() -> int:
     ckpts = sorted(glob.glob(str(out / "checkpoints" / "checkpoint-*")),
                    key=lambda p: int(p.rsplit("-", 1)[1]))
     resume = ckpts[-1] if ckpts and not args.smoke else None
-    log.info(f"training ... {'resuming from ' + resume if resume else 'from scratch'}"
-             + (f" | KL {args.kl_direction} coef={args.kl_coef} mask_target={args.kl_mask_target}"
-                if args.kl_coef > 0 else " | plain SFT (no KL)"))
+    log.info(f"training ... {'resuming from ' + resume if resume else 'from scratch'}")
     result = trainer.train(resume_from_checkpoint=resume)
     log.info(f"train done in {time.time() - t0:.1f}s: {result.metrics}")
 

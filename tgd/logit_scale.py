@@ -23,7 +23,7 @@ See ``docs/STABILITY.md`` for the full diagnosis.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 # Fields an architecture may use to rescale logits, and the one TRL's chunked path reads.
 SCALING_FIELDS = ("logits_scaling", "logit_scale", "final_logit_softcapping")

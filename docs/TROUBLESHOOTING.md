@@ -41,14 +41,6 @@ Every completion was truncated away, so there is nothing to compute a loss on. R
 `--max-length`, or shorten prompts. The trainer checks a few real batches at startup and
 refuses to run when this would happen, so you should only see it on an older checkpoint's logs.
 
-### `status.json` shows `kl: null` while `--kl-coef` is set
-
-The KL term never ran, and training silently proceeded as plain SFT. Two things can cause it:
-the batch had no supervised positions to compute a divergence over (see the loss-of-0.0 entry
-above), or the loss path is not returning logits. Check `train_config.json`: `loss_type` must be
-`nll`, which `--kl-coef > 0` sets automatically. Anything that hides completion positions from
-the trainer — a label smoother, a custom collator — will do the same, so be careful adding one.
-
 ### Two arms were evaluated under different settings
 
 Every stage skips work when it finds a `.done` marker. If you change temperature, decoding, or
@@ -99,7 +91,7 @@ problem shows up during training rather than a week later.
 
 When something is wrong and you do not know what, in this order:
 
-1. **`<out>/status.json`** — step, epoch, loss, ETA, and the KL diagnostics. Rewritten every
+1. **`<out>/status.json`** — step, epoch, loss and ETA. Rewritten every
    logging step, so it is current even mid-run.
 2. **`<out>/train.log`** — UTC-stamped. The startup lines record the logit rescaling, the loss
    path, the micro-batch, the supervision check and the loss-path check.

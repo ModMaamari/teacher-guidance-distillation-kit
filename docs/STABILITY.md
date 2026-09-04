@@ -118,7 +118,7 @@ one implementation; these use it:
 |---|---|
 | `train_sft.py` | **measures that the training loss matches the model's own forward pass, and refuses to start if not** — architecture-agnostic; also picks the safe loss path, refuses the unsafe one, rescales the micro-batch to fit, and logs the model's scaling |
 | `merge_adapter.py` | verifies the merged config kept the base's scaling; **deletes the merged model and fails** if not, rather than leaving a silently-wrong checkpoint on disk |
-| `diag_distributions.py`, `diag_position_profile.py`, `sweep_decoding.py`, `diag_consistency.py` | print the model's scaling next to every measurement |
+| `diag_distributions.py`, `diag_position_profile.py`, `sweep_decoding.py` | print the model's scaling next to every measurement |
 | `eval.py` | prints it whenever it is about to sample a local checkpoint |
 
 The diagnostics and the KL term all read `model(...).logits`, which is *post*-scaling — what
@@ -184,7 +184,6 @@ out-of-distribution prompts and 200 in-distribution agent prompts:
 |---|---|---|---|
 | base | 0.09 | 0.96 | 100 % |
 | trained (plain SFT) | **10.91** | **0.006** | **1.2 %** |
-| trained with `--kl-coef` | 0.17 | 0.93 | 100 % |
 
 The vocabulary is 100,352 tokens, so 10.9 nats is nearly uniform. The trained model still ranks
 the correct token first — greedy works — but holds 0.6 % of the probability on it. Everything
@@ -215,73 +214,32 @@ On the agent task, at the same temperature:
 checkpoint works: **the temperature must be low and the truncation must be relative**. Above
 0.5 nothing helps.
 
-### At training: regularise toward the base
+### At training: nothing, once the loss path is right
 
-`scripts/train_sft.py --kl-coef 0.03` pulls every completion token toward the frozen base
-model's own distribution. The base distribution comes from the same weights with the adapter
-switched off, so it costs one extra forward pass and no extra parameters.
+A KL penalty toward the frozen base was tried here as a way to keep the student samplable, and
+**it is not needed** — the failure it was compensating for was the loss-path bug above, and with
+that fixed the student is stable at every temperature with no regulariser at all.
 
-`--kl-direction` decides what is penalised:
+It is recorded because the measurement is worth knowing before anyone reaches for the same idea.
+Every point below trained identically (6,000 examples, 375 steps), differing only in the KL
+coefficient:
 
-* **`reverse`** (default) — KL(student ‖ base), *mode-seeking*: penalises probability mass where
-  the base has none, which is exactly the junk tail, while leaving the student free to sharpen
-  on the correct token. This is the direction [MiniLLM](https://arxiv.org/abs/2306.08543) uses
-  for LLM distillation and that RLHF/DPO use for their reference constraint.
-* **`forward`** — KL(base ‖ student), *mass-covering*: penalises the student for withdrawing
-  mass from anything the base found plausible, which fights the cross-entropy directly.
+| KL coefficient | Exact match | Greedy cover |
+|---|---|---|
+| **0 (none)** | **0.287** | **51.7 %** |
+| 0.003 | 0.157 | 48.3 % |
+| 0.01 | 0.093 | 44.7 % |
+| 0.03 | 0.073 | 42.3 % |
+| 0.1 | 0.077 | 30.7 % |
 
-The theory says the direction should matter a great deal. **Measured, it barely does.** A sweep
-on this project's student, every point trained identically on 6,000 examples for 375 steps:
+Every coefficient costs task accuracy, monotonically, and exact match pays first and hardest —
+it falls by 45 % at the smallest coefficient tested. There is no knee in that curve where the
+constraint becomes free. The direction of the divergence (forward vs reverse) mattered far less
+than its strength: at the same 0.1 the two differ by 1.7 points, while 0.03 versus 0.1 differ by
+11.6.
 
-| Variant | Exact match | Greedy cover | Nucleus 0.7 | min-p 0.3 |
-|---|---|---|---|---|
-| no KL | **0.287** | **51.7 %** | not measured | not measured |
-| reverse, coef 0.03 | 0.073 | 42.3 % | 42.3 % | 43.3 % |
-| reverse, coef 0.1 | 0.077 | 30.7 % | 32.0 % | 35.3 % |
-| forward, coef 0.1 | 0.060 | 29.0 % | not measured | not measured |
-| reverse 0.1, `--kl-mask-target` | 0.080 | 28.3 % | 30.7 % | 23.3 % |
-| untrained base | — | 23.3 % | — | — |
-
-Read three things off that table.
-
-**The coefficient dominates the direction.** Reverse and forward at the same 0.1 differ by 1.7
-points; reverse at 0.03 versus 0.1 differ by 11.6. Pick the coefficient carefully and the
-direction second.
-
-**Every KL setting removes the cliff.** Cover varies by a few points across three decoders
-instead of collapsing to zero. That part works exactly as advertised, at every coefficient tested.
-
-**The constraint is not free, and exact match pays most.** Cover falls 9.4 points at the cheapest
-setting that was tried; exact match falls by roughly three quarters at *every* setting, including
-that one. If exact match is what you care about, none of these points is good enough yet — sweep
-below 0.03.
-
-`--kl-mask-target` excludes the target token from the divergence, so only the shape of the
-alternatives is constrained. It produced the best calibration measured here (better than base,
-in distribution) and the worst task score. It is the wrong end of the curve.
-
-### Before you reach for any of this: check for the scaling bug
-
-The two runs that looked like "healthy short training vs damaged long training" differed in
-their **loss path**, not only their length:
-
-| Plain SFT run | Loss path | In-distribution entropy | Top-1 |
-|---|---|---|---|
-| 2 epochs, full data | `chunked_nll` | 11.076 | 0.001 |
-| 1 epoch, 6,000 examples | `nll` | 0.000 | 1.000 |
-| untrained base | — | 0.048 | 0.992 |
-
-It is tempting to read that as over-training. It is not: the confound is the loss path, and the
-verification above settles it. With the guard in place this specific failure cannot recur
-silently, so **check the loss path before reaching for any training-side mitigation.**
-
-**What is measured and what is not.** Every number on this page comes from one student and one
-seed. The KL sweep above was run *before* the scaling bug was found, so it measures what the KL
-term does to an already-healthy short run — its conclusions about the cost of the constraint
-stand, but "the KL term fixes the cliff" does not: the cliff was a bug, and the fix is the
-guard. **With the loss path corrected, the KL term buys nothing here**: the corrected student is
-stable at every temperature with `--kl-coef 0`, and every non-zero coefficient measured cost
-task accuracy. Leave it off unless a diagnostic on your own model says otherwise.
+The option has been removed from `scripts/train_sft.py`. If you have a reason to revisit it, the
+numbers above are the baseline to beat.
 
 ### And measure it during training
 
@@ -310,8 +268,6 @@ Individually:
     --models base=<hf id> trained=runs/train/uniform/merged --n 200 --out runs/diag
 .venv_train/bin/python scripts/sweep_decoding.py \
     --models trained=runs/train/uniform/merged --n 100 --out runs/diag
-.venv_train/bin/python scripts/diag_consistency.py \
-    --model runs/train/uniform/merged --top-k 50    # predicted vs observed, validates the above
 ```
 
 ## What to check before trusting any fine-tune

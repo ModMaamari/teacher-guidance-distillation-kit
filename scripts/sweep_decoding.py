@@ -65,7 +65,7 @@ def main() -> int:
     args = ap.parse_args()
 
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoTokenizer
 
     prompts = mmlu_prompts(args.mmlu, args.n)
     gold = {}

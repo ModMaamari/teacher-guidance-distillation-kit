@@ -112,7 +112,7 @@ teacher 72.3 %. The trained student pays 1.4 points of general ability for that 
 (`docs/FORGETTING.md`) — and, trained with plain SFT, it can only be decoded greedily:
 sampling it at temperature 0.3 produces nothing usable. That failure, how to detect it and
 two ways to prevent it are in `docs/STABILITY.md`; it is the single most surprising result
-in this kit, and the reason `--kl-coef` and `--min-p` exist. The trained student needs no teacher at inference and 0.43× the tokens
+in this kit, and the reason the loss-path guard exists. The trained student needs no teacher at inference and 0.43× the tokens
 of the guided student. Full tables, per-dataset numbers, the leave-one-dataset-out
 transfer results and confidence intervals are in `docs/RESULTS.md`.
 
