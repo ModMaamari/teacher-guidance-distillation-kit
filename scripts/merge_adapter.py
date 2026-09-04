@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 
 import argparse
+import json
 import shutil
 from pathlib import Path
 
@@ -29,8 +30,11 @@ from tgd.logit_scale import describe, merge_lost_scaling  # noqa: E402
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--base", default="ibm-granite/granite-4.1-3b",
-                    help="the base the adapter was trained on; must match exactly")
+    ap.add_argument("--base", default=None,
+                    help="the base the adapter was trained on. Defaults to the one the "
+                         "adapter itself records, which is almost always what you want")
+    ap.add_argument("--force-base", action="store_true",
+                    help="merge onto --base even though the adapter records a different one")
     ap.add_argument("--adapter", required=True)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
@@ -38,6 +42,27 @@ def main() -> int:
     if (out / "config.json").exists():
         print(f"merged model already present: {out}")
         return 0
+
+    # A LoRA adapter records the base it was trained on. Merging onto a different one
+    # produces garbage or a crash, and with several students in flight it is an easy
+    # mistake -- so take the base from the adapter unless told otherwise, and refuse a
+    # silent mismatch.
+    recorded = None
+    acfg = Path(args.adapter) / "adapter_config.json"
+    if acfg.exists():
+        recorded = json.loads(acfg.read_text()).get("base_model_name_or_path")
+    if args.base is None:
+        if not recorded:
+            print("ERROR: this adapter does not record a base model; pass --base explicitly.")
+            return 2
+        args.base = recorded
+        print(f"base from the adapter: {args.base}")
+    elif recorded and recorded != args.base and not args.force_base:
+        print(f"ERROR: the adapter was trained on {recorded!r} but --base is {args.base!r}. "
+              f"Merging onto the wrong base produces a broken model. Drop --base to use the "
+              f"recorded one, or pass --force-base if you are certain they are the same "
+              f"weights under a different path.")
+        return 2
 
     import torch
     from peft import PeftModel

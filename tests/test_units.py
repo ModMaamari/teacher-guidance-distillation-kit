@@ -430,3 +430,39 @@ def test_repair_tool_is_reversible_and_refuses_the_wrong_target(tmp_path):
 
     run(scaled, "--restore")
     assert json.loads((scaled / "config.json").read_text())["logits_scaling"] == 10.0
+
+
+def test_merge_refuses_a_base_the_adapter_was_not_trained_on(tmp_path):
+    """With several students in flight, merging an adapter onto the wrong base is an easy
+    mistake and produces a broken model rather than an error. The adapter records its own
+    base; use it, and refuse a silent mismatch."""
+    import json
+    import subprocess
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    script = root / "scripts" / "merge_adapter.py"
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_config.json").write_text(
+        json.dumps({"base_model_name_or_path": "org/student-a", "peft_type": "LORA"}))
+
+    def run(*flags):
+        r = subprocess.run([sys.executable, str(script), "--adapter", str(adapter),
+                            "--out", str(tmp_path / "out"), *flags],
+                           capture_output=True, text=True)
+        return r.returncode, r.stdout + r.stderr
+
+    rc, out = run("--base", "org/student-b")
+    assert rc == 2, "a base the adapter was not trained on must be refused"
+    assert "org/student-a" in out and "org/student-b" in out
+
+    # No --base at all: it should adopt the recorded one (and then fail to download it,
+    # which is fine -- we only care that it resolved the right name).
+    rc, out = run()
+    assert "org/student-a" in out
+
+    # An adapter with no recorded base must ask rather than guess.
+    (adapter / "adapter_config.json").write_text(json.dumps({"peft_type": "LORA"}))
+    rc, out = run()
+    assert rc == 2 and "does not record a base" in out
