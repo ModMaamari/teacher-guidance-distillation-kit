@@ -62,8 +62,12 @@ def merge_lost_scaling(base_config, merged_config) -> Optional[str]:
     if not lost:
         return None
     field, value = next(iter(lost.items()))
+    # Report what the merged config literally holds, not the filtered view: a field set to
+    # 1.0 is "lost" for our purposes but saying "None" would send someone hunting a missing
+    # key that is actually present.
+    actual = getattr(merged_config, field, None)
     return (f"the merged model lost config.{field} (base has {value}, merged has "
-            f"{after.get(field)!r}). Every inference on it would run at the wrong logit "
+            f"{actual!r}). Every inference on it would run at the wrong logit "
             f"scale: greedy would look fine and sampling would produce junk.")
 
 

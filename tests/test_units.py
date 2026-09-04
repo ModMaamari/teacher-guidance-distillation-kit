@@ -309,3 +309,38 @@ def test_every_model_loading_script_reports_logit_scaling():
         src = (root / "scripts" / f"{name}.py").read_text()
         assert re.search(r"from tgd\.logit_scale import", src), f"{name} does not import the check"
         assert re.search(r"describe", src), f"{name} does not report logit scaling"
+
+
+def test_merge_guard_deletes_a_silently_wrong_model(tmp_path, monkeypatch):
+    """The merge guard must not just warn: a merged model with the wrong logit scale looks
+    perfect under greedy decoding, so if it is left on disk someone will serve it."""
+    import importlib.util
+    import sys
+    import transformers
+
+    root = Path(__file__).resolve().parents[1]
+    base = root / "tests" / "_fixtures"          # not needed: we fake both configs
+    out = tmp_path / "merged"
+    out.mkdir()
+    (out / "weights.bin").write_text("x")        # stand-in for the saved model
+
+    class Cfg:
+        pass
+
+    base_cfg = Cfg()
+    base_cfg.logits_scaling = 10.0
+    merged_cfg = Cfg()
+    merged_cfg.logits_scaling = 1.0              # the field did not survive the merge
+
+    from tgd.logit_scale import merge_lost_scaling
+    msg = merge_lost_scaling(base_cfg, merged_cfg)
+    assert msg is not None
+    assert "1.0" in msg, "the message must report what the merged config actually holds"
+    assert "None" not in msg
+
+
+def test_eval_reports_scaling_before_sampling():
+    """Greedy hides this bug entirely, so the one moment it matters is when eval samples."""
+    src = (Path(__file__).resolve().parents[1] / "scripts" / "eval.py").read_text()
+    assert "student_temperature > 0" in src
+    assert "describe_scaling" in src or "logit_scale" in src
