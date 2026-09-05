@@ -5,8 +5,13 @@
 # Takes ~2-4 minutes on a laptop. Usage: bash tests/smoke_offline.sh [work-dir]
 set -euo pipefail
 cd "$(dirname "$0")/.."
-# The CPU virtualenv, wherever this platform puts its interpreter.
-venv_py() { for c in "$1/bin/python" "$1/Scripts/python.exe"; do [ -x "$c" ] && { echo "$c"; return; }; done; echo python3; }
+# The virtualenv interpreter (bin/ on POSIX, Scripts/ on Windows), else whichever
+# system python exists -- Windows installs "python" and often no "python3".
+venv_py() {
+  for c in "$1/bin/python" "$1/Scripts/python.exe"; do [ -x "$c" ] && { echo "$c"; return; }; done
+  for c in python3 python; do command -v "$c" >/dev/null 2>&1 && { echo "$c"; return; }; done
+  echo python3
+}
 PY=${PY:-$(venv_py .venv)}
 W=${1:-runs/smoke_offline}
 rm -rf "$W"; mkdir -p "$W"

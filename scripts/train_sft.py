@@ -280,7 +280,7 @@ def main() -> int:
             m.train()
             rec = {"step": state.global_step, "temperature": args.health_temperature,
                    "parseable": ok, "of": len(self.prompts), "rate": round(ok / max(len(self.prompts), 1), 3)}
-            with (out / "health_checks.jsonl").open("a") as fh:
+            with (out / "health_checks.jsonl").open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec) + "\n")
             log.info(f"HEALTH step {state.global_step}: {ok}/{len(self.prompts)} parseable "
                      f"at T={args.health_temperature}")
@@ -417,7 +417,7 @@ def main() -> int:
     if trainer.is_world_process_zero():
         tokenizer.save_pretrained(str(adapter_dir))
         write_json(out / "final_metrics.json", final)
-        with open(out / "trainer_state.json", "w") as f:
+        with open(out / "trainer_state.json", "w", encoding="utf-8") as f:
             json.dump(trainer.state.log_history, f, indent=2)
         done.write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
         log.info(f"adapter saved: {adapter_dir}")

@@ -31,7 +31,7 @@ class SimulationLoader:
         if not path.exists():
             raise FileNotFoundError(f"Simulation template not found: {path}")
         
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         
         return self._parse(data)

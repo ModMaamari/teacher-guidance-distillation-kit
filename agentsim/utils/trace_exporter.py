@@ -28,11 +28,11 @@ class TraceExporter:
     def _ensure_stream_files_open(self):
         """Ensure streaming file handles are open"""
         if self._traces_file is None:
-            self._traces_file = open(self.output_dir / "traces.jsonl", 'w')
+            self._traces_file = open(self.output_dir / "traces.jsonl", 'w', encoding="utf-8")
         if self._supervised_file is None:
-            self._supervised_file = open(self.output_dir / "supervised.jsonl", 'w')
+            self._supervised_file = open(self.output_dir / "supervised.jsonl", 'w', encoding="utf-8")
         if self._trajectories_file is None:
-            self._trajectories_file = open(self.output_dir / "trajectories.jsonl", 'w')
+            self._trajectories_file = open(self.output_dir / "trajectories.jsonl", 'w', encoding="utf-8")
     
     def close_streams(self):
         """Close all streaming file handles"""
@@ -193,7 +193,7 @@ class TraceExporter:
             }
         }
         
-        with open(run_dir / "manifest.json", 'w') as f:
+        with open(run_dir / "manifest.json", 'w', encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
     
     def _write_config(
@@ -258,7 +258,7 @@ class TraceExporter:
             "created_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }
         
-        with open(run_dir / "config.json", 'w') as f:
+        with open(run_dir / "config.json", 'w', encoding="utf-8") as f:
             json.dump(config, f, indent=2)
     
     def _write_stats(
@@ -355,12 +355,12 @@ class TraceExporter:
             "created_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         }
         
-        with open(run_dir / "stats.json", 'w') as f:
+        with open(run_dir / "stats.json", 'w', encoding="utf-8") as f:
             json.dump(stats, f, indent=2)
     
     def _write_traces(self, run_dir: Path, context: Any):
         """Write traces.jsonl - full step-by-step execution trace"""
-        with open(run_dir / "traces.jsonl", 'w') as f:
+        with open(run_dir / "traces.jsonl", 'w', encoding="utf-8") as f:
             if hasattr(context, 'messages'):
                 for msg in context.messages:
                     # Convert Message to dict
@@ -390,7 +390,7 @@ class TraceExporter:
     
     def _write_supervised(self, run_dir: Path, context: Any):
         """Write supervised.jsonl - LLM input/output pairs for fine-tuning"""
-        with open(run_dir / "supervised.jsonl", 'w') as f:
+        with open(run_dir / "supervised.jsonl", 'w', encoding="utf-8") as f:
             if hasattr(context, 'messages'):
                 for msg in context.messages:
                     msg_dict = msg if isinstance(msg, dict) else self._msg_to_dict(msg)
@@ -409,7 +409,7 @@ class TraceExporter:
     
     def _write_trajectories(self, run_dir: Path, context: Any):
         """Write trajectories.jsonl - state-action-reward for RL training"""
-        with open(run_dir / "trajectories.jsonl", 'w') as f:
+        with open(run_dir / "trajectories.jsonl", 'w', encoding="utf-8") as f:
             if hasattr(context, 'messages'):
                 for i, msg in enumerate(context.messages):
                     msg_dict = msg if isinstance(msg, dict) else self._msg_to_dict(msg)

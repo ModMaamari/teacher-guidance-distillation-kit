@@ -676,3 +676,73 @@ def test_sdpa_probe_is_safe_and_idempotent():
     first = sdpa_compat.apply()
     assert isinstance(first, bool)
     assert sdpa_compat.apply() is False, "applying twice must be a no-op"
+
+
+# --------------------------------------------------------------------- portability
+
+def test_every_text_file_is_opened_with_an_explicit_encoding():
+    """`open()` in text mode uses the platform's default codec -- UTF-8 on Linux and
+    macOS, cp1252 on Windows. The corpora are Wikipedia-derived: the first 4,000 lines of
+    the HotpotQA corpus alone carry 6,888 characters cp1252 cannot represent, so the same
+    code either crashes or silently mangles depending on the machine it runs on."""
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    offenders = []
+    for path in sorted(root.rglob("*.py")):
+        rel = path.relative_to(root)
+        if any(p.startswith(".venv") or p in ("__pycache__", ".git") for p in rel.parts):
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:                       # not ours to police
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            if isinstance(func, ast.Name) and func.id == "open":
+                pass
+            elif isinstance(func, ast.Attribute) and func.attr == "open":
+                if isinstance(func.value, ast.Name) and func.value.id in (
+                        "gzip", "bz2", "lzma", "tarfile", "zipfile"):
+                    continue
+            else:
+                continue
+            if any(kw.arg == "encoding" for kw in node.keywords):
+                continue
+            mode = None
+            if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
+                mode = node.args[1].value
+            for kw in node.keywords:
+                if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
+                    mode = kw.value.value
+            if isinstance(mode, str) and "b" in mode:
+                continue                          # binary needs no encoding
+            offenders.append(f"{rel.as_posix()}:{node.lineno}")
+    assert not offenders, (
+        "text-mode open() without encoding=\"utf-8\":\n  " + "\n  ".join(offenders))
+
+
+def test_log_files_are_written_as_utf8(tmp_path):
+    """Logs carry model answers and question text. A handler on the platform default
+    turns a non-cp1252 answer into a swallowed '--- Logging error ---' on Windows."""
+    from tgd.logging_utils import setup_logger
+    log = setup_logger("utf8-probe", tmp_path / "probe.log")
+    log.info("answer: Ai Weiwei 艾未未 / Владимир")
+    for handler in log.handlers:
+        handler.flush()
+    assert "艾未未" in (tmp_path / "probe.log").read_text(encoding="utf-8")
+
+
+def test_json_artifacts_round_trip_non_latin_text(tmp_path):
+    from tgd.logging_utils import write_json
+    from tgd.io import append_jsonl, load_jsonl, read_json, write_jsonl
+    value = "Ai Weiwei 艾未未 / Владимир / ★"
+    write_json(tmp_path / "a.json", {"answer": value})
+    assert read_json(tmp_path / "a.json")["answer"] == value
+    write_jsonl(tmp_path / "b.jsonl", [{"answer": value}])
+    append_jsonl(tmp_path / "b.jsonl", {"answer": value})
+    rows = load_jsonl(tmp_path / "b.jsonl")
+    assert [r["answer"] for r in rows] == [value, value]

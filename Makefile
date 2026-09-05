@@ -1,7 +1,7 @@
 # Convenience targets; every one maps to a documented command.
 # The CPU virtualenv, wherever this platform puts its interpreter (POSIX bin/, Windows
 # Scripts/), falling back to whatever python3 is on PATH.
-PY ?= $(shell for c in .venv/bin/python .venv/Scripts/python.exe; do [ -x "$$c" ] && echo "$$c" && exit 0; done; echo python3)
+PY ?= $(shell for c in .venv/bin/python .venv/Scripts/python.exe; do [ -x "$$c" ] && echo "$$c" && exit 0; done; \n              for c in python3 python; do command -v $$c >/dev/null 2>&1 && echo $$c && exit 0; done; echo python3)
 
 .DEFAULT_GOAL := help
 .PHONY: help env test smoke data leakage clean-runs

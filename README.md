@@ -133,10 +133,19 @@ adapter trained on quantized weights must be evaluated on the same quantized wei
 the arm is not the model that was trained. Expect absolute accuracy below the same recipe
 at bf16; comparisons between arms that share the setting are unaffected.
 
-**Platform.** Developed and run on Linux with Slurm. The scripts, `setup_env.sh`,
-`Makefile` and `tests/smoke_offline.sh` also run under Git Bash on Windows; the
-virtualenv interpreter is located rather than assumed, and console output degrades
-instead of raising on a non-UTF-8 code page.
+**Platform.** Linux, macOS and Windows. CI runs the unit tests on all three (Python
+3.11–3.13 on Linux, 3.12 on macOS and Windows), the whole offline pipeline on Linux and
+Windows, and `make data` on Windows under the legacy cp1252 code page — because the
+portability bugs worth catching are the ones that produce no error on the machine they
+were written on. Every text file is opened as UTF-8 explicitly (the corpora are
+Wikipedia-derived: the first 4,000 lines of the HotpotQA corpus carry 6,888 characters
+cp1252 cannot represent), the virtualenv interpreter is located rather than assumed, and
+console output degrades instead of raising where it cannot be encoded.
+
+The shell entry points (`setup_env.sh`, `tests/smoke_offline.sh`, `make`) need a POSIX
+shell; on Windows that is Git Bash, which ships with Git. Two things stay Linux-only by
+nature: `slurm/` and `scripts/serve_vllm.sh`, since vLLM publishes no Windows wheels —
+evaluate with `--student hf` there instead.
 
 Disk: about 30 GB. The three virtual environments take ~15 GB (the CUDA and vLLM wheels
 dominate), the model cache ~7 GB for a 3B student, the repository ~230 MB, and the built
