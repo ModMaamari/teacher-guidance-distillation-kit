@@ -9,6 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from tgd.console import enable as _enable_console
+
+# This CLI prints ✓ / ✗ / ⚠. On a console that cannot encode them ``print`` raises --
+# and because one of those lines is the error reporter, the crash replaces the error it
+# was about to report. See tgd/console.py.
+_enable_console()
+
 from agentsim.workflow.loader import WorkflowLoader
 from agentsim.workflow.executor import WorkflowExecutor
 from agentsim.components.base import ComponentRegistry, ComponentCategory

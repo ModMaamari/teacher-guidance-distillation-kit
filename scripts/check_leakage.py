@@ -150,7 +150,10 @@ def main() -> int:
         if man.get("unseen_dataset"):
             wanted[f"full_{man['unseen_dataset']}"] = test_files[f"full_{man['unseen_dataset']}"]
         res = audit_split(split_dir, wanted, salt, hf)
-        name = str(split_dir.relative_to(root))
+        # Forward slashes always: this name is a key in a *tracked* JSON artifact, and
+        # str(Path) would write "lodo\fold_musique" on Windows and "lodo/fold_musique"
+        # everywhere else, so the same audit produced a different file per platform.
+        name = split_dir.relative_to(root).as_posix()
         report["splits"][name] = res
         status = "OK" if not res["problems"] else "FAIL"
         hard_fail |= bool(res["problems"])

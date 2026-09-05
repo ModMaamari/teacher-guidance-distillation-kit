@@ -2,6 +2,7 @@
 .venv/
 .venv_train/
 .venv_vllm/
+.venv*/
 .cache/
 __pycache__/
 *.pyc
@@ -21,3 +22,5 @@ data/splits/uniform/train.jsonl
 data/splits/uniform/dev.jsonl
 data/splits/lodo/*/train.jsonl
 data/splits/lodo/*/dev.jsonl
+# training-set-size ablation splits, rebuilt by scripts/make_size_splits.py
+data/splits/uniform_ep*/
