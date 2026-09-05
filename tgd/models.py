@@ -94,6 +94,9 @@ def load_lm(path: str, dtype=None, device_map=None, **kwargs):
     """
     import transformers
 
+    from tgd import sdpa_compat
+    sdpa_compat.apply()
+
     first_error = None
     for name in _AUTO_CLASSES:
         cls = getattr(transformers, name, None)
