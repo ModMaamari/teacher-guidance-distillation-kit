@@ -537,3 +537,142 @@ def test_sweep_decoding_reads_gzipped_benchmarks():
     src = (root / "scripts" / "sweep_decoding.py").read_text()
     assert "read_jsonl" in src, "must use the gz-aware loader"
     assert 'open(args.mmlu' not in src, "plain open() cannot read the shipped .gz files"
+
+
+# ---------------------------------------------------------------- configuration hygiene
+
+def test_blank_environment_variables_count_as_unset(monkeypatch):
+    """`.env.example` ships every key blank. `os.getenv` returns "" for those, which is
+    truthy enough to make an unconfigured provider look configured."""
+    from agentsim.config import config
+    monkeypatch.setenv("OAI_JUDGE_BASE_URL", "http://example/v1")
+    monkeypatch.setenv("OAI_JUDGE_API_KEY", "")
+    base, key, name = config.oai_endpoint("oai-judge/org/model")
+    assert (base, key, name) == ("http://example/v1", None, "org/model")
+    monkeypatch.setenv("OAI_BASE_URL", "   ")
+    assert not config.provider_available("oai/x")
+
+
+def test_oai_endpoint_reads_the_environment_at_call_time(monkeypatch):
+    """A variable cleared after import must resolve as cleared: the class attribute is a
+    snapshot and must not be used as a fallback."""
+    from agentsim.config import config
+    monkeypatch.setenv("OAI_BASE_URL", "http://one/v1")
+    assert config.oai_endpoint("oai/m")[0] == "http://one/v1"
+    monkeypatch.delenv("OAI_BASE_URL", raising=False)
+    assert config.oai_endpoint("oai/m")[0] is None
+
+
+def test_console_falls_back_instead_of_raising():
+    """A console that cannot encode the characters we print must degrade, not abort."""
+    import io
+    from tgd import console
+
+    class Narrow(io.StringIO):
+        encoding = "cp1252"
+        reconfigured = None
+
+        def reconfigure(self, **kw):
+            Narrow.reconfigured = kw
+
+    assert console._can_encode(Narrow()) is False
+    narrow = Narrow()
+    console._done = False
+    try:
+        import sys
+        old = sys.stdout
+        sys.stdout = narrow
+        console.enable()
+    finally:
+        sys.stdout = old
+        console._done = True
+    assert Narrow.reconfigured and Narrow.reconfigured.get("errors") == "replace"
+
+
+# ------------------------------------------------------- train/inference prompt alignment
+
+class _ReasoningTokenizer:
+    """Mimics granite-4.x: the generation prompt opens a thinking block, while a completed
+    assistant turn folds in an empty one -- so the two renderings diverge."""
+
+    def __init__(self, honours_flag=True):
+        self.honours_flag = honours_flag
+
+    def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=False,
+                            enable_thinking=True, **kwargs):
+        parts = []
+        for m in messages:
+            body = m["content"]
+            if m["role"] == "assistant" and "<think>" not in body:
+                body = "<think></think>" + body
+            parts.append(f"<|{m['role']}|>{body}<|end|>")
+        text = "".join(parts)
+        if add_generation_prompt:
+            closed = self.honours_flag and not enable_thinking
+            text += "<|assistant|>" + ("<think></think>" if closed else "<think>\n")
+        return text
+
+
+class _PlainTokenizer:
+    def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=False, **kwargs):
+        text = "".join(f"<|{m['role']}|>{m['content']}<|end|>" for m in messages)
+        return text + ("<|assistant|>" if add_generation_prompt else "")
+
+
+def test_alignment_detects_and_repairs_a_reasoning_template():
+    from tgd import chat_template as ct
+    tok = _ReasoningTokenizer()
+    assert not ct.aligned(tok), "the mismatch this guard exists for should be detected"
+    kwargs = ct.alignment_kwargs(tok)
+    assert kwargs == {"enable_thinking": False}
+    assert ct.aligned(tok, **kwargs)
+    assert ct.opens_reasoning(ct.render_prompt(tok)) == "<think>"
+
+
+def test_alignment_is_a_no_op_for_a_plain_template():
+    from tgd import chat_template as ct
+    tok = _PlainTokenizer()
+    assert ct.aligned(tok)
+    assert ct.alignment_kwargs(tok) == {}
+
+
+def test_alignment_reports_rather_than_guesses_when_it_cannot_repair():
+    from tgd import chat_template as ct
+    tok = _ReasoningTokenizer(honours_flag=False)
+    assert ct.alignment_kwargs(tok) == {}
+    assert not ct.aligned(tok)
+    message = ct.divergence(tok) or ""
+    assert "<think>" in message and "</think>" in message, message
+
+
+# ------------------------------------------------------------------- split ordering
+
+def test_split_order_makes_every_prefix_representative():
+    """Written dataset-by-dataset, `--limit 1000` was 100% one dataset. Any prefix must
+    now reflect the mix."""
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location(
+        "build_splits", Path(__file__).resolve().parents[1] / "scripts" / "build_splits.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    rows = [{"metadata": {"dataset": d, "qid": f"{d}-{i}"}}
+            for d in ("a", "b", "c", "d") for i in range(500)]
+    out = mod.shuffled(rows, "uniform")
+    assert len(out) == len(rows)
+    assert {r["metadata"]["qid"] for r in out} == {r["metadata"]["qid"] for r in rows}
+    assert out == mod.shuffled(rows, "uniform"), "order must be reproducible on every machine"
+    assert out != mod.shuffled(rows, "uniform/dev"), "different splits get different orders"
+    prefix = {r["metadata"]["dataset"] for r in out[:200]}
+    assert prefix == {"a", "b", "c", "d"}, f"a prefix saw only {prefix}"
+
+
+# ------------------------------------------------------------------ attention kernel
+
+def test_sdpa_probe_is_safe_and_idempotent():
+    from tgd import sdpa_compat
+    sdpa_compat._applied = False
+    first = sdpa_compat.apply()
+    assert isinstance(first, bool)
+    assert sdpa_compat.apply() is False, "applying twice must be a no-op"

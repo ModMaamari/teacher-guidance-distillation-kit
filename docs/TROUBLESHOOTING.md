@@ -6,6 +6,59 @@ the result is wrong. Those are the ones that cost real time here.
 
 ## Failures that look like success
 
+### The student answers nothing, and retrieval looks fine
+
+**Symptom.** EM, F1 and cover are all exactly 0.000 across every test set. `mean_steps` sits at
+the budget, `voluntary_finish` is 0.00, and `stop_reasons` is entirely
+`budget_forced_finish_no_finish` — yet `doc_recall` is healthy, so the agent is finding the
+right documents and then never reporting an answer.
+
+**Diagnose.** Look at a raw step, not the metrics:
+
+```bash
+python - <<'PY'
+import json
+ep = json.loads(open("runs/eval/<arm>/<set>/episodes.jsonl", encoding="utf-8").readline())
+print(ep["steps"][0]["student_raw"][:400])
+PY
+```
+
+Prose where a JSON object should be — and often prose all the way to the token budget — means
+the model is writing in a reasoning channel it was never asked to leave.
+
+**Most likely cause.** A reasoning student whose chat template opens a thinking block in the
+generation prompt while training rendered a closed one. `docs/MODELS.md` § *Reasoning
+("thinking") students* has the mechanism; `train_sft.py` and `eval.py` now detect and reconcile
+it, and the training log says which keyword it used. An untrained granite-4.2-3b scored 0.000
+on 100 episodes for exactly this reason.
+
+### The GPU is five to ten times slower than it should be
+
+**Symptom.** No error. Training crawls, memory sits just under the card's capacity, and
+`nvidia-smi` reports 100% utilisation the whole time. Peak memory grows faster than linearly
+with sequence length — a clue, if you are logging it.
+
+**Diagnose.** Ask PyTorch whether it has a fused kernel for grouped-query attention:
+
+```bash
+python -c "
+import torch
+from torch.nn.attention import SDPBackend, sdpa_kernel
+q = torch.zeros(1, 4, 8, 16, device='cuda', dtype=torch.bfloat16)
+kv = torch.zeros(1, 2, 8, 16, device='cuda', dtype=torch.bfloat16)
+with sdpa_kernel([SDPBackend.EFFICIENT_ATTENTION, SDPBackend.FLASH_ATTENTION]):
+    torch.nn.functional.scaled_dot_product_attention(q, kv, kv, is_causal=True, enable_gqa=True)
+print('fused GQA kernel available')"
+```
+
+**Most likely cause.** Transformers asks PyTorch to handle grouped-query attention itself
+whenever there is no attention mask. A build without that kernel — the Windows CUDA wheels, for
+one — falls back to the *math* backend, which materialises the full `[batch, heads, seq, seq]`
+score matrix. There is no warning. Measured on one attention op at 40 heads and 2,560 tokens in
+bf16: **0.13 GiB on the memory-efficient kernel against 4.03 GiB on math**, and end to end 466
+against 48 tokens/second. `tgd/sdpa_compat.py` probes for the kernel on every model load and
+repeats the key/value heads instead when it is missing; the log line says so when it engages.
+
 ### The model is excellent at greedy and useless when sampled
 
 **Symptom.** Greedy evaluation looks right. At temperature 0.3 or above the agent task collapses
@@ -124,3 +177,18 @@ distribution is destroyed.
 
 **Train with `--health-every 200`.** Eight sampled prompts every couple of hundred steps would
 have caught the worst bug here within the first hour instead of a week later.
+
+## `UnicodeEncodeError` from a script that was working a moment ago
+
+**Symptom.** `make data`, `collect_results.py` or `agentsim` dies with
+`'charmap' codec can't encode character '∩'` (or `✗`, `Δ`). The traceback points
+at a `print`, and whatever the script was reporting is lost.
+
+**Cause.** The scripts print set notation and typographic marks (`qid∩=0`, `Δ pts`, `✓`); a
+console whose encoding cannot represent them raises. It bites hardest where the crashing line is
+itself an error reporter, because the crash then replaces the message it was about to show —
+that is what made `tests/smoke_offline.sh` fail at step 1 on Windows with no usable diagnosis.
+
+**Fix.** Importing `tgd` now switches the streams to UTF-8, or to `errors="replace"` if it
+cannot, so output degrades instead of aborting. If you hit this in your own code, call
+`tgd.console.enable()`. Setting `PYTHONUTF8=1` works too.

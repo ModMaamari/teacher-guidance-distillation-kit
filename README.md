@@ -17,6 +17,8 @@ The kit ships the data, the harness, and one command per stage:
 | evaluate an arm | `scripts/eval.py --arm student\|guided\|teacher` | GPU / API |
 | judge final answers | `scripts/judge.py` | judge API |
 | results tables + significance | `scripts/collect_results.py` | CPU |
+| training-set-size ablation splits | `scripts/make_size_splits.py` | CPU |
+| accuracy-vs-data plot | `scripts/plot_size_curve.py` | CPU |
 | forgetting check on MMLU / GSM8K / HellaSwag | `scripts/eval_benchmarks.py` | 1 GPU |
 | forgetting statistics + box plots | `scripts/forgetting_report.py` | CPU |
 | decoding-stability check (can it be sampled?) | `slurm/eval_stability.sbatch` | 1 GPU |
@@ -118,9 +120,23 @@ transfer results and confidence intervals are in `docs/RESULTS.md`.
 
 ## Requirements
 
-Python ≥ 3.11. One GPU with ≥ 40 GB for the 3B student (training with LoRA and 8k-token
-sequences peaks around 26 GB; smaller students need less). The CPU environment is enough
-for data building, the teacher-alone arm, judging and results.
+Python 3.11–3.13 (PyTorch publishes no wheels for 3.14 yet, and `setup_env.sh` will fail
+opaquely if `python3` on your PATH is newer). One GPU with ≥ 40 GB for the 3B student at
+full precision (training with LoRA and 8k-token sequences peaks around 26 GB; smaller
+students need less). The CPU environment is enough for data building, the teacher-alone
+arm, judging and results.
+
+**On a consumer GPU.** `--load-4bit` loads the base weights as NF4 and trains the LoRA
+adapter on top, which brings a 3B student from 7.3 GB of weights to ~2.3 GB and fits an
+8 GB card. Pass it to `scripts/train_sft.py` *and* to `scripts/eval.py --student hf`: an
+adapter trained on quantized weights must be evaluated on the same quantized weights, or
+the arm is not the model that was trained. Expect absolute accuracy below the same recipe
+at bf16; comparisons between arms that share the setting are unaffected.
+
+**Platform.** Developed and run on Linux with Slurm. The scripts, `setup_env.sh`,
+`Makefile` and `tests/smoke_offline.sh` also run under Git Bash on Windows; the
+virtualenv interpreter is located rather than assumed, and console output degrades
+instead of raising on a non-UTF-8 code page.
 
 Disk: about 30 GB. The three virtual environments take ~15 GB (the CUDA and vLLM wheels
 dominate), the model cache ~7 GB for a 3B student, the repository ~230 MB, and the built
