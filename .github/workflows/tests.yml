@@ -1,0 +1,122 @@
+name: tests
+
+# The kit runs on Linux clusters, but people read the papers on laptops. Every failure
+# fixed in this workflow's history was a platform assumption that produced no error on the
+# machine it was written on: console encodings, virtualenv layout, path separators, and
+# text files opened in the platform's default codec rather than UTF-8.
+
+on:
+  push:
+    branches: ["main", "fix/**", "feat/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: unit · ${{ matrix.os }} · py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,  python: "3.11" }
+          - { os: ubuntu-latest,  python: "3.12" }
+          - { os: ubuntu-latest,  python: "3.13" }
+          - { os: windows-latest, python: "3.12" }
+          - { os: macos-latest,   python: "3.12" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements/base.txt
+
+      # CPU wheels only. On Linux `pip install torch` pulls the CUDA build, which is
+      # gigabytes of driver payload this job never uses.
+      - name: Install torch (CPU)
+        if: runner.os != 'macOS'
+        run: python -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install dependencies
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -r requirements/base.txt
+
+      # The scripts must behave the same whether or not the user filled in .env, and the
+      # README's quick start tells them to copy the example first.
+      - name: Copy .env.example to .env
+        shell: bash
+        run: cp .env.example .env
+
+      - name: Unit tests
+        run: python -m pytest tests -q
+
+  smoke:
+    name: offline smoke · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/base.txt
+      - name: Install torch (CPU)
+        run: python -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install dependencies
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -r requirements/base.txt
+
+      # The whole pipeline with mock models: collect, consolidate, split, leakage audit,
+      # all three arm types, judge, results table. No GPU and no API key. This is the step
+      # that caught a console-encoding crash which took down `make data` on Windows.
+      - name: Offline pipeline smoke test
+        shell: bash
+        run: PY=python bash tests/smoke_offline.sh
+
+  legacy-console:
+    name: legacy console encoding · windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/base.txt
+      - name: Install torch (CPU)
+        run: python -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install dependencies
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -r requirements/base.txt
+
+      # `make data` under the legacy code page. Newer Pythons default to UTF-8 mode, which
+      # would hide exactly the bug this job exists to catch, so the code page is forced
+      # rather than inherited. The SFT train/dev files are not shipped, so the split build
+      # runs first -- which is what the documented command does anyway.
+      - name: make data under cp1252
+        shell: cmd
+        env:
+          PYTHONUTF8: "0"
+          PYTHONLEGACYWINDOWSSTDIO: "1"
+        run: |
+          chcp 1252
+          python scripts/build_splits.py
+          if errorlevel 1 exit /b 1
+          python scripts/check_leakage.py
+          if errorlevel 1 exit /b 1
+      - name: The audit ran to completion and wrote its report
+        shell: bash
+        run: |
+          test -s data/splits/leakage_report.json
+          python -c "import json,sys; r=json.load(open('data/splits/leakage_report.json', encoding='utf-8')); sys.exit(0 if r['splits'] else 1)"

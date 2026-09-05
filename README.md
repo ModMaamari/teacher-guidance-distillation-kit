@@ -17,6 +17,8 @@ The kit ships the data, the harness, and one command per stage:
 | evaluate an arm | `scripts/eval.py --arm student\|guided\|teacher` | GPU / API |
 | judge final answers | `scripts/judge.py` | judge API |
 | results tables + significance | `scripts/collect_results.py` | CPU |
+| training-set-size ablation splits | `scripts/make_size_splits.py` | CPU |
+| accuracy-vs-data plot | `scripts/plot_size_curve.py` | CPU |
 | forgetting check on MMLU / GSM8K / HellaSwag | `scripts/eval_benchmarks.py` | 1 GPU |
 | forgetting statistics + box plots | `scripts/forgetting_report.py` | CPU |
 | decoding-stability check (can it be sampled?) | `slurm/eval_stability.sbatch` | 1 GPU |
@@ -118,9 +120,32 @@ transfer results and confidence intervals are in `docs/RESULTS.md`.
 
 ## Requirements
 
-Python ≥ 3.11. One GPU with ≥ 40 GB for the 3B student (training with LoRA and 8k-token
-sequences peaks around 26 GB; smaller students need less). The CPU environment is enough
-for data building, the teacher-alone arm, judging and results.
+Python 3.11–3.13 (PyTorch publishes no wheels for 3.14 yet, and `setup_env.sh` will fail
+opaquely if `python3` on your PATH is newer). One GPU with ≥ 40 GB for the 3B student at
+full precision (training with LoRA and 8k-token sequences peaks around 26 GB; smaller
+students need less). The CPU environment is enough for data building, the teacher-alone
+arm, judging and results.
+
+**On a consumer GPU.** `--load-4bit` loads the base weights as NF4 and trains the LoRA
+adapter on top, which brings a 3B student from 7.3 GB of weights to ~2.3 GB and fits an
+8 GB card. Pass it to `scripts/train_sft.py` *and* to `scripts/eval.py --student hf`: an
+adapter trained on quantized weights must be evaluated on the same quantized weights, or
+the arm is not the model that was trained. Expect absolute accuracy below the same recipe
+at bf16; comparisons between arms that share the setting are unaffected.
+
+**Platform.** Linux, macOS and Windows. CI runs the unit tests on all three (Python
+3.11–3.13 on Linux, 3.12 on macOS and Windows), the whole offline pipeline on Linux and
+Windows, and `make data` on Windows under the legacy cp1252 code page — because the
+portability bugs worth catching are the ones that produce no error on the machine they
+were written on. Every text file is opened as UTF-8 explicitly (the corpora are
+Wikipedia-derived: the first 4,000 lines of the HotpotQA corpus carry 6,888 characters
+cp1252 cannot represent), the virtualenv interpreter is located rather than assumed, and
+console output degrades instead of raising where it cannot be encoded.
+
+The shell entry points (`setup_env.sh`, `tests/smoke_offline.sh`, `make`) need a POSIX
+shell; on Windows that is Git Bash, which ships with Git. Two things stay Linux-only by
+nature: `slurm/` and `scripts/serve_vllm.sh`, since vLLM publishes no Windows wheels —
+evaluate with `--student hf` there instead.
 
 Disk: about 30 GB. The three virtual environments take ~15 GB (the CUDA and vLLM wheels
 dominate), the model cache ~7 GB for a 3B student, the repository ~230 MB, and the built

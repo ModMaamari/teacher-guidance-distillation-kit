@@ -23,6 +23,42 @@ python scripts/train_sft.py --model <hf-id> ...           # one stage
 None of this needs configuring. If a model needs something the kit cannot infer, it stops with
 an explanation instead of training a broken student.
 
+## Reasoning ("thinking") students
+
+A reasoning model's chat template does not end its generation prompt at the assistant turn.
+It ends *inside an open thinking block*, and the same template folds an empty one into a
+turn that is already complete. granite-4.2-3b renders both of these:
+
+```
+generation prompt      ...<|im_start|>assistant
+<think>
+
+prompt + completion    ...<|im_start|>assistant
+<think></think>{"thought": ...
+```
+
+So training teaches the student to emit its action straight after `<think></think>`, and
+evaluation then hands it `<think>
+` — an open channel that invites chain-of-thought. The
+student writes prose instead of an action, and a step that spends its whole generation
+budget reasoning never produces a parseable one. Measured here on an untrained
+granite-4.2-3b: **0 of 300 outputs began with a JSON object and 0 of 100 episodes ever
+emitted a valid `finish`**, so the base arm scored 0.000 on every accuracy metric while
+still retrieving the right documents 65% of the time.
+
+Nothing about that looks like a failure from inside a training run. The loss is healthy,
+the loss-path check passes, and only the evaluation is wrong.
+
+`tgd/chat_template.py` checks the invariant directly — *the trained rendering must start
+with the generation-prompt rendering* — and, when it does not, finds the chat-template
+keyword that reconciles them (`enable_thinking=False` for granite and Qwen). It is applied
+in `train_sft.py`, in the in-process HF student, and as `chat_template_kwargs` on every
+vLLM request, so all three render the same prefix. A template it cannot reconcile stops
+the run with the two renderings printed side by side rather than training through the gap.
+
+You do not configure any of this. If your student's template uses a keyword the kit has not
+seen, add it to `CANDIDATE_KWARGS`.
+
 ## Candidates checked
 
 Configuration and tokenizer verified for each of the following; **none has been trained
@@ -30,12 +66,12 @@ end-to-end here** — those numbers are the point of running them.
 
 | Model | Architecture | Vocab | Logit rescaling | Notes |
 |---|---|---|---|---|
-| `ibm-granite/granite-4.2-3b` | `GraniteForCausalLM` | 100,352 | `logits_scaling` present but **1.0** — a no-op | Loads as a causal LM. Unlike 4.1, which sets it to 10.0, this one is unaffected by the chunked-loss issue |
+| `ibm-granite/granite-4.2-3b` | `GraniteForCausalLM` | 100,352 | `logits_scaling` present but **1.0** — a no-op | Loads as a causal LM. Unlike 4.1, which sets it to 10.0, this one is unaffected by the chunked-loss issue. **A reasoning model** — see the section above; trained and evaluated end to end here |
 | `openbmb/MiniCPM5-1B` | `LlamaForCausalLM` | 130,560 | none | Reports `model_type: llama`, so it needs no special support |
 | `ai9stars/G9v3-3B` | `LlamaForCausalLM` | 130,560 | none | As above |
 | `Nanbeige/Nanbeige4.1-3B` | `LlamaForCausalLM` | 166,144 | none | Largest vocabulary of the set: expect the micro-batch guard to trigger sooner |
 | `LiquidAI/LFM2.5-2.6B` | `Lfm2ForCausalLM` | 128,000 | none | Embedding matrix is padded past the tokenizer (125,017 tokens) |
-| `Qwen/Qwen3.5-2B` | `Qwen3_5ForConditionalGeneration` | in `text_config` | none | **Not in the causal-LM auto mapping** — `AutoModelForCausalLM` fails on it. The kit loads it through the image-text-to-text class and trains its text stack. Its language settings are nested under `text_config` |
+| `Qwen/Qwen3.5-2B` | `Qwen3_5ForConditionalGeneration` | in `text_config` | none | **Not in the causal-LM auto mapping** — `AutoModelForCausalLM` fails on it. The kit loads it through the image-text-to-text class and trains its text stack. Its language settings are nested under `text_config`. Qwen templates take `enable_thinking`, so expect the reasoning-prompt handling above to engage |
 
 Every one of these ships a chat template, which the kit requires.
 

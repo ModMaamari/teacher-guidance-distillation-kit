@@ -53,14 +53,14 @@ def iter_run_episodes(run_root: str | Path) -> Iterator[Tuple[str, Dict[str, Any
     pattern = str(Path(run_root) / "run" / "hotpot_questions" / "sample_*" /
                   "teacher_guidance_episodes.jsonl")
     for f in sorted(glob.glob(pattern)):
-        with open(f) as fh:
+        with open(f, encoding="utf-8") as fh:
             for line in fh:
                 if line.strip():
                     yield str(Path(f).parent), json.loads(line)
 
 
 def load_jsonl(path: str | Path) -> List[Dict[str, Any]]:
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return [json.loads(l) for l in fh if l.strip()]
 
 

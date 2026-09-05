@@ -49,7 +49,7 @@ def main() -> int:
     recorded = None
     acfg = Path(args.adapter) / "adapter_config.json"
     if acfg.exists():
-        recorded = json.loads(acfg.read_text()).get("base_model_name_or_path")
+        recorded = json.loads(acfg.read_text(encoding="utf-8")).get("base_model_name_or_path")
     if args.base is None:
         if not recorded:
             print("ERROR: this adapter does not record a base model; pass --base explicitly.")

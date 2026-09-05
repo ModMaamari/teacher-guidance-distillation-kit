@@ -102,7 +102,7 @@ class WorkflowLoader:
         
         logger.info(f"Loading workflow from: {template_path}")
         
-        with open(template_path, 'r') as f:
+        with open(template_path, 'r', encoding="utf-8") as f:
             data = yaml.safe_load(f)
         
         return self._parse_workflow(data)

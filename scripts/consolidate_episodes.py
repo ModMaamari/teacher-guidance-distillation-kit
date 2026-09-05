@@ -70,7 +70,7 @@ def main() -> int:
             s["grounded"] += int(row["grounded"])
             s["errors"] += int(is_error(ep))
             s["steps"] += int(row["steps"] or 0)
-    (out / "stats.json").write_text(json.dumps({k: dict(v) for k, v in stats.items()}, indent=2))
+    (out / "stats.json").write_text(json.dumps({k: dict(v) for k, v in stats.items()}, indent=2), encoding="utf-8")
     print(f"read {n_read} episodes -> {len(best)} unique (dataset, qid) -> {ep_path}")
     for ds, s in sorted(stats.items()):
         print(f"  {ds:<18} episodes {s['episodes']:>5}  correct {s['correct']:>5}  errors {s['errors']}")

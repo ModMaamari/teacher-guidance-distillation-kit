@@ -24,6 +24,18 @@ prompts and stop semantics are identical to the collection runs that produced th
 training data; the student arms use the same prompt renderer and tool executor with a
 local policy.
 
+### Two flags worth knowing
+
+`--load-4bit` (with `--student hf`) loads the base weights as NF4. Use it whenever the
+adapter was trained with `train_sft.py --load-4bit`: an adapter trained on quantized
+weights evaluated on full-precision weights is not the model that was trained.
+
+`--student-max-new-tokens` (default 700) caps generation per action. It is not a
+performance knob to tune away: the student arm decodes a batch in lockstep, so the batch
+runs until its slowest member stops, and one verbose episode sets the cost of all of them.
+Lowering it truncates the most verbose arm's actions mid-JSON, which reads as a fair
+comparison and is not one. Keep it the same for every arm you intend to compare.
+
 ## Metrics
 
 Accuracy, from `final_metrics` of every episode and the judge verdicts:

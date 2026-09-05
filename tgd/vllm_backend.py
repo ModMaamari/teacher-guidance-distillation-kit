@@ -41,7 +41,9 @@ class VllmPolicy:
         top_p: float = 0.95,
         min_p: float = 0.0,
         top_k: int = 0,
+        chat_template_kwargs: Optional[Dict[str, Any]] = None,
     ):
+        self.chat_template_kwargs = dict(chat_template_kwargs or {})
         self.server_url = server_url.rstrip("/")
         self.model_name = model_name
         self.seed = seed
@@ -65,6 +67,11 @@ class VllmPolicy:
             "max_tokens": max_new_tokens,
             "temperature": temperature if temperature and temperature > 0 else 0.0,
         }
+        # vLLM applies the chat template server-side, so the flag that stops a reasoning
+        # model opening a thinking block has to travel with the request -- otherwise the
+        # served student sees a different prompt from the one it was trained on.
+        if self.chat_template_kwargs:
+            body["chat_template_kwargs"] = self.chat_template_kwargs
         if temperature and temperature > 0:
             body["top_p"] = self.top_p
             if self.min_p:

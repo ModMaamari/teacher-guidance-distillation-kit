@@ -72,7 +72,7 @@ def load_candidates(data_dir: Path, dataset_name: str, split: str, max_candidate
         
         # Handle .jsonl (one JSON per line)
         if fp.suffix == ".jsonl":
-            with fp.open() as f:
+            with fp.open(encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -89,7 +89,7 @@ def load_candidates(data_dir: Path, dataset_name: str, split: str, max_candidate
         
         # Handle .json (complete JSON object)
         elif fp.suffix == ".json":
-            with fp.open() as f:
+            with fp.open(encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.JSONDecodeError:
@@ -335,7 +335,7 @@ def load_prior_docs(path: Optional[Path]) -> Set[str]:
         return set()
     try:
         docs: Set[str] = set()
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -372,7 +372,7 @@ async def run_seed_selection(cfg: SeedSelectorConfig):
     seeds = select_seeds(queries, X, topk_map, prior_docs, cfg)
     # 6) write seeds
     cfg.output_path.parent.mkdir(parents=True, exist_ok=True)
-    with cfg.output_path.open("w") as f:
+    with cfg.output_path.open("w", encoding="utf-8") as f:
         for q in seeds:
             f.write(json.dumps({"query": q, "dataset": cfg.dataset_name, "split": cfg.split}) + "\n")
     logger.info(f"Wrote {len(seeds)} seeds to {cfg.output_path}")

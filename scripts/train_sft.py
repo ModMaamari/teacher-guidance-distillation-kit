@@ -47,6 +47,7 @@ import argparse
 import glob
 import json
 import os
+import random
 import time
 from pathlib import Path
 
@@ -57,6 +58,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 
 import tgd  # noqa: F401
 from tgd.io import load_jsonl
+from tgd import chat_template  # noqa: E402
 from tgd.models import load_lm, vocab_size  # noqa: E402
 from tgd.logit_scale import (autoscale_batch, chunked_loss_conflict,  # noqa: E402
                              describe as describe_scaling, loss_path_matches_forward)
@@ -93,6 +95,10 @@ def main() -> int:
     ap.add_argument("--health-prompts", type=int, default=8)
     ap.add_argument("--health-temperature", type=float, default=0.7)
     ap.add_argument("--limit", type=int, default=None, help="cap training examples")
+    ap.add_argument("--load-4bit", action="store_true",
+                    help="load the base weights in NF4 (QLoRA). The 3B student needs "
+                         "~7.3 GB in bf16, which does not fit an 8 GB card; NF4 brings "
+                         "that to ~2.3 GB. LoRA parameters and compute stay bf16.")
     ap.add_argument("--smoke", action="store_true", help="64 examples, 8 optimizer steps, no eval")
     ap.add_argument("--force", action="store_true", help="ignore an existing .done marker")
     args = ap.parse_args()
@@ -120,25 +126,94 @@ def main() -> int:
     from trl import SFTConfig, SFTTrainer
 
     t0 = time.time()
+
+    def take(path, limit, tag):
+        """Load a split, sampling when capped. A cap must never be a file prefix: the
+        splits used to be written dataset-by-dataset, so `--limit 1000` was one dataset
+        and `--smoke` trained on HotpotQA alone. build_splits.py now shuffles, and
+        sampling here keeps the guarantee for any file, however it was produced."""
+        rows = [{"prompt": r["prompt"], "completion": r["completion"]} for r in load_jsonl(path)]
+        if limit and limit < len(rows):
+            log.info(f"{tag}: sampling {limit} of {len(rows)} examples (seed {args.seed})")
+            rows = random.Random(f"{args.seed}:{tag}").sample(rows, limit)
+        return rows
+
     limit = 64 if args.smoke else args.limit
-    train_rows = [{"prompt": r["prompt"], "completion": r["completion"]} for r in load_jsonl(args.train_file, limit)]
-    dev_rows = ([{"prompt": r["prompt"], "completion": r["completion"]} for r in load_jsonl(args.dev_file, 32 if args.smoke else None)]
-                if args.dev_file else [])
+    train_rows = take(args.train_file, limit, "train")
+    dev_rows = take(args.dev_file, 32 if args.smoke else None, "dev") if args.dev_file else []
     log.info(f"loaded {len(train_rows)} train / {len(dev_rows)} dev examples")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model)
+
+    # Training renders prompt+completion and supervises the completion; inference renders
+    # the prompt alone and asks the model to continue. Those must share a prefix, and for
+    # reasoning models they silently do not. tgd/chat_template.py checks the real thing --
+    # does the trained rendering start with the generation prompt? -- on a real example.
+    probe = train_rows[0]
+    ct_kwargs = chat_template.alignment_kwargs(tokenizer, probe["prompt"], probe["completion"])
+    log.info(chat_template.describe(tokenizer, ct_kwargs, probe["prompt"], probe["completion"]))
+    if not chat_template.aligned(tokenizer, probe["prompt"], probe["completion"], **ct_kwargs):
+        log.error(
+            "this model renders a different prompt for training than for inference, and no "
+            "known chat-template keyword reconciles them. The student would be trained to "
+            "continue one prefix and asked at evaluation to continue another: the loss looks "
+            "healthy and the model writes into the gap. "
+            f"{chat_template.divergence(tokenizer, probe['prompt'], probe['completion'])}. "
+            "Add the keyword this template uses to tgd/chat_template.CANDIDATE_KWARGS.")
+        return 2
+    if ct_kwargs:
+        for row in train_rows:
+            row["chat_template_kwargs"] = dict(ct_kwargs)
+        for row in dev_rows:
+            row["chat_template_kwargs"] = dict(ct_kwargs)
+
     # bf16 needs a GPU. Falling back to fp32 on CPU keeps `--smoke` usable as a
     # pipeline check on a laptop; real training always runs on a GPU.
     on_gpu = torch.cuda.is_available()
     # Not every student is a plain causal LM: some ship as vision-language / conditional
     # generation architectures that are not in the causal-LM auto mapping at all.
-    model, auto_cls = load_lm(args.model, dtype=torch.bfloat16 if on_gpu else torch.float32)
+    from tgd import sdpa_compat
+    sdpa_compat.apply(log)
+
+    quant_kwargs = {}
+    if args.load_4bit:
+        if not on_gpu:
+            log.error("--load-4bit needs a GPU")
+            return 2
+        from transformers import BitsAndBytesConfig
+        quant_kwargs = {"quantization_config": BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.bfloat16), "device_map": {"": 0}}
+    model, auto_cls = load_lm(args.model, dtype=torch.bfloat16 if on_gpu else torch.float32,
+                              **quant_kwargs)
+    if args.load_4bit:
+        # Deliberately NOT peft.prepare_model_for_kbit_training: it upcasts every
+        # non-quantized parameter to fp32, which for this student means the 100k-row
+        # embedding and output projection go from 0.96 GB to 1.92 GB. On an 8 GB card
+        # that gigabyte is the difference between training and paging to host memory,
+        # and it buys nothing here -- the LoRA parameters are fp32 either way and the
+        # loss-path check below verifies the objective against the model's own forward.
+        # All that is actually needed is a gradient path into the frozen embedding.
+        model.enable_input_require_grads()
+        log.info("base weights loaded in NF4 (QLoRA); embeddings and compute stay bf16")
     if auto_cls != "AutoModelForCausalLM":
         log.info(f"loaded via {auto_cls} (this architecture is not a plain causal LM); "
                  f"SFT trains its text stack")
     log.info(f"model loaded in {time.time() - t0:.1f}s | cuda={torch.cuda.is_available()} "
              f"gpus={torch.cuda.device_count()}")
 
+    def gpu_mem(tag):
+        """Allocated vs reserved, logged at every phase. On an 8 GB card the difference
+        between these two and the card's capacity is the difference between training and
+        silently paging to host memory, which looks like a 5x slower GPU and nothing else."""
+        if not on_gpu:
+            return
+        log.info(f"gpu[{tag}]: allocated {torch.cuda.memory_allocated()/2**30:.2f} GiB | "
+                 f"reserved {torch.cuda.memory_reserved()/2**30:.2f} GiB | "
+                 f"peak {torch.cuda.max_memory_allocated()/2**30:.2f} GiB")
+        torch.cuda.reset_peak_memory_stats()
+
+    gpu_mem("model loaded")
     log.info(describe_scaling(model.config))
     # Pick the loss path before building the config: a scaling mismatch silently produces a
     # model that decodes greedily but cannot be sampled.
@@ -191,7 +266,8 @@ def main() -> int:
             with torch.no_grad():
                 for row in self.prompts:
                     text = tokenizer.apply_chat_template(row["prompt"], tokenize=False,
-                                                         add_generation_prompt=True)
+                                                         add_generation_prompt=True,
+                                                         **ct_kwargs)
                     ids = tokenizer(text, return_tensors="pt", truncation=True,
                                     max_length=args.max_length).to(m.device)
                     gen = m.generate(**ids, do_sample=True, temperature=args.health_temperature,
@@ -204,7 +280,7 @@ def main() -> int:
             m.train()
             rec = {"step": state.global_step, "temperature": args.health_temperature,
                    "parseable": ok, "of": len(self.prompts), "rate": round(ok / max(len(self.prompts), 1), 3)}
-            with (out / "health_checks.jsonl").open("a") as fh:
+            with (out / "health_checks.jsonl").open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec) + "\n")
             log.info(f"HEALTH step {state.global_step}: {ok}/{len(self.prompts)} parseable "
                      f"at T={args.health_temperature}")
@@ -214,6 +290,9 @@ def main() -> int:
         num_train_epochs=args.epochs,
         max_steps=8 if args.smoke else -1,
         per_device_train_batch_size=args.batch_size,
+        # Dev loss is measured with the same micro-batch as training. TRL's default of 8
+        # would make the evaluation pass, not the training step, the peak-memory event.
+        per_device_eval_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.lr,
         lr_scheduler_type="cosine",
@@ -222,6 +301,7 @@ def main() -> int:
         bf16=on_gpu,
         use_cpu=not on_gpu,
         gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
         logging_steps=1 if args.smoke else 10,
         eval_strategy="steps" if do_eval else "no",
         eval_steps=args.eval_steps,
@@ -279,6 +359,7 @@ def main() -> int:
         log.warning(f"only {frac:.0%} of sampled examples keep completion tokens at "
                     f"--max-length {args.max_length}; the rest contribute no loss.")
     log.info(f"supervision check: {frac:.0%} of sampled examples carry completion tokens")
+    gpu_mem("after dataloader probe")
 
     # The authoritative check, and the only one that works for an architecture nobody
     # anticipated: does the loss the trainer is about to optimise match the distribution
@@ -307,6 +388,13 @@ def main() -> int:
             log.warning(f"loss-path check could not run ({type(e).__name__}: {e}); "
                         f"verify sampling manually with scripts/diag_distributions.py")
 
+    gpu_mem("after loss-path check")
+    # The check above runs one un-chunked forward, whose [batch, seq, vocab] logits are the
+    # single largest tensor this script ever allocates. Hand that memory back before the
+    # first real step rather than carrying it as reserve for the whole run.
+    if on_gpu:
+        torch.cuda.empty_cache()
+        gpu_mem("after empty_cache")
     if args.health_every:
         trainer.add_callback(Health(trainer, (dev_rows or train_rows)[:args.health_prompts]))
     if trainer.is_world_process_zero():
@@ -317,6 +405,7 @@ def main() -> int:
     resume = ckpts[-1] if ckpts and not args.smoke else None
     log.info(f"training ... {'resuming from ' + resume if resume else 'from scratch'}")
     result = trainer.train(resume_from_checkpoint=resume)
+    gpu_mem("end of training")
     log.info(f"train done in {time.time() - t0:.1f}s: {result.metrics}")
 
     adapter_dir = out / "adapter"
@@ -328,9 +417,9 @@ def main() -> int:
     if trainer.is_world_process_zero():
         tokenizer.save_pretrained(str(adapter_dir))
         write_json(out / "final_metrics.json", final)
-        with open(out / "trainer_state.json", "w") as f:
+        with open(out / "trainer_state.json", "w", encoding="utf-8") as f:
             json.dump(trainer.state.log_history, f, indent=2)
-        done.write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        done.write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         log.info(f"adapter saved: {adapter_dir}")
         print(json.dumps({"out": str(out), "adapter": str(adapter_dir),
                           **{k: v for k, v in final.items() if isinstance(v, (int, float))}}, indent=2))

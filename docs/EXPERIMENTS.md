@@ -39,7 +39,7 @@ STUDENT_MODEL=Qwen/Qwen2.5-3B-Instruct sbatch -p <partition> \
 | **decoder** | `--student-temperature`, `--top-p`, `--min-p`, `--top-k` on `eval.py` | relative truncation matters for fine-tuned students — `docs/STABILITY.md` |
 | **budget / prompts** | `--budget`, `--hidden-budget`, `--no-plan` | the agent's step budget and whether it is told what it is |
 
-## Three experiments worth running first
+## Four experiments worth running first
 
 **1. Does it work at all with your student?** Train on `data/splits/uniform`, evaluate the base
 and trained arms on the four held-out sets, and judge. That reproduces the headline comparison
@@ -49,7 +49,29 @@ with your model in place of ours. Roughly 4 GPU-hours plus evaluation.
 its unseen dataset. That answers whether guidance internalised on three datasets carries to a
 fourth. Four times the training cost, and the most interesting result in `docs/RESULTS.md`.
 
-**3. What did it cost?** `slurm/eval_forgetting.sbatch` for general ability, and
+**3. How much guidance do you actually need?** Episodes are the expensive part of this kit —
+each one is a teacher-guided rollout — so the question of how many you need has a price
+attached. `scripts/make_size_splits.py` samples the trainable pool at several sizes,
+stratified by dataset and *nested* (the 1k sample is a subset of the 2k is a subset of the
+5k) from one seeded shuffle, so a larger run never loses an episode a smaller one had and
+size is the only variable:
+
+```bash
+python scripts/make_size_splits.py --sizes 1000 2000 5000
+for n in 1000 2000 5000; do
+  python scripts/train_sft.py --train-file data/splits/uniform_ep$n/train.jsonl       --dev-file data/splits/uniform/dev.jsonl --out runs/train/ep$n
+done
+# ... evaluate each as an arm named ep<n>, judge, then:
+python scripts/collect_results.py --runs runs/eval --judge runs/judge/verdicts.jsonl --out runs/results
+python scripts/plot_size_curve.py --results runs/results/results.json --out runs/results
+```
+
+Only *correct* episodes become training examples, so the split manifest records the yield —
+about 54% on the shipped episodes, which is the real exchange rate between teacher API spend
+and supervision. `plot_size_curve.py` draws accuracy against episode count with a Wilson
+interval on the headline metric, and writes the tidy numbers next to it as CSV.
+
+**4. What did it cost?** `slurm/eval_forgetting.sbatch` for general ability, and
 `slurm/eval_stability.sbatch` for whether the model can still be sampled. Both are cheap and
 both catch failures that the headline evaluation cannot see.
 
