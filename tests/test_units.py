@@ -489,3 +489,51 @@ def test_vocab_size_never_underestimates_the_logit_width():
             return 32128           # embeddings resized after the config was written
 
     assert vocab_size(Resized(), BigTok()) == 32128
+
+
+def test_render_chat_closes_a_reasoning_block():
+    """A reasoning model's generation prompt ends inside <think>, so the first generated
+    token is reasoning, not an answer. Any diagnostic reading that position then reports no
+    probability on valid answer tokens — indistinguishable from the catastrophic failure
+    those diagnostics exist to detect. Close the block so the position means what we think."""
+    from tgd.models import render_chat
+
+    class Tok:
+        """Mimics a template that opens <think> unless enable_thinking=False."""
+        def __init__(self, closable=True):
+            self.closable = closable
+
+        def apply_chat_template(self, messages, tokenize=False,
+                                add_generation_prompt=True, **kw):
+            if "enable_thinking" in kw and not kw["enable_thinking"]:
+                if not self.closable:
+                    raise TypeError("unexpected keyword")
+                return "<|assistant|>\n<think></think>"
+            return "<|assistant|>\n<think>\n"
+
+    text, still_open = render_chat(Tok(closable=True), [{"role": "user", "content": "q"}])
+    assert not still_open
+    assert text.endswith("</think>")
+
+    # A template that cannot close it must be reported, not silently accepted.
+    text, still_open = render_chat(Tok(closable=False), [{"role": "user", "content": "q"}])
+    assert still_open
+
+    class Plain:
+        def apply_chat_template(self, messages, tokenize=False,
+                                add_generation_prompt=True, **kw):
+            if kw:
+                raise TypeError("unexpected keyword")
+            return "<|assistant|>\n"
+
+    text, still_open = render_chat(Plain(), [{"role": "user", "content": "q"}])
+    assert not still_open and text.endswith("<|assistant|>\n")
+
+
+def test_sweep_decoding_reads_gzipped_benchmarks():
+    """Every shipped benchmark file is gzipped; a plain open() on one raises
+    UnicodeDecodeError on the gzip magic byte."""
+    root = Path(__file__).resolve().parents[1]
+    src = (root / "scripts" / "sweep_decoding.py").read_text()
+    assert "read_jsonl" in src, "must use the gz-aware loader"
+    assert 'open(args.mmlu' not in src, "plain open() cannot read the shipped .gz files"

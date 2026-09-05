@@ -41,6 +41,17 @@ Every completion was truncated away, so there is nothing to compute a loss on. R
 `--max-length`, or shorten prompts. The trainer checks a few real batches at startup and
 refuses to run when this would happen, so you should only see it on an older checkpoint's logs.
 
+### `valid-token mass 0.000` but entropy and top-1 look healthy
+
+Not a broken model. The chat template almost certainly opens a reasoning (`<think>`) block, so
+the first generated token — the one the diagnostic inspects — is the start of the model's
+reasoning rather than its answer. Two of the six students listed in `docs/MODELS.md` behave this
+way.
+
+The diagnostics close the block automatically and print a warning when a template will not let
+them. If you see that warning, entropy and top-1 are still meaningful; the answer-token metrics
+are not.
+
 ### Two arms were evaluated under different settings
 
 Every stage skips work when it finds a `.done` marker. If you change temperature, decoding, or

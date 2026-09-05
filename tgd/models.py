@@ -53,6 +53,39 @@ def vocab_size(config, tokenizer=None) -> Optional[int]:
     return max(sizes) if sizes else None
 
 
+def render_chat(tokenizer, messages, close_reasoning: bool = True):
+    """Render a chat prompt, closing an open reasoning block if the template opens one.
+
+    Reasoning models end their generation prompt inside a ``<think>`` block, so the first
+    token the model generates is the start of its reasoning — not the answer. Any diagnostic
+    that inspects the first generated token then measures the wrong position, and reports
+    that no probability sits on a valid answer token. That looks exactly like the
+    catastrophic miscalibration these tools exist to detect, but it is normal behaviour.
+
+    Most such templates accept ``enable_thinking=False``, which closes the block so the next
+    token really is the answer. Returns ``(text, reasoning_open)``; when ``reasoning_open``
+    is True the caller could not close it, and answer-token metrics are meaningless for this
+    model even though entropy and top-1 remain valid.
+    """
+    def _render(**kw):
+        return tokenizer.apply_chat_template(messages, tokenize=False,
+                                             add_generation_prompt=True, **kw)
+
+    text = _render()
+    tail = text[-40:]
+    opened = "<think>" in tail and "</think>" not in tail
+    if opened and close_reasoning:
+        for kw in ({"enable_thinking": False}, {"thinking": False}):
+            try:
+                alt = _render(**kw)
+            except Exception:
+                continue
+            alt_tail = alt[-40:]
+            if not ("<think>" in alt_tail and "</think>" not in alt_tail):
+                return alt, False
+    return text, opened
+
+
 def load_lm(path: str, dtype=None, device_map=None, **kwargs):
     """Load a student for training or scoring, trying each auto class in turn.
 

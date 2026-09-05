@@ -45,7 +45,7 @@ from typing import Any, Dict, List
 
 from tgd.io import read_jsonl
 from tgd.logit_scale import describe as describe_scaling  # noqa: E402
-from tgd.models import load_lm  # noqa: E402  # noqa: E402  (gz-aware: the shipped data is gzipped)
+from tgd.models import load_lm, render_chat  # noqa: E402
 
 MCQ_SYSTEM = "You are a helpful assistant answering multiple-choice questions."
 MCQ_TEMPLATE = """{question}
@@ -121,8 +121,15 @@ def main() -> int:
         model.eval()
         for set_name, prompts in prompt_sets.items():
             stats = []
+            warned = False
             for row in prompts:
-                text = tok.apply_chat_template(row["messages"], tokenize=False, add_generation_prompt=True)
+                text, reasoning_open = render_chat(tok, row["messages"])
+                if reasoning_open and not warned:
+                    print("  !! this model's chat template opens a reasoning block that could "
+                          "not be closed: the first generated token is reasoning, not an "
+                          "answer, so valid-token metrics below are NOT meaningful "
+                          "(entropy and top-1 still are)")
+                    warned = True
                 ids = tok(text, return_tensors="pt").to(model.device)
                 with torch.no_grad():
                     logits = model(**ids).logits[0, -1].float()

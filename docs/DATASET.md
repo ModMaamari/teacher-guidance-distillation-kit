@@ -129,12 +129,18 @@ datasets".
 | `data/questions/<ds>/*_corpus.jsonl.gz` | their documents |
 | `data/episodes/episodes.jsonl.gz` | all 7,999 episodes (82 MB) |
 | `data/episodes/index.jsonl` | one small row per episode — scan this instead of the big file |
-| `data/splits/uniform/{train,dev}.jsonl` | SFT data |
+| `data/splits/uniform/{train,dev}.jsonl` | SFT data — **not shipped**; run `make data` (~2 min) to build it from the episodes |
 | `data/splits/test/*.jsonl` | evaluation question sets |
 | `data/splits/{stats,leakage_report,pools}.json` | counts, the audit, and the pool assignment |
 
 All `.jsonl.gz` files are gzipped; `tgd.io.read_jsonl` reads either form transparently, so
 scripts take the path as-is.
+
+**One thing is built, not shipped.** The SFT train/dev files are 82 MB and derive
+deterministically from the episodes, so the repository tracks the inputs and not the output.
+`make data` rebuilds them in about two minutes, byte-identically on any machine, and also
+re-runs the leakage audit. Everything else on this page ships as-is: the episodes, the
+questions and corpora, the test question sets, the pool assignment, the stats and the audit.
 
 ## Two things to know before using it
 

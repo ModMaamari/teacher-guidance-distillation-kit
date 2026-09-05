@@ -17,6 +17,7 @@ python scripts/train_sft.py --model <hf-id> ...           # one stage
 | Language settings nested under `config.text_config` | every config check reads the nested config as well as the top level |
 | Architecture rescales logits, breaking TRL's chunked loss | detected from the config *and* measured against the model's own forward pass; the run stops rather than producing an unsamplable model (`docs/STABILITY.md`) |
 | Larger vocabulary makes the logits tensor too big | micro-batch traded for gradient accumulation, effective batch preserved |
+| Chat template opens a reasoning (`<think>`) block | the diagnostics close it so the first generated token is the answer, and say so if they cannot |
 | Embedding matrix padded past the tokenizer length | the memory estimate takes the larger of the two |
 
 None of this needs configuring. If a model needs something the kit cannot infer, it stops with
@@ -37,6 +38,15 @@ end-to-end here** — those numbers are the point of running them.
 | `Qwen/Qwen3.5-2B` | `Qwen3_5ForConditionalGeneration` | in `text_config` | none | **Not in the causal-LM auto mapping** — `AutoModelForCausalLM` fails on it. The kit loads it through the image-text-to-text class and trains its text stack. Its language settings are nested under `text_config` |
 
 Every one of these ships a chat template, which the kit requires.
+
+**Two of them are reasoning models.** granite-4.2-3b and LFM2.5-2.6B end their generation
+prompt inside a `<think>` block, so the first token they generate is reasoning rather than an
+answer. That matters more than it sounds: a diagnostic that inspects the first generated token
+would report no probability on any valid answer token — which looks identical to the
+catastrophic miscalibration described in `docs/STABILITY.md`, but is normal. The diagnostics
+close the block (`enable_thinking=False`) so the position means what it should, and warn if a
+template will not let them. **If you see "valid-token mass 0.000" together with a healthy
+entropy, check for this before concluding anything.**
 
 ## Before you trust a new student
 

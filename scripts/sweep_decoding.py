@@ -23,8 +23,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 
 import argparse
 
+from tgd.io import read_jsonl  # noqa: E402  (gz-aware: shipped data is gzipped)
 from tgd.logit_scale import describe as describe_scaling  # noqa: E402
-from tgd.models import load_lm  # noqa: E402
+from tgd.models import load_lm, render_chat  # noqa: E402
 import json
 import re
 import sys
@@ -69,11 +70,8 @@ def main() -> int:
 
     prompts = mmlu_prompts(args.mmlu, args.n)
     gold = {}
-    with open(args.mmlu, encoding="utf-8") as fh:
-        for line in fh:
-            if line.strip():
-                r = json.loads(line)
-                gold[r["id"]] = r["gold"]
+    for r in read_jsonl(args.mmlu):          # gz-aware: the shipped benchmark files are gzipped
+        gold[r["id"]] = r["gold"]
 
     results: Dict[str, Dict[str, Any]] = {}
     for spec in args.models:
@@ -83,13 +81,19 @@ def main() -> int:
         model, _ = load_lm(path, dtype=torch.bfloat16, device_map=args.device)
         print(f"  {describe_scaling(model.config)}")
         model.eval()
+        warned = False
         for cfg in CONFIGS:
             torch.manual_seed(args.seed)
             kw = {k: v for k, v in cfg.items() if k != "label"}
             n_fmt = n_ok = 0
             samples = []
             for row in prompts:
-                text = tok.apply_chat_template(row["messages"], tokenize=False, add_generation_prompt=True)
+                text, reasoning_open = render_chat(tok, row["messages"])
+                if reasoning_open and not warned:
+                    print("  !! this model's reasoning block could not be closed; it will "
+                          "spend its budget reasoning before answering, so accuracy here "
+                          "understates the model")
+                    warned = True
                 ids = tok(text, return_tensors="pt").to(model.device)
                 with torch.no_grad():
                     out = model.generate(**ids, max_new_tokens=8, pad_token_id=tok.eos_token_id, **kw)
