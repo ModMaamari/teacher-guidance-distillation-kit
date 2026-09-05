@@ -36,6 +36,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import random
 import re
 from pathlib import Path
 from typing import Any, Dict, List
@@ -89,12 +90,30 @@ def target_wellformed(ex: Dict[str, Any]) -> bool:
     return REQUIRED_KEYS.get(kind, REQUIRED_KEYS["action"]) <= set(obj)
 
 
+def shuffled(rows: List[Dict[str, Any]], seed: str) -> List[Dict[str, Any]]:
+    """Deterministically shuffle the examples so any *prefix* is an unbiased sample.
+
+    Written dataset-by-dataset, the file has all of HotpotQA before any of MuSiQue, so a
+    prefix is one or two datasets rather than a sample of the mix: ``--limit 1000`` on the
+    uniform split was 100% HotpotQA and ``--limit 5000`` contained no MuSiQue and no
+    StrategyQA at all. Anything that takes a prefix -- ``train_sft.py --limit``,
+    ``--smoke``, a quick ``head`` -- inherited that bias silently.
+
+    Seeded by split name, so the order is reproducible on every machine and differs
+    between splits. Row *content* and counts are untouched; only the order changes.
+    """
+    rows = list(rows)
+    random.Random(f"tgd-split-order:{seed}").shuffle(rows)
+    return rows
+
+
 def write_split(name: str, out: Path, train_ds: List[str], examples, dev_fraction, dev_salt,
                 test_qids: Dict[str, set], unseen: str | None) -> Dict[str, Any]:
     train_rows, dev_rows = [], []
     for d in train_ds:
         for ex in examples[d]:
             (dev_rows if is_dev(ex["metadata"]["qid"], dev_fraction, dev_salt) else train_rows).append(ex)
+    train_rows, dev_rows = shuffled(train_rows, name), shuffled(dev_rows, f"{name}/dev")
     d_out = out / name
     write_jsonl(d_out / "train.jsonl", train_rows)
     write_jsonl(d_out / "dev.jsonl", dev_rows)

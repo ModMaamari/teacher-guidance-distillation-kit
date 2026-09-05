@@ -88,13 +88,30 @@ class PolicyModel:
         adapter_path: Optional[str] = None,
         device: str = "cuda:0",
         dtype: str = "bfloat16",
+        load_4bit: bool = False,
     ):
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
+        from tgd import chat_template, sdpa_compat
+        sdpa_compat.apply()
+
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        # Render the generation prompt exactly as training rendered the prefix the student
+        # was taught to continue. For a reasoning model those differ by default, and the
+        # model answers the prompt it is given. See tgd/chat_template.py.
+        self.chat_kwargs = chat_template.alignment_kwargs(self.tokenizer)
+        # NF4 is not a free choice at inference: an adapter trained on quantized base
+        # weights must be evaluated on the same quantized base, or the arm is not the
+        # model that was trained. Both sides of this experiment set it together.
+        quant = {}
+        if load_4bit:
+            from transformers import BitsAndBytesConfig
+            quant = {"quantization_config": BitsAndBytesConfig(
+                load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=getattr(torch, dtype))}
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_path, dtype=getattr(torch, dtype), device_map=device
+            model_path, dtype=getattr(torch, dtype), device_map=device, **quant
         )
         if adapter_path:
             from peft import PeftModel
@@ -114,7 +131,8 @@ class PolicyModel:
         import torch
 
         enc = self.tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt", return_dict=True
+            messages, add_generation_prompt=True, return_tensors="pt", return_dict=True,
+            **self.chat_kwargs
         ).to(self.model.device)
         kwargs: Dict[str, Any] = dict(
             max_new_tokens=max_new_tokens,
@@ -150,7 +168,8 @@ class PolicyModel:
         if not messages_list:
             return []
         texts = [
-            self.tokenizer.apply_chat_template(m, add_generation_prompt=True, tokenize=False)
+            self.tokenizer.apply_chat_template(m, add_generation_prompt=True, tokenize=False,
+                                               **self.chat_kwargs)
             for m in messages_list
         ]
         if self.tokenizer.pad_token_id is None:

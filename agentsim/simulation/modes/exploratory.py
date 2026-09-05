@@ -340,7 +340,7 @@ class ExploratoryRunner:
         try:
             if cov_file.exists():
                 try:
-                    with open(cov_file, "r") as f:
+                    with open(cov_file, "r", encoding="utf-8") as f:
                         coverage = json.load(f)
                 except Exception:
                     coverage = {}
@@ -413,7 +413,7 @@ class ExploratoryRunner:
                 "avg_jaccard_with_prev": sum(all_jaccards) / len(all_jaccards) if all_jaccards else 0.0
             }
             
-            with open(cov_file, "w") as f:
+            with open(cov_file, "w", encoding="utf-8") as f:
                 json.dump(coverage, f, indent=2)
             logger.info(f"Saved coverage metrics: {cov_file}")
         except Exception as e:
@@ -932,7 +932,7 @@ Provide a brief, accurate answer (2-3 sentences):"""
         # Load existing log if present
         if log_file.exists():
             try:
-                with open(log_file, 'r') as f:
+                with open(log_file, 'r', encoding="utf-8") as f:
                     data = json.load(f)
             except Exception:
                 data = {}
@@ -979,7 +979,7 @@ Provide a brief, accurate answer (2-3 sentences):"""
             "summary": summary
         }
         
-        with open(log_file, 'w') as f:
+        with open(log_file, 'w', encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
         
         logger.info(f"Saved exploration log: {log_file}")
@@ -992,7 +992,7 @@ Provide a brief, accurate answer (2-3 sentences):"""
         queries_file = output_path / "queries_explored.json"
         if queries_file.exists():
             try:
-                with open(queries_file, 'r') as f:
+                with open(queries_file, 'r', encoding="utf-8") as f:
                     queries_payload = json.load(f)
             except Exception:
                 queries_payload = {}
@@ -1012,14 +1012,14 @@ Provide a brief, accurate answer (2-3 sentences):"""
             "by_seed": queries_by_seed
         })
         
-        with open(queries_file, 'w') as f:
+        with open(queries_file, 'w', encoding="utf-8") as f:
             json.dump(queries_payload, f, indent=2)
         
         # --- Documents retrieved ---
         docs_file = output_path / "documents_retrieved.json"
         if docs_file.exists():
             try:
-                with open(docs_file, 'r') as f:
+                with open(docs_file, 'r', encoding="utf-8") as f:
                     docs_payload = json.load(f)
             except Exception:
                 docs_payload = {}
@@ -1065,14 +1065,14 @@ Provide a brief, accurate answer (2-3 sentences):"""
         docs_payload["total_unique_documents"] = len(documents)
         docs_payload["total_retrievals"] = sum(d.get("frequency", 0) for d in documents.values())
         
-        with open(docs_file, 'w') as f:
+        with open(docs_file, 'w', encoding="utf-8") as f:
             json.dump(docs_payload, f, indent=2)
         
         # --- Knowledge base entries ---
         kb_file = output_path / "knowledge_base.json"
         if kb_file.exists():
             try:
-                with open(kb_file, 'r') as f:
+                with open(kb_file, 'r', encoding="utf-8") as f:
                     kb_payload = json.load(f)
             except Exception:
                 kb_payload = {}
@@ -1107,7 +1107,7 @@ Provide a brief, accurate answer (2-3 sentences):"""
             "avg_docs_per_entry": total_docs / max(len(all_entries), 1)
         }
         
-        with open(kb_file, 'w') as f:
+        with open(kb_file, 'w', encoding="utf-8") as f:
             json.dump(kb_payload, f, indent=2)
         
         logger.info(f"Saved knowledge graph artifacts to: {output_path}")

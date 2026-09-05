@@ -9,6 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from tgd.console import enable as _enable_console
+
+# This CLI prints ✓ / ✗ / ⚠. On a console that cannot encode them ``print`` raises --
+# and because one of those lines is the error reporter, the crash replaces the error it
+# was about to report. See tgd/console.py.
+_enable_console()
+
 from agentsim.workflow.loader import WorkflowLoader
 from agentsim.workflow.executor import WorkflowExecutor
 from agentsim.components.base import ComponentRegistry, ComponentCategory
@@ -149,7 +156,7 @@ async def cmd_run(workflow_id: str, query: str, output: Optional[str] = None):
         }
         
         if output:
-            with open(output, 'w') as f:
+            with open(output, 'w', encoding="utf-8") as f:
                 json.dump(result, f, indent=2)
             print(f"✓ Results saved to {output}")
         else:
@@ -166,7 +173,7 @@ def cmd_validate(filepath: str):
     try:
         import yaml
         
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = yaml.safe_load(f)
         
         loader = WorkflowLoader()
@@ -297,7 +304,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
         
         if checkpoint_path.exists():
             try:
-                with open(checkpoint_path, 'r') as f:
+                with open(checkpoint_path, 'r', encoding="utf-8") as f:
                     existing_state = json.load(f)
             except Exception:
                 existing_state = None
@@ -325,7 +332,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                 "completed_samples": [],
                 "created_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
             }
-            with open(checkpoint_path, 'w') as f:
+            with open(checkpoint_path, 'w', encoding="utf-8") as f:
                 json.dump(state, f, indent=2)
             print(f"Simulation run: {run_uuid}")
         else:
@@ -365,7 +372,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                 print(f"  ↷ Skipping (already completed).")
                 completed_samples.add(sample_id)
                 state["completed_samples"] = sorted(completed_samples)
-                with open(checkpoint_path, 'w') as f:
+                with open(checkpoint_path, 'w', encoding="utf-8") as f:
                     json.dump(state, f, indent=2)
                 continue
             
@@ -422,12 +429,12 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                     "seed_id": sample_id,
                     "completed_at": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
                 }
-                with open(completion_marker, 'w') as f:
+                with open(completion_marker, 'w', encoding="utf-8") as f:
                     json.dump(completion_payload, f, indent=2)
                 
                 completed_samples.add(sample_id)
                 state["completed_samples"] = sorted(completed_samples)
-                with open(checkpoint_path, 'w') as f:
+                with open(checkpoint_path, 'w', encoding="utf-8") as f:
                     json.dump(state, f, indent=2)
             except Exception as e:
                 import traceback
@@ -446,7 +453,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
         state["status"] = "completed"
         state["completed_at"] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         state["completed_samples"] = sorted(completed_samples)
-        with open(checkpoint_path, 'w') as f:
+        with open(checkpoint_path, 'w', encoding="utf-8") as f:
             json.dump(state, f, indent=2)
         
     except Exception as e:
@@ -466,7 +473,7 @@ def _load_dataset(dataset_config):
         raise FileNotFoundError(f"Dataset not found: {path}")
     
     dataset = []
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 dataset.append(json.loads(line))

@@ -40,7 +40,11 @@ def setup_logger(name: str, log_file: str | Path | None = None) -> logging.Logge
     logger.addHandler(sh)
     if log_file is not None:
         Path(log_file).parent.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(log_file)
+        # utf-8 explicitly: these logs carry model answers and question text, which are
+        # full of accented names. A FileHandler left on the platform default writes cp1252
+        # on Windows, and logging swallows the resulting UnicodeEncodeError into a
+        # "--- Logging error ---" block on stderr, losing the line it was recording.
+        fh = logging.FileHandler(log_file, encoding="utf-8")
         fh.setFormatter(fmt)
         logger.addHandler(fh)
     return logger
@@ -51,6 +55,6 @@ def write_json(path: str | Path, obj: Dict[str, Any]) -> None:
     obj = dict(obj)
     obj.setdefault("written_at_utc", datetime.now(timezone.utc).isoformat())
     tmp = str(path) + ".tmp"
-    with open(tmp, "w") as f:
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2, ensure_ascii=False)
     os.replace(tmp, path)

@@ -63,7 +63,7 @@ def main() -> int:
     if not cfg_path.exists():
         print(f"no config.json in {d}")
         return 2
-    cfg = json.loads(cfg_path.read_text())
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
 
     class C:
         pass
@@ -91,7 +91,7 @@ def main() -> int:
 
     shutil.copy2(cfg_path, backup)
     cfg[field] = 1.0
-    cfg_path.write_text(json.dumps(cfg, indent=1))
+    cfg_path.write_text(json.dumps(cfg, indent=1), encoding="utf-8")
     print(f"  set config.{field} = 1.0 (original saved to {backup.name})")
     print("  VERIFY before trusting it: run scripts/diag_distributions.py on this model.")
     print("  Entropy should be well under 1 nat and valid-token mass at 100%.")

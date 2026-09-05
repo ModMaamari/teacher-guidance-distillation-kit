@@ -94,6 +94,9 @@ def main() -> int:
     ap.add_argument("--model", default="ibm-granite/granite-4.1-3b", help="HF id/path (hf backend, and recorded)")
     ap.add_argument("--adapter", default=None, help="LoRA adapter dir (hf backend)")
     ap.add_argument("--device", default="cuda:0")
+    ap.add_argument("--load-4bit", action="store_true",
+                    help="hf backend: load the base weights in NF4. Must match how the "
+                         "adapter was trained (scripts/train_sft.py --load-4bit)")
     ap.add_argument("--student-temperature", type=float, default=0.0)
     ap.add_argument("--top-p", type=float, default=0.95, help="nucleus threshold (sampled runs)")
     ap.add_argument("--min-p", type=float, default=0.0,
@@ -108,6 +111,10 @@ def main() -> int:
     ap.add_argument("--teacher-temperature", type=float, default=0.1)
     ap.add_argument("--teacher-max-tokens", type=int, default=2500)
     ap.add_argument("--student-max-tokens", type=int, default=1200)
+    ap.add_argument("--student-max-new-tokens", type=int, default=700,
+                    help="student arm: generation cap per action. A lockstep batch runs "
+                         "until its slowest member stops, so this is the cost ceiling of "
+                         "every step, not just of long answers.")
     ap.add_argument("--concurrency", type=int, default=6, help="guided/teacher arms: episodes in flight")
     ap.add_argument("--finalize", action="store_true", help="only recompute metrics.json")
     args = ap.parse_args()
@@ -137,7 +144,7 @@ def main() -> int:
     log.info(f"{total} questions | {len(done_qids)} already done | {len(todo)} to run")
     if not todo:
         finalize(out, args, log)
-        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         print("nothing to do (already complete)")
         return 0
 
@@ -167,9 +174,24 @@ def main() -> int:
         if args.student == "vllm":
             from tgd.vllm_backend import VllmPolicy, wait_ready
             served = wait_ready(args.server_url, args.served_model, timeout_s=300)
+            # vLLM renders the chat template server-side, so the keyword that makes the
+            # generation prompt match the one training taught the student to continue has
+            # to travel with each request. Read it from the same tokenizer.
+            ct_kwargs = {}
+            try:
+                from transformers import AutoTokenizer
+                from tgd import chat_template
+                ct_kwargs = chat_template.alignment_kwargs(
+                    AutoTokenizer.from_pretrained(args.model))
+            except Exception as exc:  # noqa: BLE001 -- the server still works without it
+                log.warning(f"could not read the chat template from {args.model} "
+                            f"({type(exc).__name__}); sending no chat_template_kwargs")
+            if ct_kwargs:
+                log.info(f"vLLM student: sending chat_template_kwargs={ct_kwargs}")
             policy = VllmPolicy(args.server_url, args.served_model, seed=args.seed,
                                 max_parallel=max(args.batch_size, args.concurrency, 4),
-                                top_p=args.top_p, min_p=args.min_p, top_k=args.top_k)
+                                top_p=args.top_p, min_p=args.min_p, top_k=args.top_k,
+                                chat_template_kwargs=ct_kwargs)
             log.info(f"vLLM student: {args.server_url} model={args.served_model} (served: {served})")
         elif args.student == "mock":
             from tgd.mock_policy import MockPolicy
@@ -179,8 +201,9 @@ def main() -> int:
             import numpy as np, torch
             np.random.seed(args.seed); torch.manual_seed(args.seed)
             from tgd.hf_agent_loop import PolicyModel
-            policy = PolicyModel(args.model, args.adapter, device=args.device)
-            log.info(f"HF student: {args.model} adapter={args.adapter}")
+            policy = PolicyModel(args.model, args.adapter, device=args.device,
+                                 load_4bit=args.load_4bit)
+            log.info(f"HF student: {args.model} adapter={args.adapter} 4bit={args.load_4bit}")
 
     # Sampling is where a miscalibrated model shows up; greedy hides it completely
     # (docs/STABILITY.md). If we are about to sample a local checkpoint, say what its logit
@@ -199,6 +222,7 @@ def main() -> int:
         run_episodes_batched(policy, todo, retriever, budget=args.budget,
                              disclose_budget=not args.hidden_budget, with_plan=not args.no_plan,
                              temperature=args.student_temperature, batch_size=args.batch_size,
+                             max_new_tokens=args.student_max_new_tokens,
                              on_episode=record, logger=log)
     else:
         from agentsim.clients.llm_client import LLMClient
@@ -238,7 +262,7 @@ def main() -> int:
     agg = finalize(out, args, log, extra)
     remaining = total - n_done[0]
     if remaining == 0:
-        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         log.info("complete")
     else:
         log.warning(f"{remaining} questions have no episode (failed); re-run the same command to retry them")

@@ -28,12 +28,21 @@ tokens only (TRL `completion_only_loss`), using the model's own chat template.
 | `--lora-r` / `--lora-alpha` / `--lora-dropout` | 32 / 64 / 0.05 | all linear layers |
 | `--eval-steps` / `--save-steps` | 200 / 200 | dev loss and checkpoint cadence |
 | `--seed` | 13 | |
+| `--limit` | — | cap training examples. A **seeded sample**, not the first N rows — `build_splits.py` also shuffles what it writes, so a prefix of the file is representative too. Both matter: written dataset-by-dataset, `--limit 1000` on the uniform split used to be 100% HotpotQA and `--limit 5000` contained no MuSiQue at all |
+| `--load-4bit` | off | load the base weights as NF4 (QLoRA) and train the adapter on top: a 3B student drops from 7.3 GB to ~2.3 GB and fits an 8 GB card. Evaluate the adapter with the same flag |
 | `--smoke` | — | 64 examples, 8 steps: validates the pipeline in ~2 min |
 | `--loss-type` | `auto` | `auto` picks `nll` when the model rescales logits, else TRL's chunked default. Leave it alone unless you know why. See `docs/STABILITY.md` |
 | `--health-every` | 0 (off) | sample held-out prompts at temperature 0.7 every N steps and log how many parse |
 
 bf16 + gradient checkpointing; the 3B student peaks at ~26 GB GPU memory and trains the
 uniform split in ~4 GPU-hours on a 80 GB-class GPU (1,810 optimizer steps, ~8 s/step).
+
+`train.log` records GPU memory (allocated, reserved and peak) at each phase — after the
+model loads, after the dataloader probe, after the loss-path check and at the end. On a
+card with headroom that is a footnote. On a small one it is the whole story: the loss-path
+check allocates the largest tensor of the run, and a caching allocator that keeps the
+reserve can push the process into paging host memory, which looks exactly like a GPU that
+is five times slower than it should be and produces no error at all.
 
 ## Resumability and monitoring
 
