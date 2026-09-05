@@ -279,7 +279,7 @@ def test_every_model_loading_script_reports_logit_scaling():
     root = Path(__file__).resolve().parents[1]
     for name in ("diag_distributions", "diag_position_profile", "sweep_decoding",
                  "merge_adapter", "train_sft"):
-        src = (root / "scripts" / f"{name}.py").read_text()
+        src = (root / "scripts" / f"{name}.py").read_text(encoding="utf-8")
         assert re.search(r"from tgd\.logit_scale import", src), f"{name} does not import the check"
         assert re.search(r"describe", src), f"{name} does not report logit scaling"
 
@@ -295,7 +295,7 @@ def test_merge_guard_deletes_a_silently_wrong_model(tmp_path, monkeypatch):
     base = root / "tests" / "_fixtures"          # not needed: we fake both configs
     out = tmp_path / "merged"
     out.mkdir()
-    (out / "weights.bin").write_text("x")        # stand-in for the saved model
+    (out / "weights.bin").write_text("x", encoding="utf-8")        # stand-in for the saved model
 
     class Cfg:
         pass
@@ -314,7 +314,7 @@ def test_merge_guard_deletes_a_silently_wrong_model(tmp_path, monkeypatch):
 
 def test_eval_reports_scaling_before_sampling():
     """Greedy hides this bug entirely, so the one moment it matters is when eval samples."""
-    src = (Path(__file__).resolve().parents[1] / "scripts" / "eval.py").read_text()
+    src = (Path(__file__).resolve().parents[1] / "scripts" / "eval.py").read_text(encoding="utf-8")
     assert "student_temperature > 0" in src
     assert "describe_scaling" in src or "logit_scale" in src
 
@@ -385,24 +385,24 @@ def test_repair_tool_is_reversible_and_refuses_the_wrong_target(tmp_path):
 
     plain = tmp_path / "plain"
     plain.mkdir()
-    (plain / "config.json").write_text(json.dumps({"model_type": "llama"}))
+    (plain / "config.json").write_text(json.dumps({"model_type": "llama"}), encoding="utf-8")
     assert "nothing to repair" in run(plain)
     assert not (plain / "config.json.pre_repair").exists()
 
     scaled = tmp_path / "scaled"
     scaled.mkdir()
     (scaled / "config.json").write_text(json.dumps({"model_type": "granite",
-                                                    "logits_scaling": 10.0}))
+                                                    "logits_scaling": 10.0}), encoding="utf-8")
     run(scaled, "--dry-run")
     assert not (scaled / "config.json.pre_repair").exists(), "dry-run must not write"
 
     run(scaled)
-    assert json.loads((scaled / "config.json").read_text())["logits_scaling"] == 1.0
+    assert json.loads((scaled / "config.json").read_text(encoding="utf-8"))["logits_scaling"] == 1.0
     assert (scaled / "config.json.pre_repair").exists()
     assert "already repaired" in run(scaled)          # idempotent, and says so
 
     run(scaled, "--restore")
-    assert json.loads((scaled / "config.json").read_text())["logits_scaling"] == 10.0
+    assert json.loads((scaled / "config.json").read_text(encoding="utf-8"))["logits_scaling"] == 10.0
 
 
 def test_merge_refuses_a_base_the_adapter_was_not_trained_on(tmp_path):
@@ -418,7 +418,7 @@ def test_merge_refuses_a_base_the_adapter_was_not_trained_on(tmp_path):
     adapter = tmp_path / "adapter"
     adapter.mkdir()
     (adapter / "adapter_config.json").write_text(
-        json.dumps({"base_model_name_or_path": "org/student-a", "peft_type": "LORA"}))
+        json.dumps({"base_model_name_or_path": "org/student-a", "peft_type": "LORA"}), encoding="utf-8")
 
     def run(*flags):
         r = subprocess.run([sys.executable, str(script), "--adapter", str(adapter),
@@ -436,7 +436,7 @@ def test_merge_refuses_a_base_the_adapter_was_not_trained_on(tmp_path):
     assert "org/student-a" in out
 
     # An adapter with no recorded base must ask rather than guess.
-    (adapter / "adapter_config.json").write_text(json.dumps({"peft_type": "LORA"}))
+    (adapter / "adapter_config.json").write_text(json.dumps({"peft_type": "LORA"}), encoding="utf-8")
     rc, out = run()
     assert rc == 2 and "does not record a base" in out
 
@@ -681,10 +681,11 @@ def test_sdpa_probe_is_safe_and_idempotent():
 # --------------------------------------------------------------------- portability
 
 def test_every_text_file_is_opened_with_an_explicit_encoding():
-    """`open()` in text mode uses the platform's default codec -- UTF-8 on Linux and
-    macOS, cp1252 on Windows. The corpora are Wikipedia-derived: the first 4,000 lines of
-    the HotpotQA corpus alone carry 6,888 characters cp1252 cannot represent, so the same
-    code either crashes or silently mangles depending on the machine it runs on."""
+    """`open()`, `Path.read_text()` and `Path.write_text()` in text mode use the
+    platform's default codec -- UTF-8 on Linux and macOS, cp1252 on Windows. The corpora
+    are Wikipedia-derived: the first 4,000 lines of the HotpotQA corpus alone carry 6,888
+    characters cp1252 cannot represent, so the same code either crashes or silently
+    mangles depending on the machine it runs on."""
     import ast
     from pathlib import Path
 
@@ -704,7 +705,8 @@ def test_every_text_file_is_opened_with_an_explicit_encoding():
             func = node.func
             if isinstance(func, ast.Name) and func.id == "open":
                 pass
-            elif isinstance(func, ast.Attribute) and func.attr == "open":
+            elif isinstance(func, ast.Attribute) and func.attr in (
+                    "open", "read_text", "write_text"):
                 if isinstance(func.value, ast.Name) and func.value.id in (
                         "gzip", "bz2", "lzma", "tarfile", "zipfile"):
                     continue
@@ -722,7 +724,7 @@ def test_every_text_file_is_opened_with_an_explicit_encoding():
                 continue                          # binary needs no encoding
             offenders.append(f"{rel.as_posix()}:{node.lineno}")
     assert not offenders, (
-        "text-mode open() without encoding=\"utf-8\":\n  " + "\n  ".join(offenders))
+        "text I/O without encoding=\"utf-8\":\n  " + "\n  ".join(offenders))
 
 
 def test_log_files_are_written_as_utf8(tmp_path):

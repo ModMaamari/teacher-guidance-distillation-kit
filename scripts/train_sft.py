@@ -419,7 +419,7 @@ def main() -> int:
         write_json(out / "final_metrics.json", final)
         with open(out / "trainer_state.json", "w", encoding="utf-8") as f:
             json.dump(trainer.state.log_history, f, indent=2)
-        done.write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        done.write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         log.info(f"adapter saved: {adapter_dir}")
         print(json.dumps({"out": str(out), "adapter": str(adapter_dir),
                           **{k: v for k, v in final.items() if isinstance(v, (int, float))}}, indent=2))

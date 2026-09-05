@@ -235,7 +235,7 @@ def main() -> int:
     write_json(out / "metrics.json", metrics)
     missing = len(rows) - len(preds)
     if missing == 0:
-        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
     else:
         log.warning(f"{missing} items still missing; re-run to retry")
     print(json.dumps(metrics, indent=2))

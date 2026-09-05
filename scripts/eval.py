@@ -144,7 +144,7 @@ def main() -> int:
     log.info(f"{total} questions | {len(done_qids)} already done | {len(todo)} to run")
     if not todo:
         finalize(out, args, log)
-        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         print("nothing to do (already complete)")
         return 0
 
@@ -262,7 +262,7 @@ def main() -> int:
     agg = finalize(out, args, log, extra)
     remaining = total - n_done[0]
     if remaining == 0:
-        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        (out / ".done").write_text(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), encoding="utf-8")
         log.info("complete")
     else:
         log.warning(f"{remaining} questions have no episode (failed); re-run the same command to retry them")
