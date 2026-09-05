@@ -534,7 +534,7 @@ def test_sweep_decoding_reads_gzipped_benchmarks():
     """Every shipped benchmark file is gzipped; a plain open() on one raises
     UnicodeDecodeError on the gzip magic byte."""
     root = Path(__file__).resolve().parents[1]
-    src = (root / "scripts" / "sweep_decoding.py").read_text()
+    src = (root / "scripts" / "sweep_decoding.py").read_text(encoding="utf-8")
     assert "read_jsonl" in src, "must use the gz-aware loader"
     assert 'open(args.mmlu' not in src, "plain open() cannot read the shipped .gz files"
 

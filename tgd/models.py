@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from tgd import chat_template
+
 # Auto classes to try, in order. Causal LM first: it is the common case and the most
 # specific fit for a text-only student.
 _AUTO_CLASSES = ("AutoModelForCausalLM", "AutoModelForImageTextToText",
@@ -66,24 +68,21 @@ def render_chat(tokenizer, messages, close_reasoning: bool = True):
     token really is the answer. Returns ``(text, reasoning_open)``; when ``reasoning_open``
     is True the caller could not close it, and answer-token metrics are meaningless for this
     model even though entropy and top-1 remain valid.
-    """
-    def _render(**kw):
-        return tokenizer.apply_chat_template(messages, tokenize=False,
-                                             add_generation_prompt=True, **kw)
 
-    text = _render()
-    tail = text[-40:]
-    opened = "<think>" in tail and "</think>" not in tail
-    if opened and close_reasoning:
-        for kw in ({"enable_thinking": False}, {"thinking": False}):
-            try:
-                alt = _render(**kw)
-            except Exception:
-                continue
-            alt_tail = alt[-40:]
-            if not ("<think>" in alt_tail and "</think>" not in alt_tail):
-                return alt, False
-    return text, opened
+    The detection and the keyword search live in ``tgd.chat_template``, which training and
+    evaluation use for the same templates — one place to teach about a new model family,
+    and no way for the diagnostics to disagree with the trainer about what a prompt is.
+    """
+    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    if not chat_template.opens_reasoning(text):
+        return text, False
+    if not close_reasoning:
+        return text, True
+    for kwargs in chat_template.CANDIDATE_KWARGS:
+        alt = chat_template.render_prompt(tokenizer, messages, **kwargs)
+        if alt and not chat_template.opens_reasoning(alt):
+            return alt, False
+    return text, True
 
 
 def load_lm(path: str, dtype=None, device_map=None, **kwargs):
