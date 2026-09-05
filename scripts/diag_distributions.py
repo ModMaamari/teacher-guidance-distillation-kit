@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))       # sibling scripts
 import argparse
 import json
 import math
+import time
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -96,6 +97,8 @@ def main() -> int:
     ap.add_argument("--mmlu", default="data/benchmarks/mmlu.jsonl.gz")
     ap.add_argument("--episodes", default="data/episodes/episodes.jsonl.gz")
     ap.add_argument("--n", type=int, default=200)
+    ap.add_argument("--max-length", type=int, default=8192,
+                    help="truncate prompts to this many tokens")
     ap.add_argument("--out", default="runs/diag")
     ap.add_argument("--device", default="cuda:0")
     args = ap.parse_args()
@@ -114,14 +117,16 @@ def main() -> int:
     rows_out: List[Dict[str, Any]] = []
     for spec in args.models:
         name, path = spec.split("=", 1)
-        print(f"\nloading {name} from {path}")
+        print(f"\nloading {name} from {path}", flush=True)
+        t_load = time.time()
         tok = AutoTokenizer.from_pretrained(path)
         model, _ = load_lm(path, dtype=torch.bfloat16, device_map=args.device)
-        print(f"  {describe_scaling(model.config)}")
+        print(f"  {describe_scaling(model.config)} | loaded in {time.time() - t_load:.0f}s", flush=True)
         model.eval()
         for set_name, prompts in prompt_sets.items():
             stats = []
             warned = False
+            t_set = time.time()
             for row in prompts:
                 text, reasoning_open = render_chat(tok, row["messages"])
                 if reasoning_open and not warned:
@@ -130,7 +135,12 @@ def main() -> int:
                           "answer, so valid-token metrics below are NOT meaningful "
                           "(entropy and top-1 still are)")
                     warned = True
-                ids = tok(text, return_tensors="pt").to(model.device)
+                ids = tok(text, return_tensors="pt", truncation=True,
+                          max_length=args.max_length).to(model.device)
+                if len(stats) and len(stats) % 25 == 0:
+                    rate = len(stats) / max(time.time() - t_set, 1e-9)
+                    print(f"    {set_name}: {len(stats)}/{len(prompts)} "
+                          f"({rate:.1f}/s)", flush=True)
                 with torch.no_grad():
                     logits = model(**ids).logits[0, -1].float()
                 probs = torch.softmax(logits, dim=-1)

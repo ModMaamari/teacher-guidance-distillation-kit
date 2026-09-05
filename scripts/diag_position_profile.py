@@ -93,7 +93,7 @@ def main() -> int:
 
     for spec in args.models:
         name, path = spec.split("=", 1)
-        print(f"\nloading {name} from {path}")
+        print(f"\nloading {name} from {path}", flush=True)
         tok = AutoTokenizer.from_pretrained(path)
         model, _ = load_lm(path, dtype=torch.bfloat16, device_map=args.device)
         print(f"  {describe_scaling(model.config)}")
