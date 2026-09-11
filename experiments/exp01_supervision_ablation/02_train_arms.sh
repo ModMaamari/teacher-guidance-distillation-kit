@@ -6,8 +6,8 @@ source "$HERE/../_common.sh"
 SEED="${SEED:-13}"
 banner "exp01: train 3 arms (student=$STUDENT_MODEL seed=$SEED)"
 for arm in selfdist teachdist guided; do
-  root=data/splits_$arm; [ "$arm" = guided ] && root=data/splits
-  split=$(ls -d $root/uniform_ep* 2>/dev/null | head -1)
+  root=data/splits_sup_$arm
+  split=$(ls -d "$root"/uniform_ep* 2>/dev/null | head -1)
   if [ -z "$split" ]; then
     echo "  !! no $root/uniform_ep* -- run 01_build_matched_splits.sh first"; continue
   fi

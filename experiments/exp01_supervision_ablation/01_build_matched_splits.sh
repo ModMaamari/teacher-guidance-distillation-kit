@@ -8,8 +8,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../_common.sh"
 ARMS="selfdist teachdist guided"
 
-ep_dir()   { [ "$1" = guided ] && echo data/episodes      || echo "data/episodes_$1"; }
-root_dir() { [ "$1" = guided ] && echo data/splits        || echo "data/splits_$1"; }
+ep_dir()    { [ "$1" = guided ] && echo data/episodes || echo "data/episodes_$1"; }
+root_dir()  { [ "$1" = guided ] && echo data/splits   || echo "data/splits_$1"; }
+# size cuts get their own root: make_size_splits.py always names the dir uniform_ep<N>,
+# which would otherwise collide with exp04 writing under data/splits.
+sized_dir() { echo "data/splits_sup_$1"; }
 
 banner "1/3  build a full split per arm"
 for arm in $ARMS; do
@@ -38,8 +41,8 @@ printf '%s\n' "$PLAN" | while read -r arm n; do
   epdir=$(ep_dir "$arm"); root=$(root_dir "$arm")
   run_local $PY scripts/make_size_splits.py \
       --index "$epdir/index.jsonl" --split "$root/uniform" \
-      --out-root "$root" --sizes "$n"
-  echo "    -> $root/uniform_ep$n"
+      --out-root "$(sized_dir "$arm")" --sizes "$n"
+  echo "    -> $(sized_dir "$arm")/uniform_ep$n"
 done
 echo
 echo "check the arms really matched:"

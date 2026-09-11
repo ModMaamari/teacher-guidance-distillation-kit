@@ -6,8 +6,11 @@ ARMS="${TEACHER_ARMS:-tstrong tweak ref}"
 TESTS="${TESTS:-heldout_hotpotqa heldout_2wikimultihopqa heldout_musique heldout_strategyqa}"
 STAGE="${1:-splits}"
 
-ep_dir()   { [ "$1" = ref ] && echo data/episodes || echo "data/episodes_$1"; }
-root_dir() { [ "$1" = ref ] && echo data/splits   || echo "data/splits_$1"; }
+ep_dir()    { [ "$1" = ref ] && echo data/episodes || echo "data/episodes_$1"; }
+root_dir()  { [ "$1" = ref ] && echo data/splits   || echo "data/splits_$1"; }
+# size cuts get their own root per teacher: make_size_splits.py always names the dir
+# uniform_ep<N>, so writing under data/splits would collide with exp04.
+sized_dir() { echo "data/splits_teach_$1"; }
 
 case "$STAGE" in
   splits)
@@ -22,15 +25,17 @@ case "$STAGE" in
     done
     echo
     echo "match supervision across teachers before training -- yields differ by teacher:"
-    echo "  $PY ../exp01_supervision_ablation/match_sizes.py \\"
+    echo "  $PY $HERE/../exp01_supervision_ablation/match_sizes.py \\"
     for arm in $ARMS; do echo "      --root $arm=$(root_dir "$arm") \\"; done
-    echo "  then scripts/make_size_splits.py --split <root>/uniform --out-root <root> --sizes <n>"
+    echo "  then, per arm:  scripts/make_size_splits.py --split <root>/uniform \\"
+echo "                      --out-root data/splits_teach_<arm> --sizes <n>"
     ;;
   train)
     banner "exp06: train one student per teacher"
     for arm in $ARMS; do
       root=$(root_dir "$arm")
-      split=$(ls -d "$root"/uniform_ep* 2>/dev/null | head -1); : "${split:=$root/uniform}"
+      split=$(ls -d "$(sized_dir "$arm")"/uniform_ep* 2>/dev/null | head -1)
+      : "${split:=$root/uniform}"
       [ -e "$split/train.jsonl" ] || { echo "  skip $arm (no $split/train.jsonl)"; continue; }
       echo "  $arm <- $split"
       submit "$KIT/slurm/train.sbatch" "$split" "runs/train/teach_$arm" \

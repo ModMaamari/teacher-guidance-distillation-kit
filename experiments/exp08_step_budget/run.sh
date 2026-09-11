@@ -14,7 +14,7 @@ banner "exp08: budgets = $BUDGETS"
 for b in $BUDGETS; do
   echo "  budget $b"
   submit "$KIT/slurm/eval_student.sbatch" \
-      "base_b$b=base_b$b trained_b$b=trained_b$b:$ADAPTER" "$TESTS" \
+      "base_b$b=student trained_b$b=trained_b$b:$ADAPTER" "$TESTS" \
       --model "$STUDENT_MODEL" --budget "$b"
   submit_cpu "$KIT/slurm/eval_teacher.sbatch" "teacher_b$b" "$TEACHER" "$TESTS" --budget "$b"
 done
