@@ -51,12 +51,16 @@ def probe(model_id: str) -> tuple[str, str]:
         from tgd import chat_template as ct
         text = tok.apply_chat_template(MESSAGES, tokenize=False, add_generation_prompt=True)
         if ct.opens_reasoning(text):
-            closed = any(ct.render_prompt(tok, MESSAGES, **kw) and
-                         not ct.opens_reasoning(ct.render_prompt(tok, MESSAGES, **kw))
-                         for kw in ct.CANDIDATE_KWARGS)
-            return ("REASONING-OK" if closed else "REASONING-OPEN",
-                    f"{arch}: template opens a reasoning block"
-                    + ("; closable" if closed else "; NOT closable -- answer metrics invalid"))
+            by_kwarg = any(ct.render_prompt(tok, MESSAGES, **kw) and
+                           not ct.opens_reasoning(ct.render_prompt(tok, MESSAGES, **kw))
+                           for kw in ct.CANDIDATE_KWARGS)
+            if by_kwarg:
+                return "REASONING-OK", f"{arch}: opens a reasoning block; a template keyword closes it"
+            forced = ct.force_close(text)
+            if forced is not None and not ct.opens_reasoning(forced):
+                return "REASONING-FORCED", (f"{arch}: opens a reasoning block unconditionally; "
+                                            "closed by appending the marker")
+            return "REASONING-OPEN", f"{arch}: opens a reasoning block, NOT closable -- answer metrics invalid"
         return "OK", f"{arch}: plain template, {len(text)} chars"
     except Exception as exc:
         return "TEMPLATE-ERROR", f"{arch}: {str(exc).splitlines()[0][:60]}"
@@ -86,6 +90,8 @@ def main() -> int:
     print(f"\n{len(ids)} probed, {bad} need attention before training")
     print("OFFLINE just means the model is not cached here; re-probe with network access.")
     print("REMOTE-CODE is not fatal: re-probe with trust_remote_code once you trust the repo.")
+    print("REASONING-FORCED is handled: tgd.chat_template closes the block so the diagnostics")
+    print("measure the answer token, but expect that model to emit empty reasoning.")
     print("Run scripts/diag_distributions.py on a GPU before trusting any accuracy number.")
     return 1 if bad else 0
 

@@ -13,6 +13,30 @@
 | `Nanbeige/Nanbeige4.1-3B` | 3B | |
 | `LiquidAI/LFM2.5-2.6B` | 2.6B | hybrid architecture; the most likely to need special handling |
 
+## Probe results, run 2026-09-11
+
+All six were probed live. Every architecture is supported by the installed vLLM (0.28.0),
+and `train_sft.py` uses `target_modules="all-linear"`, which PEFT resolves per architecture,
+so none of them needs a custom LoRA configuration.
+
+| Model | Architecture | Chat template |
+|---|---|---|
+| `ibm-granite/granite-4.2-3b` | Granite | opens a reasoning block; a template keyword closes it |
+| `openbmb/MiniCPM5-2B` | Llama | plain |
+| `openbmb/MiniCPM5-1B` | Llama | plain |
+| `ai9stars/G9v3-3B` | Llama | plain |
+| `Nanbeige/Nanbeige4.1-3B` | Llama | plain |
+| `LiquidAI/LFM2.5-2.6B` | Lfm2 | **opens a reasoning block unconditionally** |
+
+**The Liquid model needs care.** Its generation prompt ends in a literal `<think>` with no
+variable gating it, so no `apply_chat_template` keyword can ever close it. Without help, the
+diagnostics would read the first *reasoning* token and report near-zero valid-token mass --
+indistinguishable from the catastrophic failure they exist to detect. `tgd.chat_template`
+now closes the block by appending the marker, and the diagnostics opt into that explicitly
+and say so in their output, because the resulting prompt is one the template would never
+emit. Expect that model to produce empty reasoning, and treat its numbers as measured at a
+forced answer position.
+
 ## Probe before you train
 
 `00_probe_students.sh` is cheap (tokenizer only, no weights) and catches the failures that

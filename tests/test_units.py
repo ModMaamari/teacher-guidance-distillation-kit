@@ -519,6 +519,15 @@ def test_render_chat_closes_a_reasoning_block():
     text, still_open = render_chat(Tok(closable=False), [{"role": "user", "content": "q"}])
     assert still_open
 
+    # force_close is the opt-in escape hatch for templates that open the block
+    # unconditionally (LFM2.5 ends its generation prompt in a literal <think>). It
+    # fabricates a prompt the template would never emit, so it must stay opt-in and the
+    # caller must say it did so.
+    text, still_open = render_chat(Tok(closable=False), [{"role": "user", "content": "q"}],
+                                   force_close=True)
+    assert not still_open
+    assert text.endswith("</think>")
+
     class Plain:
         def apply_chat_template(self, messages, tokenize=False,
                                 add_generation_prompt=True, **kw):
@@ -528,6 +537,46 @@ def test_render_chat_closes_a_reasoning_block():
 
     text, still_open = render_chat(Plain(), [{"role": "user", "content": "q"}])
     assert not still_open and text.endswith("<|assistant|>\n")
+
+
+def test_closure_mode_names_how_the_block_gets_closed():
+    """exp05 probes six candidate students; each falls into one of these four cases, and the
+    diagnostics print which one so a forced answer position is never mistaken for a natural
+    one."""
+    from tgd import chat_template as ct
+
+    class Tpl:
+        def __init__(self, mode):
+            self.mode = mode
+
+        def apply_chat_template(self, messages, tokenize=False,
+                                add_generation_prompt=True, **kw):
+            if self.mode == "plain":
+                if kw:
+                    raise TypeError("unexpected keyword")
+                return "<|assistant|>\n"
+            if kw.get("enable_thinking") is False:
+                if self.mode == "keyword":
+                    return "<|assistant|>\n<think></think>"
+                raise TypeError("unexpected keyword")
+            return "<|assistant|>\n<think>"
+
+    msgs = [{"role": "user", "content": "q"}]
+    assert ct.closure_mode(Tpl("plain"), msgs) == "none"
+    assert ct.closure_mode(Tpl("keyword"), msgs) == "keyword"
+    # unconditional <think> with no keyword: only closable by appending the marker
+    assert ct.closure_mode(Tpl("forced"), msgs) == "forced"
+
+
+def test_force_close_refuses_an_unknown_marker():
+    """Appending a closer we do not know would produce a prompt that is still open; say so
+    rather than returning something that looks closed."""
+    from tgd import chat_template as ct
+
+    assert ct.force_close("plain text with no block") == "plain text with no block"
+    assert ct.force_close("<|assistant|>\n<think>").endswith("</think>")
+    assert ct.closer_for("<think>") == "</think>"
+    assert ct.closer_for("<nonsense>") is None
 
 
 def test_sweep_decoding_reads_gzipped_benchmarks():

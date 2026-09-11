@@ -88,7 +88,7 @@ def main() -> int:
             n_fmt = n_ok = 0
             samples = []
             for row in prompts:
-                text, reasoning_open = render_chat(tok, row["messages"])
+                text, reasoning_open = render_chat(tok, row["messages"], force_close=True)
                 if reasoning_open and not warned:
                     print("  !! this model's reasoning block could not be closed; it will "
                           "spend its budget reasoning before answering, so accuracy here "

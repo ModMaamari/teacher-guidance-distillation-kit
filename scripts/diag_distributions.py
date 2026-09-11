@@ -122,13 +122,22 @@ def main() -> int:
         tok = AutoTokenizer.from_pretrained(path)
         model, _ = load_lm(path, dtype=torch.bfloat16, device_map=args.device)
         print(f"  {describe_scaling(model.config)} | loaded in {time.time() - t_load:.0f}s", flush=True)
+        mode = "none"
         model.eval()
         for set_name, prompts in prompt_sets.items():
             stats = []
             warned = False
             t_set = time.time()
+            if prompts:
+                from tgd import chat_template as _ct
+                mode = _ct.closure_mode(tok, prompts[0]["messages"])
             for row in prompts:
-                text, reasoning_open = render_chat(tok, row["messages"])
+                text, reasoning_open = render_chat(tok, row["messages"], force_close=True)
+                if mode == "forced" and not warned:
+                    print("  !! this model's template opens a reasoning block that no keyword "
+                          "closes; it was closed by appending the marker, so these numbers are "
+                          "measured at a forced answer position", flush=True)
+                    warned = True
                 if reasoning_open and not warned:
                     print("  !! this model's chat template opens a reasoning block that could "
                           "not be closed: the first generated token is reasoning, not an "

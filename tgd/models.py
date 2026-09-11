@@ -55,7 +55,8 @@ def vocab_size(config, tokenizer=None) -> Optional[int]:
     return max(sizes) if sizes else None
 
 
-def render_chat(tokenizer, messages, close_reasoning: bool = True):
+def render_chat(tokenizer, messages, close_reasoning: bool = True,
+                force_close: bool = False):
     """Render a chat prompt, closing an open reasoning block if the template opens one.
 
     Reasoning models end their generation prompt inside a ``<think>`` block, so the first
@@ -68,6 +69,10 @@ def render_chat(tokenizer, messages, close_reasoning: bool = True):
     token really is the answer. Returns ``(text, reasoning_open)``; when ``reasoning_open``
     is True the caller could not close it, and answer-token metrics are meaningless for this
     model even though entropy and top-1 remain valid.
+
+    ``force_close`` additionally appends the closing marker when no template keyword works.
+    That makes an otherwise unmeasurable model measurable, at the cost of a prompt its own
+    template would never produce, so callers must opt in and report it.
 
     The detection and the keyword search live in ``tgd.chat_template``, which training and
     evaluation use for the same templates — one place to teach about a new model family,
@@ -82,6 +87,15 @@ def render_chat(tokenizer, messages, close_reasoning: bool = True):
         alt = chat_template.render_prompt(tokenizer, messages, **kwargs)
         if alt and not chat_template.opens_reasoning(alt):
             return alt, False
+    # No keyword closed it. Some templates open the block unconditionally (LFM2.5 ends its
+    # generation prompt in a literal <think>), so the block can only be closed by appending
+    # the marker -- which fabricates a prompt the template would never emit. That is useful
+    # for a diagnostic that needs the answer position, and misleading if done silently, so
+    # it is opt-in: callers pass force_close=True and say so in their output.
+    if force_close:
+        forced = chat_template.force_close(text)
+        if forced is not None and not chat_template.opens_reasoning(forced):
+            return forced, False
     return text, True
 
 
