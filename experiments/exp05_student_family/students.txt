@@ -1,0 +1,7 @@
+# One HF model id per line. Comments and blank lines ignored.
+ibm-granite/granite-4.2-3b
+openbmb/MiniCPM5-2B
+openbmb/MiniCPM5-1B
+ai9stars/G9v3-3B
+Nanbeige/Nanbeige4.1-3B
+LiquidAI/LFM2.5-2.6B
