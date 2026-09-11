@@ -19,6 +19,16 @@ make data                                 # builds the SFT train/dev files (~2 m
 every time. All scripts are idempotent: finished work is skipped, so resubmitting after a
 time-limit kill continues where it stopped.
 
+## Check everything still works
+
+```bash
+bash experiments/run_smoke_tests.sh            # offline: syntax, dry-runs, fixtures
+ONLINE=1 bash experiments/run_smoke_tests.sh   # also probes students and teachers live
+```
+
+67 checks offline, 69 with the live probes. It submits nothing, needs no GPU, and calls no
+model unless `ONLINE=1`. Run it after changing any script here.
+
 ## Order
 
 Tier 1 first. These are the ones a reviewer can sink the paper with.

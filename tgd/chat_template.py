@@ -112,6 +112,53 @@ def opens_reasoning(text: str) -> Optional[str]:
     return None
 
 
+def closer_for(opener: str) -> Optional[str]:
+    """The closing marker that matches ``opener``, or None if it is not one we know."""
+    for o, c in REASONING_MARKERS:
+        if o == opener:
+            return c
+    return None
+
+
+def force_close(text: str) -> Optional[str]:
+    """Append the matching closing marker to a prompt whose reasoning block is still open.
+
+    Some templates open the block unconditionally -- LFM2.5's generation prompt ends in a
+    literal ``<think>`` with no variable gating it -- so no ``apply_chat_template`` keyword
+    can ever close it. Appending the closer ourselves puts the next token at the answer,
+    which is what the distribution and decoding diagnostics need to measure.
+
+    Returns the closed text, the original when nothing was open, or None when the opener has
+    no known closer.
+    """
+    opener = opens_reasoning(text)
+    if not opener:
+        return text
+    closer = closer_for(opener)
+    if not closer:
+        return None
+    closed = text + closer
+    return closed if not opens_reasoning(closed) else None
+
+
+def closure_mode(tokenizer, messages) -> str:
+    """How this template's reasoning block gets closed, for a one-line status.
+
+    Returns ``none`` (no block opened), ``keyword`` (a template keyword closes it),
+    ``forced`` (only closable by appending the marker, which fabricates a prompt the
+    template would never emit) or ``open`` (cannot be closed at all).
+    """
+    text = render_prompt(tokenizer, messages)
+    if not text or not opens_reasoning(text):
+        return "none"
+    for kw in CANDIDATE_KWARGS:
+        alt = render_prompt(tokenizer, messages, **kw)
+        if alt and not opens_reasoning(alt):
+            return "keyword"
+    forced = force_close(text)
+    return "forced" if forced is not None and not opens_reasoning(forced) else "open"
+
+
 def describe(tokenizer, kwargs: Optional[Dict[str, Any]] = None,
              prompt=None, completion=None) -> str:
     """One log line: whether the two renderings agree, and what was done about it."""
