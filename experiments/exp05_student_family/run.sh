@@ -30,7 +30,7 @@ case "$STAGE" in
       fi
       # base and trained for this model share a server, so lift is measured like-for-like
       submit "$KIT/slurm/eval_student.sbatch" \
-          "base_$s=base_$s stu_$s=stu_$s:$a" "$TESTS" --model "$m"
+          "base_$s=student stu_$s=stu_$s:$a" "$TESTS" --model "$m"
     done < <(models)
     ;;
   judge)

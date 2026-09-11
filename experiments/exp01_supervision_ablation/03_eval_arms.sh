@@ -14,4 +14,4 @@ done
 echo "  arms:$ARMS"
 submit "$KIT/slurm/eval_student.sbatch" "$ARMS" "$TESTS" --model "$STUDENT_MODEL"
 echo "  (base arm, for reference -- skip if runs/eval/base already exists)"
-submit "$KIT/slurm/eval_student.sbatch" "base=base" "$TESTS" --model "$STUDENT_MODEL"
+submit "$KIT/slurm/eval_student.sbatch" "base=student" "$TESTS" --model "$STUDENT_MODEL"

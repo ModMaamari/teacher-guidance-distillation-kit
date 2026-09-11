@@ -12,9 +12,13 @@ bash run.sh                # MMLU / GSM8K / HellaSwag for base + every trained a
 bash run.sh report         # deltas + box plots
 ```
 
-`ARMS="uniform seed13 ep4000"` selects which trained runs to measure. The base arm is
-always included: forgetting is a *difference*, and without the same-model base measured
-the same way the number means nothing.
+`ARMS="uniform seed13 ep4000"` selects which trained runs to measure.
+
+**You do not submit a base run.** `slurm/eval_forgetting.sbatch` serves one vLLM instance
+and answers every benchmark twice, once through the base weights and once through the
+adapter, so the base arm is measured in the same job and on the same server. That is what
+makes the delta trustworthy: the adapter is the only difference. The wrapper requires a
+real adapter directory and exits if it is missing.
 
 ## Reporting
 
