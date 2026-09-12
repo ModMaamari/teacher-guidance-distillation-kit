@@ -615,6 +615,44 @@ def _fake_httpx(seen, codes):
     return Client
 
 
+def test_provider_ladder_demotes_what_fails():
+    """A provider that misbehaves must sink for LATER calls, not just the current one.
+
+    DeepInfra served 3,487 episodes then rate-limited us out twice, ~90 minutes each time,
+    and each cutoff meant stopping the run and switching by hand. The ladder records health
+    so the next call starts one rung lower, and failures decay so a recovered provider
+    climbs back on its own."""
+    import importlib
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        os.environ["PROVIDER_STATE_PATH"] = os.path.join(d, "health.json")
+        os.environ["PROVIDER_LADDER"] = "A,B,C"
+        from tgd import provider_ladder as L
+        importlib.reload(L)
+
+        assert L.order() == ["A", "B", "C"], "no history keeps the configured order"
+
+        for _ in range(3):
+            L.record("A", False)
+        assert L.order()[0] == "B", "a repeatedly failing provider must not stay on top"
+        assert L.order()[-1] == "A"
+
+        # success repairs: halves the outstanding score each time
+        for _ in range(6):
+            L.record("A", True)
+        assert L.order().index("A") < 2, "a recovered provider climbs back"
+
+        # decay: an old failure weighs less than a fresh one
+        L.record("C", False)
+        old_score = L._decayed({"score": 1.0, "updated": 0}, L.HALF_LIFE_S * 4)
+        assert old_score < 0.1, "failures must decay, not blacklist forever"
+
+        del os.environ["PROVIDER_STATE_PATH"], os.environ["PROVIDER_LADDER"]
+        importlib.reload(L)
+
+
 def test_teacher_path_retries_a_rate_limit():
     """The teacher for a whole dataset must survive a 429.
 
@@ -741,11 +779,17 @@ def test_openrouter_routing_is_pinned_and_reasoning_off():
         assert body["provider"] == {"only": ["DeepInfra"], "allow_fallbacks": False}
         assert body["reasoning"] == {"enabled": False}
 
+        # With no explicit pin the ladder chooses, so a provider IS sent -- the top rung.
+        # Pinning one provider is what turned two throttling episodes into two abandoned
+        # runs; the ladder exists so a throttled provider costs one request instead.
         seen.clear()
         config.OPENROUTER_PROVIDER_ONLY = None
         config.OPENROUTER_REASONING = None
         asyncio.run(LLMClient()._custom_completion("hi", "custom/m", 0.1, 300))
-        assert "provider" not in seen[0] and "reasoning" not in seen[0]
+        from tgd import provider_ladder
+        assert seen[0]["provider"]["only"] == [provider_ladder.order()[0]]
+        assert seen[0]["provider"]["allow_fallbacks"] is False
+        assert "reasoning" not in seen[0]
     finally:
         httpx.AsyncClient = old_client
         config.OPENROUTER_PROVIDER_ONLY, config.OPENROUTER_REASONING = old_only, old_reason
