@@ -338,8 +338,20 @@ class LLMClient:
                 "only": [p.strip() for p in only.split(",") if p.strip()],
                 "allow_fallbacks": False,
             }
-        if (config.OPENROUTER_REASONING or "").strip().lower() in ("off", "0", "false", "none"):
+        # Reasoning control. Some models refuse to have it disabled at all -- every
+        # provider serving glm-5.3-flash answers 400 "Reasoning is mandatory for this
+        # endpoint" -- so "off" is a request, not a guarantee, and the accepted values
+        # also cover the fallbacks that do work:
+        #   off/none   ask to disable it (400 on models that mandate reasoning)
+        #   minimal|low|medium|high   set the effort level
+        #   exclude    keep it out of the response (still generated, still billed)
+        mode = (config.OPENROUTER_REASONING or "").strip().lower()
+        if mode in ("off", "0", "false", "none"):
             payload["reasoning"] = {"enabled": False}
+        elif mode in ("minimal", "low", "medium", "high"):
+            payload["reasoning"] = {"effort": mode}
+        elif mode == "exclude":
+            payload["reasoning"] = {"exclude": True}
         if response_schema:
             # Full JSON-Schema enforcement support varies by model on OpenRouter, so
             # we only request the broadly-supported looser "valid JSON syntax"
