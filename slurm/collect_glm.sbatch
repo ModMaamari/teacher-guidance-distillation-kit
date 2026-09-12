@@ -22,14 +22,19 @@ source slurm/common.sh
 STUDENT_MODEL="${STUDENT_MODEL:-ibm-granite/granite-4.2-3b}"
 TEACHER="${TEACHER:-custom/z-ai/glm-5.3-flash}"
 OUT="${OUT:-runs/collect_glm}"
-SHARDS="${SHARDS:-6}"
+# 16 is the measured ceiling before the endpoint starts returning 429: at 16
+# concurrent teacher calls nothing was rate-limited (3,145 calls/h); at 24 and 32
+# a third of requests were rejected. ~43k teacher calls -> about 14 h.
+SHARDS="${SHARDS:-16}"
 PORT="${PORT:-8310}"
 
 # Pin the upstream provider and switch reasoning off. allow_fallbacks=False is applied by
 # the client, so a routing failure stops the run rather than quietly moving to a provider
 # with different pricing and different sampling.
 export OPENROUTER_PROVIDER_ONLY="${OPENROUTER_PROVIDER_ONLY:-DeepInfra}"
-export OPENROUTER_REASONING="${OPENROUTER_REASONING:-off}"
+# glm-5.3-flash refuses reasoning:{enabled:false} on every provider ("Reasoning is
+# mandatory for this endpoint"), so low effort is the cheapest setting available.
+export OPENROUTER_REASONING="${OPENROUTER_REASONING:-low}"
 
 echo "== $(date -u +%FT%TZ) node=$(hostname) job=${SLURM_JOB_ID:-local}"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
@@ -47,6 +52,7 @@ $PY_TRAIN scripts/collect_episodes.py \
     --teacher "$TEACHER" \
     --shards "$SHARDS" \
     --out "$OUT" \
+    --student-max-tokens "${STUDENT_MAX_TOKENS:-3000}" \
     "$@"
 rc=$?
 echo "== done $(date -u +%FT%TZ) rc=$rc"
