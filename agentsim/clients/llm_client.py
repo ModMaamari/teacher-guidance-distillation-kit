@@ -338,12 +338,16 @@ class LLMClient:
         # Routing and reasoning options live in tgd.openrouter so the pre-flight check
         # cannot drift from what the run actually sends.
         from tgd.openrouter import provider_payload, reasoning_payload
-        prov = provider_payload(config.OPENROUTER_PROVIDER_ONLY)
-        if prov:
-            payload["provider"] = prov
         reason = reasoning_payload(config.OPENROUTER_REASONING)
         if reason:
             payload["reasoning"] = reason
+
+        # Provider selection: an explicit pin wins; otherwise walk the self-reordering
+        # ladder, healthiest first. Pinning one provider is what turned two throttling
+        # episodes into two abandoned runs.
+        from tgd import provider_ladder
+        pinned = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
+        candidates = ([pinned] if pinned else provider_ladder.order()) or [None]
         if response_schema:
             # Full JSON-Schema enforcement support varies by model on OpenRouter, so
             # we only request the broadly-supported looser "valid JSON syntax"
@@ -351,16 +355,33 @@ class LLMClient:
             payload["response_format"] = {"type": "json_object"}
 
         async def _send() -> Any:
+            last_exc = None
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Same backoff every other provider gets. Without it a single 429 failed
-                # the teacher call outright, and a long collection at high shard counts
-                # draws plenty of them: this path is the teacher for a whole dataset.
-                response = await self._post_json_with_backoff(
-                    client, f"{endpoint.rstrip('/')}/v1/chat/completions", headers, payload,
-                    provider_label="custom",
-                )
-                response.raise_for_status()
-                return response.json()
+                for prov in candidates:
+                    body = dict(payload)
+                    if prov:
+                        body["provider"] = provider_payload(prov)
+                    # max_retries=0: when there is another rung below, stepping down beats
+                    # waiting. A throttled provider should cost one request, not a backoff.
+                    retries = None if (len(candidates) == 1 or prov is None) else 0
+                    response = await self._post_json_with_backoff(
+                        client, f"{endpoint.rstrip('/')}/v1/chat/completions", headers, body,
+                        provider_label=f"custom/{prov or 'auto'}", max_retries=retries,
+                    )
+                    if response.status_code < 400:
+                        if prov and not pinned:
+                            provider_ladder.record(prov, True)
+                        return response.json()
+                    if prov and not pinned:
+                        provider_ladder.record(prov, False)
+                    last_exc = httpx.HTTPStatusError(
+                        f"{response.status_code} from {prov or 'auto'}",
+                        request=None, response=response)
+                    logger.warning(f"[ladder] {prov} returned {response.status_code}; "
+                                   f"stepping down")
+                if last_exc:
+                    raise last_exc
+                raise RuntimeError("no provider candidates")
 
         # Hard wall-clock cap, same rationale as _oai_completion: httpx's read timeout
         # only measures the gap between bytes, so a half-dead connection that trickles
