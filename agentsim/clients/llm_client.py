@@ -330,8 +330,8 @@ class LLMClient:
             "usage": {"include": True},
         }
         # Pin the upstream provider when asked. allow_fallbacks=False matters: without it
-        # OpenRouter silently reroutes to another provider on error, and the run would mix
-        # backends with different prices and different sampling behaviour mid-dataset.
+        # OpenRouter silently reroutes on error, and a long run would mix backends with
+        # different prices and different sampling behaviour mid-dataset.
         only = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
         if only:
             payload["provider"] = {
@@ -916,9 +916,8 @@ class LLMClient:
                 "type": "json_schema",
                 "json_schema": {"name": "response", "schema": response_schema},
             }
-        # Reasoning students: the server applies the model's chat template, so this is the
-        # only place to switch thinking off. Without it a template that opens a reasoning
-        # block eats max_tokens with prose and the action JSON is truncated away.
+        # Reasoning students: the server applies the model's chat template, so the request
+        # body is the only place to switch thinking off. Off by default.
         tpl_kwargs = (config.VLLM_CHAT_TEMPLATE_KWARGS or "").strip()
         if tpl_kwargs:
             try:
@@ -926,24 +925,22 @@ class LLMClient:
             except ValueError:
                 logger.warning("VLLM_CHAT_TEMPLATE_KWARGS is not valid JSON; ignoring")
 
-        async def _post(body: Dict[str, Any]):
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                r = await client.post(f"{endpoint.rstrip('/')}/v1/chat/completions", json=body)
-                r.raise_for_status()
-                return r.json()
-
-        try:
-            data = await _post(payload)
-        except httpx.HTTPStatusError as exc:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{endpoint.rstrip('/')}/v1/chat/completions",
+                json=payload,
+            )
             # A template that does not accept the kwarg answers 400. Drop it and retry once
             # rather than failing every step of a long collection run.
-            if exc.response is not None and exc.response.status_code == 400 and \
-                    "chat_template_kwargs" in payload:
+            if response.status_code == 400 and "chat_template_kwargs" in payload:
                 logger.warning("server rejected chat_template_kwargs; retrying without it")
                 payload.pop("chat_template_kwargs")
-                data = await _post(payload)
-            else:
-                raise
+                response = await client.post(
+                    f"{endpoint.rstrip('/')}/v1/chat/completions",
+                    json=payload,
+                )
+            response.raise_for_status()
+            data = response.json()
             # A truncated generation can leave content null -> coerce to "" so the
             # caller's parse/repair path handles it.
             text = data["choices"][0]["message"].get("content") or ""

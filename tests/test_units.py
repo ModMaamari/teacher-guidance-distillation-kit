@@ -672,12 +672,26 @@ def test_vllm_student_can_have_thinking_switched_off():
         assert seen[0]["chat_template_kwargs"] == {"enable_thinking": False}
         assert "chat_template_kwargs" not in seen[1], "must retry without it on HTTP 400"
 
-        # absent when unset, so non-reasoning students are unaffected
+        # absent when unset, so non-reasoning students are unaffected -- and, on the plain
+        # success path, the completion text must actually come back. Asserting the return
+        # value is the point: an earlier refactor left the response handling inside the
+        # retry branch, so every successful call returned nothing and the harness recorded
+        # empty student outputs for a whole collection run. Only the 400 path was covered,
+        # so the tests stayed green while the real path was dead.
         seen.clear()
         httpx.AsyncClient = _fake_httpx(seen, [200])
         config.VLLM_CHAT_TEMPLATE_KWARGS = None
-        asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600))
+        out = asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600))
         assert "chat_template_kwargs" not in seen[0]
+        assert out == "{}", f"success path must return the completion, got {out!r}"
+
+        # and with usage requested, the usage block must survive too
+        seen.clear()
+        httpx.AsyncClient = _fake_httpx(seen, [200])
+        res = asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600,
+                                                       return_usage=True))
+        assert isinstance(res, dict) and res.get("text") == "{}", res
+        assert "usage" in res, res
 
         # malformed JSON is ignored rather than crashing a long run
         seen.clear()

@@ -24,7 +24,7 @@ DATASET="${DATASET:-hotpotqa}"
 
 echo "== $(date -u +%FT%TZ) node=$(hostname) job=${SLURM_JOB_ID:-local}"
 echo "== student $STUDENT_MODEL  port $PORT  out $OUT"
-echo "== chat_template_kwargs: ${VLLM_CHAT_TEMPLATE_KWARGS:-<unset>}"
+echo "== chat_template_kwargs: ${VLLM_CHAT_TEMPLATE_KWARGS:-<unset>}  student_max_tokens=${STUDENT_MAX_TOKENS:-1200}"
 export VLLM_ENDPOINT="http://127.0.0.1:$PORT"
 
 MODEL=$STUDENT_MODEL start_server "$PORT" || { echo "!! student failed to serve"; exit 1; }
@@ -36,7 +36,8 @@ curl -sf "http://127.0.0.1:$PORT/v1/chat/completions" -H 'Content-Type: applicat
 echo "== $N episodes with a MOCK teacher (no API spend)"
 $PY_TRAIN scripts/collect_episodes.py --datasets "$DATASET" --num-samples "$N" \
     --student vllm/student --teacher mock/teacher --shards 1 \
-    --out "$OUT" --tag "$(basename "$OUT")"
+    --out "$OUT" --tag "$(basename "$OUT")" \
+    --student-max-tokens "${STUDENT_MAX_TOKENS:-1200}"
 rc=$?
 echo "== collector rc=$rc  episodes: $(find "$OUT" -name _SUCCESS 2>/dev/null | wc -l)"
 $PY_BASE scripts/check_student_actions.py --runs "$OUT" || true
