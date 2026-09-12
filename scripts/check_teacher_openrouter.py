@@ -41,7 +41,7 @@ def load_env(p: pathlib.Path) -> None:
             os.environ.setdefault(k.strip(), v.strip())
 
 
-def post(url: str, key: str, body: dict | None, timeout: int, attempts: int = 4):
+def post(url: str, key: str, body: dict | None, timeout: int, attempts: int = 7):
     """POST with backoff on the transient failures.
 
     A single 429 used to abort this check, and the collection job runs it as a gate -- so
@@ -50,7 +50,7 @@ def post(url: str, key: str, body: dict | None, timeout: int, attempts: int = 4)
     fix itself.
     """
     data = json.dumps(body).encode() if body is not None else None
-    delay = 3.0
+    delay = 5.0
     for i in range(attempts):
         req = urllib.request.Request(url, data=data, headers={
             "Authorization": f"Bearer {key}", "Content-Type": "application/json"})
@@ -131,6 +131,15 @@ def main() -> int:
             msg = json.loads(e.read()).get("error", {}).get("message", "")
         except Exception:
             msg = ""
+        if e.code == 429:
+            # Throttled, not broken. The endpoint answered; it is just busy. The collector
+            # backs off per call, so failing here would throw away a GPU allocation that
+            # queued for hours over a condition that clears itself.
+            print(f"  !! still rate-limited after {a.timeout}s of retries: {str(msg)[:70]}")
+            print("  teacher is UP but throttled -- continuing; the collector backs off "
+                  "per call")
+            print("\nREADY (throttled)")
+            return 0
         print(f"  !! HTTP {e.code}: {str(msg)[:90]}")
         return 1
     except Exception as e:
