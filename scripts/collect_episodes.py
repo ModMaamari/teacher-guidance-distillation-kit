@@ -44,7 +44,8 @@ TEMPLATE_DIR = ROOT / "templates" / "simulations"
 def build_template(*, template_id: str, student: str, teacher: str, questions_path: str,
                    corpus_path: str, output_dir: str, num_samples: int, budget: int,
                    disclose_budget: bool, planning_steps: int, max_plan_steps: int,
-                   teacher_max_tokens: int, teacher_temperature: float, student_temperature: float) -> dict:
+                   teacher_max_tokens: int, teacher_temperature: float, student_temperature: float,
+                   student_max_tokens: int) -> dict:
     """One simulation template = one worker's configuration (mirrors the harness's
     ``standard`` mode with plan review and guidance level 3, diagnostic feedback)."""
     mode_config = {
@@ -59,6 +60,10 @@ def build_template(*, template_id: str, student: str, teacher: str, questions_pa
         "corpus_path": corpus_path,
         "retrieval_backend": "hotpot_local",
         "skip_teacher": False,
+        # A reasoning student spends this budget on prose before the JSON action; at the
+        # 1200 default granite-4.2-3b was truncated mid-object on every middle step and
+        # the harness recorded those as invalid actions.
+        "student_max_tokens": student_max_tokens,
         "teacher_max_tokens": teacher_max_tokens,
         "teacher_max_tokens_retry": teacher_max_tokens * 2,
         "teacher_temperature": teacher_temperature,
@@ -114,6 +119,8 @@ def main() -> int:
     ap.add_argument("--planning-steps", type=int, default=3, help="plan-review rounds")
     ap.add_argument("--max-plan-steps", type=int, default=6)
     ap.add_argument("--teacher-max-tokens", type=int, default=2500)
+    ap.add_argument("--student-max-tokens", type=int, default=1200,
+                    help="raise for a student whose chat template opens a reasoning block")
     ap.add_argument("--teacher-temperature", type=float, default=0.1)
     ap.add_argument("--student-temperature", type=float, default=0.2)
     ap.add_argument("--out", default="runs/collect")
@@ -146,7 +153,8 @@ def main() -> int:
                 output_dir=str(out_dir), num_samples=len(shard_rows), budget=args.budget,
                 disclose_budget=args.disclose_budget, planning_steps=args.planning_steps,
                 max_plan_steps=args.max_plan_steps, teacher_max_tokens=args.teacher_max_tokens,
-                teacher_temperature=args.teacher_temperature, student_temperature=args.student_temperature)
+                teacher_temperature=args.teacher_temperature, student_temperature=args.student_temperature,
+                student_max_tokens=args.student_max_tokens)
             (TEMPLATE_DIR / f"{tid}.yaml").write_text(yaml.safe_dump(tpl, sort_keys=False), encoding="utf-8")
             plans.append({"dataset": ds, "template": tid, "questions": len(shard_rows), "out_dir": out_dir})
     total = sum(p["questions"] for p in plans)
