@@ -329,29 +329,15 @@ class LLMClient:
             # is always OpenRouter, so this is safe to send unconditionally.
             "usage": {"include": True},
         }
-        # Pin the upstream provider when asked. allow_fallbacks=False matters: without it
-        # OpenRouter silently reroutes on error, and a long run would mix backends with
-        # different prices and different sampling behaviour mid-dataset.
-        only = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
-        if only:
-            payload["provider"] = {
-                "only": [p.strip() for p in only.split(",") if p.strip()],
-                "allow_fallbacks": False,
-            }
-        # Reasoning control. Some models refuse to have it disabled at all -- every
-        # provider serving glm-5.3-flash answers 400 "Reasoning is mandatory for this
-        # endpoint" -- so "off" is a request, not a guarantee, and the accepted values
-        # also cover the fallbacks that do work:
-        #   off/none   ask to disable it (400 on models that mandate reasoning)
-        #   minimal|low|medium|high   set the effort level
-        #   exclude    keep it out of the response (still generated, still billed)
-        mode = (config.OPENROUTER_REASONING or "").strip().lower()
-        if mode in ("off", "0", "false", "none"):
-            payload["reasoning"] = {"enabled": False}
-        elif mode in ("minimal", "low", "medium", "high"):
-            payload["reasoning"] = {"effort": mode}
-        elif mode == "exclude":
-            payload["reasoning"] = {"exclude": True}
+        # Routing and reasoning options live in tgd.openrouter so the pre-flight check
+        # cannot drift from what the run actually sends.
+        from tgd.openrouter import provider_payload, reasoning_payload
+        prov = provider_payload(config.OPENROUTER_PROVIDER_ONLY)
+        if prov:
+            payload["provider"] = prov
+        reason = reasoning_payload(config.OPENROUTER_REASONING)
+        if reason:
+            payload["reasoning"] = reason
         if response_schema:
             # Full JSON-Schema enforcement support varies by model on OpenRouter, so
             # we only request the broadly-supported looser "valid JSON syntax"
@@ -360,10 +346,12 @@ class LLMClient:
 
         async def _send() -> Any:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{endpoint.rstrip('/')}/v1/chat/completions",
-                    headers=headers,
-                    json=payload,
+                # Same backoff every other provider gets. Without it a single 429 failed
+                # the teacher call outright, and a long collection at high shard counts
+                # draws plenty of them: this path is the teacher for a whole dataset.
+                response = await self._post_json_with_backoff(
+                    client, f"{endpoint.rstrip('/')}/v1/chat/completions", headers, payload,
+                    provider_label="custom",
                 )
                 response.raise_for_status()
                 return response.json()
@@ -380,7 +368,9 @@ class LLMClient:
                 f"custom/OpenRouter request exceeded hard timeout of "
                 f"{config.CUSTOM_TIMEOUT}s (model={model_name})"
             ) from exc
-        text = data["choices"][0]["message"]["content"]
+        # A reasoning model can return content: null (budget spent thinking); coerce so the
+        # caller's parse/repair path sees an empty string rather than a TypeError.
+        text = data["choices"][0]["message"].get("content") or ""
 
         if return_usage:
             usage = data.get("usage", {})
