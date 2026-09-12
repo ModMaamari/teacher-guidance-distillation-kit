@@ -1,6 +1,7 @@
 """Unified LLM client supporting multiple providers"""
 
 import asyncio
+import json
 import random
 import time
 
@@ -328,6 +329,17 @@ class LLMClient:
             # is always OpenRouter, so this is safe to send unconditionally.
             "usage": {"include": True},
         }
+        # Pin the upstream provider when asked. allow_fallbacks=False matters: without it
+        # OpenRouter silently reroutes to another provider on error, and the run would mix
+        # backends with different prices and different sampling behaviour mid-dataset.
+        only = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
+        if only:
+            payload["provider"] = {
+                "only": [p.strip() for p in only.split(",") if p.strip()],
+                "allow_fallbacks": False,
+            }
+        if (config.OPENROUTER_REASONING or "").strip().lower() in ("off", "0", "false", "none"):
+            payload["reasoning"] = {"enabled": False}
         if response_schema:
             # Full JSON-Schema enforcement support varies by model on OpenRouter, so
             # we only request the broadly-supported looser "valid JSON syntax"
@@ -904,14 +916,34 @@ class LLMClient:
                 "type": "json_schema",
                 "json_schema": {"name": "response", "schema": response_schema},
             }
+        # Reasoning students: the server applies the model's chat template, so this is the
+        # only place to switch thinking off. Without it a template that opens a reasoning
+        # block eats max_tokens with prose and the action JSON is truncated away.
+        tpl_kwargs = (config.VLLM_CHAT_TEMPLATE_KWARGS or "").strip()
+        if tpl_kwargs:
+            try:
+                payload["chat_template_kwargs"] = json.loads(tpl_kwargs)
+            except ValueError:
+                logger.warning("VLLM_CHAT_TEMPLATE_KWARGS is not valid JSON; ignoring")
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.post(
-                f"{endpoint.rstrip('/')}/v1/chat/completions",
-                json=payload,
-            )
-            response.raise_for_status()
-            data = response.json()
+        async def _post(body: Dict[str, Any]):
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                r = await client.post(f"{endpoint.rstrip('/')}/v1/chat/completions", json=body)
+                r.raise_for_status()
+                return r.json()
+
+        try:
+            data = await _post(payload)
+        except httpx.HTTPStatusError as exc:
+            # A template that does not accept the kwarg answers 400. Drop it and retry once
+            # rather than failing every step of a long collection run.
+            if exc.response is not None and exc.response.status_code == 400 and \
+                    "chat_template_kwargs" in payload:
+                logger.warning("server rejected chat_template_kwargs; retrying without it")
+                payload.pop("chat_template_kwargs")
+                data = await _post(payload)
+            else:
+                raise
             # A truncated generation can leave content null -> coerce to "" so the
             # caller's parse/repair path handles it.
             text = data["choices"][0]["message"].get("content") or ""

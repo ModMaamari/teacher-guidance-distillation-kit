@@ -49,6 +49,29 @@ class Config:
     CUSTOM_LLM_ENDPOINT: Optional[str] = _env("CUSTOM_LLM_ENDPOINT")
     CUSTOM_LLM_API_KEY: Optional[str] = _env("CUSTOM_LLM_API_KEY")
 
+    # OpenRouter routing controls for ``custom/<model>``. Both default to unset, which
+    # keeps OpenRouter's own behaviour (cheapest healthy provider, model's default
+    # reasoning). Set them when the choice of backend or reasoning changes what you are
+    # measuring or what you pay:
+    #   OPENROUTER_PROVIDER_ONLY=DeepInfra   pin routing; fallbacks are then disabled, so
+    #                                        a request fails rather than silently landing
+    #                                        on a provider with different pricing or
+    #                                        different sampling behaviour.
+    #   OPENROUTER_REASONING=off             disable chain-of-thought. Reasoning tokens
+    #                                        bill at the output rate, and a teacher that
+    #                                        thinks before critiquing costs several times
+    #                                        more for no gain in the critique itself.
+    OPENROUTER_PROVIDER_ONLY: Optional[str] = _env("OPENROUTER_PROVIDER_ONLY")
+    OPENROUTER_REASONING: Optional[str] = _env("OPENROUTER_REASONING")
+
+    # Extra chat-template arguments for the local vLLM student, as a JSON object, e.g.
+    #   VLLM_CHAT_TEMPLATE_KWARGS={"enable_thinking": false}
+    # A student whose template opens a reasoning block spends its token budget on prose
+    # and can be truncated before it emits the JSON action, which the harness then records
+    # as an invalid step. Measured on granite-4.2-3b: every middle step failed that way,
+    # against 0.0% invalid steps for granite-4.1-3b, whose template does not reason.
+    VLLM_CHAT_TEMPLATE_KWARGS: Optional[str] = _env("VLLM_CHAT_TEMPLATE_KWARGS")
+
     # Generic OpenAI-compatible chat-completions endpoints (vLLM, TGI, LiteLLM, llama.cpp,
     # OpenRouter, a university gateway, ...). Address models as ``oai/<model>`` (served by
     # OAI_BASE_URL / OAI_API_KEY) or ``oai-<name>/<model>`` (served by OAI_<NAME>_BASE_URL /
