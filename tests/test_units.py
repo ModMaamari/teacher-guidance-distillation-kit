@@ -615,6 +615,107 @@ def _fake_httpx(seen, codes):
     return Client
 
 
+def test_teacher_path_retries_a_rate_limit():
+    """The teacher for a whole dataset must survive a 429.
+
+    Every other provider went through _post_json_with_backoff; the OpenRouter path called
+    httpx directly and raise_for_status()'d, so one rate-limited call failed that teacher
+    step outright. At the shard counts a full collection uses, 429s are routine.
+    Also covers content: null, which a reasoning model returns when its budget goes to
+    thinking -- that used to raise a TypeError on subscript."""
+    import asyncio
+    import httpx
+    from agentsim.clients.llm_client import LLMClient
+    from agentsim.config import config
+
+    calls = {"n": 0}
+
+    class Resp:
+        def __init__(self, code, body):
+            self.status_code, self._b, self.headers = code, body, {}
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError("bad", request=None, response=self)
+
+        def json(self):
+            return self._b
+
+    class Client:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return Resp(429, {})
+            # content null: the reasoning-model case
+            return Resp(200, {"choices": [{"message": {"content": None}}],
+                              "usage": {"prompt_tokens": 1, "completion_tokens": 2}})
+
+    old_c, old_ep, old_key, old_sleep = (httpx.AsyncClient, config.CUSTOM_LLM_ENDPOINT,
+                                         config.CUSTOM_LLM_API_KEY, asyncio.sleep)
+    try:
+        httpx.AsyncClient = Client
+        config.CUSTOM_LLM_ENDPOINT = "https://openrouter.ai/api"
+        config.CUSTOM_LLM_API_KEY = "k"
+
+        async def _nosleep(*a, **k):
+            return None
+
+        asyncio.sleep = _nosleep
+        out = asyncio.run(LLMClient()._custom_completion("hi", "custom/m", 0.1, 300))
+        assert calls["n"] >= 2, "a 429 must be retried, not raised"
+        assert out == "", f"null content must coerce to '', got {out!r}"
+    finally:
+        httpx.AsyncClient, asyncio.sleep = old_c, old_sleep
+        config.CUSTOM_LLM_ENDPOINT, config.CUSTOM_LLM_API_KEY = old_ep, old_key
+
+
+def test_openrouter_options_are_built_in_one_place():
+    """The client and the pre-flight check must send identical routing and reasoning.
+
+    They were built separately and drifted: the check went on asking to disable reasoning
+    after the client learned some models refuse it, so the check returned HTTP 400 and
+    would have aborted the collection job it exists to protect -- after that job had
+    already waited hours for a GPU. Both now call these helpers."""
+    from tgd.openrouter import provider_payload, reasoning_payload
+
+    assert provider_payload("DeepInfra") == {"only": ["DeepInfra"], "allow_fallbacks": False}
+    assert provider_payload("A, B") == {"only": ["A", "B"], "allow_fallbacks": False}
+    assert provider_payload("") is None and provider_payload(None) is None
+
+    assert reasoning_payload("off") == {"enabled": False}
+    assert reasoning_payload("none") == {"enabled": False}
+    assert reasoning_payload("low") == {"effort": "low"}
+    assert reasoning_payload("HIGH") == {"effort": "high"}
+    assert reasoning_payload("exclude") == {"exclude": True}
+    # unset, or a value we do not recognise, leaves the model's own default alone
+    assert reasoning_payload("") is None
+    assert reasoning_payload(None) is None
+    assert reasoning_payload("nonsense") is None
+
+
+def test_preflight_check_sends_what_the_client_sends():
+    """Same inputs, same request fields -- the property whose absence caused the drift."""
+    import pathlib
+
+    src = pathlib.Path("scripts/check_teacher_openrouter.py").read_text(encoding="utf-8")
+    # the check must not build these dicts itself any more
+    assert '{"enabled": False}' not in src, "pre-flight check hardcodes a reasoning payload"
+    assert '"allow_fallbacks"' not in src, "pre-flight check hardcodes provider routing"
+    assert "reasoning_payload" in src and "provider_payload" in src
+
+    client = pathlib.Path("agentsim/clients/llm_client.py").read_text(encoding="utf-8")
+    assert "reasoning_payload" in client and "provider_payload" in client
+
+
 def test_openrouter_routing_is_pinned_and_reasoning_off():
     """Collection runs for hours against one provider. allow_fallbacks must be off or
     OpenRouter silently reroutes mid-run to a backend with different pricing and sampling,
