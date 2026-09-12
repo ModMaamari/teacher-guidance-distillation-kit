@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 import random
 import time
 
@@ -15,9 +16,14 @@ from agentsim.config import config
 # HTTP statuses worth retrying: 429 (rate limited / throttled) and 503 (service
 # temporarily unavailable) -- both transient on a shared academic gateway.
 _RETRYABLE_STATUS = {429, 503}
-_BACKOFF_BASE_S = 1.0      # exponential backoff base: base * 2**attempt
-_BACKOFF_MAX_S = 30.0      # cap for computed exponential backoff
-_BACKOFF_JITTER_S = 0.5    # added uniform(0, jitter) to avoid thundering herd
+# Backoff, tunable from the environment. The defaults are fine for a bursty gateway; a
+# long collection against a rate-limiting provider needs more patience, because retries
+# are what turn throttling into a ban. Sixteen workers retrying a 1 s backoff three times
+# each turned ~35k teacher calls into 27k rate-limit responses, after which the provider
+# refused us outright for 50 minutes. Backing off harder sends fewer requests, not more.
+_BACKOFF_BASE_S = float(os.environ.get("LLM_BACKOFF_BASE_S", "1.0"))
+_BACKOFF_MAX_S = float(os.environ.get("LLM_BACKOFF_MAX_S", "30.0"))
+_BACKOFF_JITTER_S = float(os.environ.get("LLM_BACKOFF_JITTER_S", "0.5"))
 _RETRY_AFTER_MAX_S = 120.0  # honor an explicit Retry-After header up to this cap
 
 # Provider circuit breaker (see LLMClient.get_completion_with_fallback). A provider is
