@@ -41,6 +41,7 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "== student  $STUDENT_MODEL   (served locally as vllm/student)"
 echo "== teacher  $TEACHER  provider=$OPENROUTER_PROVIDER_ONLY reasoning=$OPENROUTER_REASONING"
 echo "== out      $OUT   shards=$SHARDS"
+echo "== student thinking: ${VLLM_CHAT_TEMPLATE_KWARGS:-on (default)}"
 
 # the collector addresses the student as vllm/student; point the client at this port
 export VLLM_ENDPOINT="http://127.0.0.1:$PORT"
