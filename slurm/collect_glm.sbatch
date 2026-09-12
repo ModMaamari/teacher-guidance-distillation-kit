@@ -12,7 +12,7 @@
 #SBATCH --job-name=tgd_collect_glm
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=96G
+#SBATCH --mem=256G
 #SBATCH --time=24:00:00
 #SBATCH --output=runs/slurm/collect_glm_%j.log
 set -uo pipefail
@@ -22,9 +22,14 @@ source slurm/common.sh
 STUDENT_MODEL="${STUDENT_MODEL:-ibm-granite/granite-4.2-3b}"
 TEACHER="${TEACHER:-custom/z-ai/glm-5.3-flash}"
 OUT="${OUT:-runs/collect_glm}"
-# 16 is the measured ceiling before the endpoint starts returning 429: at 16
-# concurrent teacher calls nothing was rate-limited (3,145 calls/h); at 24 and 32
-# a third of requests were rejected. ~43k teacher calls -> about 14 h.
+# NOTE: --shards is PER DATASET, so this becomes SHARDS x 4 concurrent workers. At 16
+# that is 64 workers, which peaked at 96 GB RSS and was killed OOM at 3,907 episodes --
+# hence --mem=256G above. It also runs far above the measured rate-limit ceiling (16
+# concurrent teacher calls draw no 429s; this run drew 8,260 of them), which the client's
+# backoff absorbs at the cost of doing much of the work twice.
+#
+# Changing this value renames the per-shard output directories, which orphans completed
+# episodes and re-collects them. Do not change it mid-collection; finish, or start clean.
 SHARDS="${SHARDS:-16}"
 PORT="${PORT:-8310}"
 

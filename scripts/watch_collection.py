@@ -22,9 +22,15 @@ TARGETS = {"hotpotqa": 2000, "2wikimultihopqa": 2000, "musique": 2000, "strategy
 
 
 def episode_files(out: pathlib.Path):
-    """collect_episodes.py lays out <out>/<dataset>/<tag>_<ds>_s<shard>/..., one _SUCCESS
-    per finished question, so counting markers is correct across resumes."""
-    return list(out.rglob("_SUCCESS"))
+    """Finished questions: a _SUCCESS marker AND the episode record beside it.
+
+    The marker alone is not enough. A worker killed between writing the marker and writing
+    the episode leaves a question the collector will skip forever, and counting markers
+    reports it as done -- an OOM kill here left 3,060 such questions while every counter
+    read 100%. scripts/verify_collection.py --prune clears them.
+    """
+    return [m for m in out.rglob("_SUCCESS")
+            if (m.parent / "teacher_guidance_episodes.jsonl").exists()]
 
 
 def scan(out: pathlib.Path) -> dict:
