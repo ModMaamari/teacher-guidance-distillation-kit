@@ -6,6 +6,48 @@ the result is wrong. Those are the ones that cost real time here.
 
 ## Failures that look like success
 
+### A collection reports 100 % but the dataset is short
+
+**Symptom.** `collect_episodes.py` says every question is done, yet
+`consolidate_episodes.py` produces far fewer episodes than questions. Progress counters,
+including `watch_collection.py` before this was fixed, read the run as complete.
+
+**Cause.** A worker writes `_SUCCESS` into a question's directory and the episode record
+separately. The collector skips any question whose marker exists, so a worker that dies
+between the two loses that question permanently while reporting it finished. Two things
+trigger it:
+
+* **A hard kill.** An OOM kill during one run left 3,060 of 4,106 marked questions with no
+  episode record.
+* **Exhausted retries.** A question whose model calls all fail still gets a marker. Its
+  `stats.json` shows `"success": true` with `total_tokens: 0`, `total_cost: 0.0` and
+  `total_latency_ms: 0.0` — four steps, no call that ever returned. At 64 concurrent
+  workers against a rate-limited endpoint this hit 5.1 % of questions.
+
+**Diagnose.**
+
+```bash
+python scripts/verify_collection.py --runs runs/collect_glm
+```
+
+It counts marked against real per dataset. A complete question directory holds the episode
+record next to the marker; a lost one holds only `config.json`, `manifest.json`,
+`stats.json` and `_SUCCESS`.
+
+**Fix.** Delete the markers that lie, then resume — the collector refills them:
+
+```bash
+python scripts/verify_collection.py --runs runs/collect_glm --prune
+sbatch ... slurm/collect_glm_seq.sbatch
+```
+
+**Avoid it.** `--shards` is **per dataset**: four datasets at `--shards 16` is 64 workers,
+not 16. That drew 8,260 rate-limit responses, peaked at 96 GB RSS, and starved 5 % of
+episodes. Collect one dataset at a time (`slurm/collect_glm_seq.sbatch`) to keep
+concurrency at what you actually measured. Note that changing `--shards` renames the
+per-shard output directories, so it orphans completed work — pick the value before you
+start, not halfway through.
+
 ### The student answers nothing, and retrieval looks fine
 
 **Symptom.** EM, F1 and cover are all exactly 0.000 across every test set. `mean_steps` sits at
