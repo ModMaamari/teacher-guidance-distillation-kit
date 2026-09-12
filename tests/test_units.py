@@ -30,7 +30,10 @@ def test_provider_resolution(monkeypatch):
     assert config.get_provider_from_model_id("oai-judge/org/model") == "oai"
     assert config.get_provider_from_model_id("mock/anything") == "mock"
     assert config.get_provider_from_model_id("vllm/student") == "vllm"
+    # hermetic: a developer's own .env may configure this very endpoint, and the point
+    # here is that an unset key resolves to None rather than whatever they happen to have
     monkeypatch.setenv("OAI_JUDGE_BASE_URL", "http://example/v1")
+    monkeypatch.delenv("OAI_JUDGE_API_KEY", raising=False)
     base, key, name = config.oai_endpoint("oai-judge/org/model")
     assert (base, key, name) == ("http://example/v1", None, "org/model")
     assert config.provider_available("oai-judge/org/model")
@@ -577,6 +580,113 @@ def test_force_close_refuses_an_unknown_marker():
     assert ct.force_close("<|assistant|>\n<think>").endswith("</think>")
     assert ct.closer_for("<think>") == "</think>"
     assert ct.closer_for("<nonsense>") is None
+
+
+def _fake_httpx(seen, codes):
+    """An httpx.AsyncClient stand-in that snapshots each request body and replays codes."""
+    import copy
+    import httpx
+
+    class Resp:
+        def __init__(self, code):
+            self.status_code = code
+
+        def raise_for_status(self):
+            if self.status_code != 200:
+                raise httpx.HTTPStatusError("bad", request=None, response=self)
+
+        def json(self):
+            return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    class Client:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            seen.append(copy.deepcopy(json))       # the caller mutates its payload
+            return Resp(codes[min(len(seen) - 1, len(codes) - 1)])
+
+    return Client
+
+
+def test_openrouter_routing_is_pinned_and_reasoning_off():
+    """Collection runs for hours against one provider. allow_fallbacks must be off or
+    OpenRouter silently reroutes mid-run to a backend with different pricing and sampling,
+    and reasoning must be switchable off because those tokens bill at the output rate."""
+    import asyncio
+    import httpx
+    from agentsim.clients.llm_client import LLMClient
+    from agentsim.config import config
+
+    seen = []
+    old_client, old_only, old_reason = (httpx.AsyncClient,
+                                        config.OPENROUTER_PROVIDER_ONLY,
+                                        config.OPENROUTER_REASONING)
+    old_ep, old_key = config.CUSTOM_LLM_ENDPOINT, config.CUSTOM_LLM_API_KEY
+    try:
+        httpx.AsyncClient = _fake_httpx(seen, [200])
+        config.OPENROUTER_PROVIDER_ONLY = "DeepInfra"
+        config.OPENROUTER_REASONING = "off"
+        config.CUSTOM_LLM_ENDPOINT = "https://openrouter.ai/api"
+        config.CUSTOM_LLM_API_KEY = "k"
+        asyncio.run(LLMClient()._custom_completion("hi", "custom/z-ai/glm-5.3-flash", 0.1, 300))
+        body = seen[0]
+        assert body["provider"] == {"only": ["DeepInfra"], "allow_fallbacks": False}
+        assert body["reasoning"] == {"enabled": False}
+
+        seen.clear()
+        config.OPENROUTER_PROVIDER_ONLY = None
+        config.OPENROUTER_REASONING = None
+        asyncio.run(LLMClient()._custom_completion("hi", "custom/m", 0.1, 300))
+        assert "provider" not in seen[0] and "reasoning" not in seen[0]
+    finally:
+        httpx.AsyncClient = old_client
+        config.OPENROUTER_PROVIDER_ONLY, config.OPENROUTER_REASONING = old_only, old_reason
+        config.CUSTOM_LLM_ENDPOINT, config.CUSTOM_LLM_API_KEY = old_ep, old_key
+
+
+def test_vllm_student_can_have_thinking_switched_off():
+    """A student whose chat template opens a reasoning block spends max_tokens on prose and
+    gets truncated before the JSON action, which the harness records as an invalid step.
+    Measured on granite-4.2-3b: every middle step failed that way, against 0.0% invalid
+    steps over 8,687 steps for granite-4.1-3b, whose template does not reason. vLLM applies
+    the template server-side, so the request body is the only place to switch it off."""
+    import asyncio
+    import httpx
+    from agentsim.clients.llm_client import LLMClient
+    from agentsim.config import config
+
+    seen = []
+    old_client, old_kwargs = httpx.AsyncClient, config.VLLM_CHAT_TEMPLATE_KWARGS
+    try:
+        # sent when configured, and dropped + retried once if the template rejects it
+        httpx.AsyncClient = _fake_httpx(seen, [400, 200])
+        config.VLLM_CHAT_TEMPLATE_KWARGS = '{"enable_thinking": false}'
+        asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600))
+        assert seen[0]["chat_template_kwargs"] == {"enable_thinking": False}
+        assert "chat_template_kwargs" not in seen[1], "must retry without it on HTTP 400"
+
+        # absent when unset, so non-reasoning students are unaffected
+        seen.clear()
+        httpx.AsyncClient = _fake_httpx(seen, [200])
+        config.VLLM_CHAT_TEMPLATE_KWARGS = None
+        asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600))
+        assert "chat_template_kwargs" not in seen[0]
+
+        # malformed JSON is ignored rather than crashing a long run
+        seen.clear()
+        config.VLLM_CHAT_TEMPLATE_KWARGS = "{not json"
+        asyncio.run(LLMClient()._vllm_completion("hi", "vllm/student", 0.2, 600))
+        assert "chat_template_kwargs" not in seen[0]
+    finally:
+        httpx.AsyncClient = old_client
+        config.VLLM_CHAT_TEMPLATE_KWARGS = old_kwargs
 
 
 def test_sweep_decoding_reads_gzipped_benchmarks():
