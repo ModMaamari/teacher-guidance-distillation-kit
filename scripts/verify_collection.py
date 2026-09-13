@@ -71,7 +71,10 @@ def repair_checkpoints(root: pathlib.Path, apply: bool) -> tuple[int, int]:
         freed += len(missing)
         if apply:
             data["completed_samples"] = [s for s in done if s in real]
-            data["status"] = "in_progress"
+            # "running" is the worker's own resumable status. The first version wrote
+            # "in_progress", which the worker does not recognise, so every repaired shard
+            # started a fresh run directory and re-collected all of its samples.
+            data["status"] = "running"
             data.pop("completed_at", None)
             tmp = cp.with_suffix(".json.tmp")
             tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
@@ -96,11 +99,27 @@ def main() -> int:
         return 1
 
     complete, orphan = scan(root)
-    per = collections.Counter(dataset_of(d) for d in complete)
-    bad = collections.Counter(dataset_of(d) for d in orphan)
+    # Count distinct questions, not directories. A shard re-run in a fresh run directory
+    # repeats questions it already had, and counting directories reported 3,110 episodes
+    # for a 2,000-question dataset. The key is (shard, sample): shard/<run>/<dataset>/sample.
+    def key(d: pathlib.Path):
+        return (str(d.parent.parent.parent), d.name)
+    unique = {}
+    for d in complete:
+        unique.setdefault(key(d), d)
+    dup_dirs = len(complete) - len(unique)
+    done_keys = set(unique)
+    lost = {key(d): d for d in orphan if key(d) not in done_keys}
+    per = collections.Counter(dataset_of(d) for d in unique.values())
+    bad = collections.Counter(dataset_of(d) for d in lost.values())
 
     print(f"marked done {len(complete) + len(orphan)}   "
-          f"real {len(complete)}   orphaned markers {len(orphan)}\n")
+          f"real {len(unique)} distinct questions   orphaned markers {len(orphan)}"
+          f"   (never collected anywhere: {len(lost)})")
+    if dup_dirs:
+        print(f"duplicate episode directories: {dup_dirs} (same question collected again in a"
+              f" later run; consolidation keeps one per question)")
+    print()
     print(f"  {'dataset':<20}{'real':>8}{'orphaned':>10}")
     for ds in DATASETS:
         print(f"  {ds:<20}{per.get(ds, 0):>8}{bad.get(ds, 0):>10}")

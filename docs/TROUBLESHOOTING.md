@@ -48,6 +48,26 @@ concurrency at what you actually measured. Note that changing `--shards` renames
 per-shard output directories, so it orphans completed work — pick the value before you
 start, not halfway through.
 
+### A resumed collection re-collects questions it already had
+
+**Symptom.** A dataset reports more episodes than it has questions (3,110 for a
+2,000-question dataset), and spend rises while distinct questions barely move.
+
+**Cause.** The worker resumes a shard only if its checkpoint status is exactly `running`.
+Any other status -- `completed` on a shard with gaps, or a hand-edited value -- starts a new
+run directory, and the per-sample `_SUCCESS` check then looks only inside that new, empty
+directory, so every question in the shard is attempted again. The parent collector also
+counted raw markers across all run directories, so duplicates could make a short shard look
+full. On one run this produced 1,318 duplicate episodes and spent $1.77 of a $10 budget.
+
+**Fixed in** `tgd/collection_state.py`: a question counts as done when any run directory
+holds both its marker and its episode record; the worker seeds from every earlier run, marks
+a shard `completed` only when every sample is done, and the parent counts distinct questions.
+
+**Checking.** `scripts/verify_collection.py` now reports distinct questions and duplicate
+directories separately. Duplicates are harmless downstream -- `consolidate_episodes.py` keeps
+one episode per (dataset, qid) -- but they cost money, so check before resuming.
+
 ### The student answers nothing, and retrieval looks fine
 
 **Symptom.** EM, F1 and cover are all exactly 0.000 across every test set. `mean_steps` sits at

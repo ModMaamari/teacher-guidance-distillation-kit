@@ -29,8 +29,15 @@ def episode_files(out: pathlib.Path):
     reports it as done -- an OOM kill here left 3,060 such questions while every counter
     read 100%. scripts/verify_collection.py --prune clears them.
     """
-    return [m for m in out.rglob("_SUCCESS")
-            if (m.parent / "teacher_guidance_episodes.jsonl").exists()]
+    # One per question. A shard relaunched into a fresh run directory repeats questions it
+    # already had, and counting every marker reported 3,110 episodes for a 2,000-question
+    # dataset. Layout: <out>/<dataset>/<shard>/<run>/<dataset_name>/<sample>/_SUCCESS.
+    seen = {}
+    for m in out.rglob("_SUCCESS"):
+        if not (m.parent / "teacher_guidance_episodes.jsonl").exists():
+            continue
+        seen.setdefault((str(m.parent.parent.parent.parent), m.parent.name), m)
+    return list(seen.values())
 
 
 def scan(out: pathlib.Path) -> dict:
@@ -38,6 +45,7 @@ def scan(out: pathlib.Path) -> dict:
     done = collections.Counter()
     tin = tout = cost = 0.0
     calls = 0
+    records = 0
     newest = 0.0
     for marker in episode_files(out):
         ds = next((k for k in TARGETS if f"/{k}/" in str(marker)), "?")
@@ -51,6 +59,7 @@ def scan(out: pathlib.Path) -> dict:
                 line = line.strip()
                 if not line:
                     continue
+                records += 1
                 for c in walk_calls(json.loads(line)):
                     u = c.get("usage") or {}
                     m = str(c.get("model", "")).lower()
@@ -63,7 +72,7 @@ def scan(out: pathlib.Path) -> dict:
         except Exception:
             continue
     return {"done": done, "in": tin, "out": tout, "cost": cost,
-            "calls": calls, "newest": newest}
+            "calls": calls, "records": records, "newest": newest}
 
 
 def walk_calls(o):
@@ -94,12 +103,16 @@ def render(out: pathlib.Path, s: dict, started: float, first: int) -> None:
         left = (total_target - total_done) / rate
         print(f"\n  rate {rate:,.0f} episodes/h   eta {left:5.1f} h")
     if s["calls"]:
-        n = max(total_done, 1)
+        # Per episode record, not per distinct question: spend includes duplicates, so
+        # dividing it by distinct questions overstates what one more episode costs.
+        n = max(s.get("records", 0), 1)
         print(f"  teacher: {s['calls'] / n:.1f} calls/ep  "
               f"{s['in'] / n:,.0f} in  {s['out'] / n:,.0f} out per episode")
         if s["cost"]:
-            print(f"  spend  : ${s['cost']:.4f} so far   "
-                  f"projected ${s['cost'] / n * total_target:.2f} for the full set")
+            per = s["cost"] / n
+            left_cost = per * max(total_target - total_done, 0)
+            print(f"  spend  : ${s['cost']:.4f} so far   ~${left_cost:.2f} to finish "
+                  f"(${per:.5f}/episode)")
     if s["newest"]:
         age = time.time() - s["newest"]
         flag = "  <-- nothing finished recently, check the log" if age > 900 else ""

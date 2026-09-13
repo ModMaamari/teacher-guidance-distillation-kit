@@ -49,6 +49,26 @@ echo "== $SHARDS workers per dataset, datasets run one at a time"
 echo "== repairing markers and checkpoints before this chunk"
 $PY_BASE scripts/verify_collection.py --runs "$OUT" --prune --repair-checkpoints --yes || true
 
+# Refuse to start a chunk on a nearly empty account. The budget is small and this run has
+# already met several bugs that spend money without producing new questions; a floor makes
+# the worst case a stopped chunk rather than an exhausted key.
+CREDIT_FLOOR="${CREDIT_FLOOR:-1.00}"
+left=$($PY_BASE - <<'PY'
+import json, os, urllib.request
+req = urllib.request.Request("https://openrouter.ai/api/v1/credits",
+    headers={"Authorization": "Bearer " + os.environ.get("CUSTOM_LLM_API_KEY", "")})
+try:
+    d = json.loads(urllib.request.urlopen(req, timeout=60).read())["data"]
+    print(f"{d['total_credits'] - d['total_usage']:.2f}")
+except Exception:
+    print("unknown")
+PY
+)
+echo "== OpenRouter credit remaining: \$$left (floor \$$CREDIT_FLOOR)"
+if [ "$left" != "unknown" ] && awk "BEGIN{exit !($left < $CREDIT_FLOOR)}"; then
+  echo "!! credit below floor -- not starting this chunk"; exit 1
+fi
+
 $PY_BASE scripts/check_teacher_openrouter.py || { echo "!! teacher not ready"; exit 1; }
 MODEL=$STUDENT_MODEL start_server "$PORT" || { echo "!! student failed to serve"; exit 1; }
 trap stop_server EXIT

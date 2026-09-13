@@ -103,7 +103,13 @@ def build_template(*, template_id: str, student: str, teacher: str, questions_pa
 
 
 def episodes_done(out_dir: Path) -> int:
-    return sum(1 for _ in out_dir.rglob("_SUCCESS")) if out_dir.exists() else 0
+    """Distinct questions finished in this shard, across every run directory.
+
+    Counting raw `_SUCCESS` markers let duplicate runs of the same question inflate the
+    total past the shard size, so a shard still short of its questions could be skipped.
+    """
+    from tgd.collection_state import unique_done
+    return unique_done(out_dir)
 
 
 def main() -> int:
