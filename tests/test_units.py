@@ -784,6 +784,41 @@ def test_parsers_tolerate_text_where_objects_are_expected():
     assert e.teacher_decision == "continue"
 
 
+def test_strict_consolidation_rejects_errored_or_incomplete_datasets():
+    """The final dataset must be complete and error-free. --strict fails while any question
+    has only errored episodes or a dataset is short, and passes once a retry succeeds."""
+    import json
+    import pathlib
+    import subprocess
+    import sys
+    import tempfile
+
+    def ep(qid, stop):
+        return {"dataset": "ds", "qid": qid, "stop_reason": stop, "final_metrics": {},
+                "steps": [], "used_steps": 0, "student_model": "s", "teacher_models_used": []}
+
+    with tempfile.TemporaryDirectory() as d:
+        root = pathlib.Path(d)
+        rec = root / "runs" / "a" / "teacher_guidance_episodes.jsonl"
+        rec.parent.mkdir(parents=True)
+        rec.write_text(json.dumps(ep("q1", "teacher_accept")) + "\n" +
+                       json.dumps(ep("q2", "error")) + "\n", encoding="utf-8")
+        cmd = [sys.executable, "scripts/consolidate_episodes.py", "--runs", str(root / "runs"),
+               "--out", str(root / "out"), "--strict", "--expect", "ds=2"]
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        assert r.returncode == 2, r.stdout + r.stderr
+        assert "only errored episodes" in r.stdout
+
+        retry = root / "runs" / "b" / "teacher_guidance_episodes.jsonl"
+        retry.parent.mkdir(parents=True)
+        retry.write_text(json.dumps(ep("q2", "budget_forced_finish")) + "\n", encoding="utf-8")
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout + r.stderr
+
+        r = subprocess.run(cmd[:-1] + ["ds=3"], capture_output=True, text=True)
+        assert r.returncode == 2 and "expected 3" in r.stdout, r.stdout
+
+
 def test_checkpoint_repair_frees_unreachable_questions():
     """A shard's checkpoint records a sample as completed once the worker has finished
     *attempting* it, and sets status=completed at the end of its list -- whether or not an
