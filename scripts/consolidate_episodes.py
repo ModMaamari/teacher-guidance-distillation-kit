@@ -43,6 +43,11 @@ def main() -> int:
                     help="also drop the gold-bearing teacher prompt/raw fields (smaller, train-safe)")
     ap.add_argument("--rename-model", action="append", default=[], metavar="OLD=NEW",
                     help="rewrite a model id everywhere (e.g. strip a provider prefix: vllm/student=org/model)")
+    ap.add_argument("--strict", action="store_true",
+                    help="exit 2 unless every question's kept episode is error-free (and, with "
+                         "--expect, every dataset has exactly the expected number of questions)")
+    ap.add_argument("--expect", action="append", default=[], metavar="DATASET=N",
+                    help="with --strict, require exactly N questions for DATASET")
     args = ap.parse_args()
 
     renames = dict(r.split("=", 1) for r in args.rename_model)
@@ -74,6 +79,22 @@ def main() -> int:
     print(f"read {n_read} episodes -> {len(best)} unique (dataset, qid) -> {ep_path}")
     for ds, s in sorted(stats.items()):
         print(f"  {ds:<18} episodes {s['episodes']:>5}  correct {s['correct']:>5}  errors {s['errors']}")
+    if args.strict:
+        # The kept episode for a question is errored only when no attempt succeeded, so any
+        # error here means the collection is not finished, not that a better copy was missed.
+        problems = [f"{ds}: {s['errors']} of {s['episodes']} questions have only errored episodes"
+                    for ds, s in sorted(stats.items()) if s["errors"]]
+        for spec in args.expect:
+            ds, n = spec.split("=", 1)
+            have = stats.get(ds, {}).get("episodes", 0)
+            if have != int(n):
+                problems.append(f"{ds}: {have} questions, expected {n}")
+        if problems:
+            print("\nSTRICT CHECK FAILED -- not complete and error-free:")
+            for msg in problems:
+                print(f"  {msg}")
+            return 2
+        print("\nSTRICT CHECK PASSED: every question complete and error-free")
     return 0
 
 
