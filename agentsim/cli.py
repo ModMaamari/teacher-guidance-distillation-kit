@@ -338,6 +338,23 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
         else:
             print(f"Simulation run (resume): {run_uuid}")
         
+        # Decide what is already done from every earlier run of this template, not just the
+        # one being resumed. A checkpoint that is not exactly "running" starts a fresh run
+        # directory, and the per-sample `_SUCCESS` check below only sees that new, empty
+        # directory -- so without this every sample in the shard was re-collected. For a
+        # teacher-guidance collection the disk is also more honest than the checkpoint,
+        # which lists samples that were attempted but produced no episode.
+        from tgd.collection_state import TG_RECORD, completed_on_disk, is_tg_output, sample_done
+        tg_mode = is_tg_output(template.output_dir)
+        on_disk = completed_on_disk(template.output_dir, dataset_name)
+        if tg_mode:
+            completed_samples = set(on_disk)
+        else:
+            completed_samples |= on_disk
+        if on_disk:
+            print(f"Already collected in earlier runs: {len(on_disk)} samples")
+        state["completed_samples"] = sorted(completed_samples)
+
         # Ensure directories exist
         run_dir.mkdir(parents=True, exist_ok=True)
         dataset_dir = run_dir / dataset_name
@@ -368,7 +385,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
             
             # Skip if already completed (checkpoint or success marker)
             completion_marker = sample_dir / "_SUCCESS"
-            if sample_id in completed_samples or completion_marker.exists():
+            if sample_id in completed_samples or sample_done(sample_dir, tg_mode):
                 print(f"  ↷ Skipping (already completed).")
                 completed_samples.add(sample_id)
                 state["completed_samples"] = sorted(completed_samples)
@@ -422,6 +439,8 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                     )
                     TeacherGuidanceEpisodeExporter().export_episode(tg_context, str(sample_dir))
 
+                if (sample_dir / TG_RECORD).exists():
+                    tg_mode = True
                 print(f"  ✓ Exported")
                 
                 # Mark sample as completed (checkpoint)
@@ -432,7 +451,8 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                 with open(completion_marker, 'w', encoding="utf-8") as f:
                     json.dump(completion_payload, f, indent=2)
                 
-                completed_samples.add(sample_id)
+                if sample_done(sample_dir, tg_mode):
+                    completed_samples.add(sample_id)
                 state["completed_samples"] = sorted(completed_samples)
                 with open(checkpoint_path, 'w', encoding="utf-8") as f:
                     json.dump(state, f, indent=2)
@@ -450,7 +470,10 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
         print(f"  └─ Overall completed: {len(completed_samples)}/{total_seeds} seeds")
         print(f"Run UUID: {run_uuid}")
         
-        state["status"] = "completed"
+        # Only a shard that finished every sample is "completed". Marking it completed after
+        # an attempt pass stranded the samples that failed: the next launch treated the
+        # checkpoint as unusable and re-ran the whole shard from scratch.
+        state["status"] = "completed" if len(completed_samples) >= total_seeds else "running"
         state["completed_at"] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         state["completed_samples"] = sorted(completed_samples)
         with open(checkpoint_path, 'w', encoding="utf-8") as f:

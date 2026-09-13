@@ -615,6 +615,43 @@ def _fake_httpx(seen, codes):
     return Client
 
 
+def test_done_is_judged_across_runs_and_requires_the_episode():
+    """Re-launching a shard must not redo questions an earlier run already collected.
+
+    The worker only resumed a checkpoint whose status was exactly "running"; anything else
+    started a new run directory and looked for `_SUCCESS` only there, so the whole shard was
+    re-collected. On one collection that produced 1,318 duplicate episodes. Done-ness now
+    comes from every run under the shard, and a marker without its episode record does not
+    count."""
+    import pathlib
+    import tempfile
+    from tgd import collection_state as cs
+
+    with tempfile.TemporaryDirectory() as d:
+        shard = pathlib.Path(d)
+        def mk(run, sample, record=True):
+            q = shard / run / "questions" / sample
+            q.mkdir(parents=True, exist_ok=True)
+            (q / cs.MARKER).write_text("{}", encoding="utf-8")
+            if record:
+                (q / cs.TG_RECORD).write_text("{}", encoding="utf-8")
+            return q
+        mk("runA", "sample_001")
+        orphan = mk("runA", "sample_002", record=False)    # marker, no episode
+        mk("runB", "sample_002")                            # collected later, elsewhere
+        mk("runA", "sample_003"); mk("runB", "sample_003")  # a duplicate
+
+        assert cs.is_tg_output(shard)
+        assert not cs.sample_done(orphan, require_record=True)
+        assert cs.completed_on_disk(shard, "questions") == {"sample_001", "sample_002", "sample_003"}
+        assert cs.unique_done(shard) == 3, "a duplicated question counts once"
+
+    src = pathlib.Path("agentsim/cli.py").read_text(encoding="utf-8")
+    assert "completed_on_disk(" in src, "worker must seed done-ness from every earlier run"
+    assert '"completed" if len(completed_samples) >= total_seeds else "running"' in src, \
+        "a shard with gaps must stay resumable rather than be marked completed"
+
+
 def test_checkpoint_repair_frees_unreachable_questions():
     """A shard's checkpoint records a sample as completed once the worker has finished
     *attempting* it, and sets status=completed at the end of its list -- whether or not an
@@ -657,7 +694,9 @@ def test_checkpoint_repair_frees_unreachable_questions():
         assert (touched, freed) == (1, 2)
         after = json.loads(cp.read_text(encoding="utf-8"))
         assert after["completed_samples"] == ["sample_001", "sample_002"]
-        assert after["status"] == "in_progress", "status must reopen or the resume skips it"
+        # "running" is the worker's resumable status; "in_progress" is not recognised and
+        # made every repaired shard re-collect all of its samples from scratch.
+        assert after["status"] == "running", "status must be the worker's resumable value"
         assert "completed_at" not in after
 
         # idempotent: a repaired checkpoint has nothing left to free
