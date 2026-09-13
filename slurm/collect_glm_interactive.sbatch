@@ -42,6 +42,13 @@ echo "== teacher $TEACHER  provider=$OPENROUTER_PROVIDER_ONLY reasoning=$OPENROU
 echo "== student $STUDENT_MODEL  thinking=${VLLM_CHAT_TEMPLATE_KWARGS:-on}"
 echo "== $SHARDS workers per dataset, datasets run one at a time"
 
+# Repair bookkeeping before collecting. A worker records a sample as completed once it
+# has finished attempting it and marks the shard status=completed at the end of its list,
+# so questions that produced no episode are skipped by every later resume. Without this
+# the run converges to whatever the first pass happened to get, not to the full dataset.
+echo "== repairing markers and checkpoints before this chunk"
+$PY_BASE scripts/verify_collection.py --runs "$OUT" --prune --repair-checkpoints --yes || true
+
 $PY_BASE scripts/check_teacher_openrouter.py || { echo "!! teacher not ready"; exit 1; }
 MODEL=$STUDENT_MODEL start_server "$PORT" || { echo "!! student failed to serve"; exit 1; }
 trap stop_server EXIT
