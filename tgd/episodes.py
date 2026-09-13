@@ -48,9 +48,43 @@ def _clean_calls(calls: Any) -> Any:
     return out
 
 
+def _call_providers(calls: Any) -> set:
+    out = set()
+    for c in calls or []:
+        if isinstance(c, dict):
+            raw = c.get("raw_response")
+            if isinstance(raw, dict) and raw.get("provider"):
+                out.add(str(raw["provider"]))
+    return out
+
+
+def teacher_providers(episode: Dict[str, Any]) -> List[str]:
+    """Upstream providers that served this episode's teacher calls (plan review and steps).
+
+    The provider is only known from each call's ``raw_response``, which the publishable view
+    drops, so it must be read before stripping. A collection routed through a provider
+    ladder mixes providers, and without this field a published dataset could not say which
+    provider produced which episode.
+    """
+    provs = set()
+    for step in episode.get("steps") or []:
+        if isinstance(step, dict):
+            provs |= _call_providers(step.get("teacher_calls"))
+    plan = episode.get("plan_review")
+    if isinstance(plan, dict):
+        provs |= _call_providers(plan.get("review_calls"))
+        for rnd in plan.get("rounds") or []:
+            if isinstance(rnd, dict):
+                provs |= _call_providers(rnd.get("review_calls"))
+    return sorted(provs)
+
+
 def publishable(episode: Dict[str, Any], *, strip_privileged: bool = False) -> Dict[str, Any]:
     """Return the publishable form of one raw episode (see module docstring)."""
     ep = copy.deepcopy(episode)
+    provs = teacher_providers(ep)
+    if provs:  # keep an existing value when re-publishing already-stripped episodes
+        ep["teacher_providers_used"] = provs
     for key in EPISODE_DROP:
         ep.pop(key, None)
     for step in ep.get("steps") or []:

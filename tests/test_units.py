@@ -819,6 +819,24 @@ def test_strict_consolidation_rejects_errored_or_incomplete_datasets():
         assert r.returncode == 2 and "expected 3" in r.stdout, r.stdout
 
 
+def test_publishable_keeps_teacher_provider_provenance():
+    """raw_response is dropped from published episodes, and it is the only place the serving
+    provider is recorded. A ladder-routed collection mixes providers, so the published
+    episode must carry them as a field."""
+    from tgd.episodes import publishable
+
+    raw = {"dataset": "ds", "qid": "q",
+           "steps": [{"teacher_calls": [{"model": "t", "usage": {}, "raw_response": {"provider": "Relace"}}]}],
+           "plan_review": {"rounds": [{"review_calls": [{"model": "t", "usage": {},
+                                                         "raw_response": {"provider": "DeepInfra"}}]}]}}
+    pub = publishable(raw)
+    assert pub["teacher_providers_used"] == ["DeepInfra", "Relace"]
+    assert "raw_response" not in pub["steps"][0]["teacher_calls"][0], "raw responses must still be stripped"
+
+    again = publishable(pub)   # re-publishing stripped data must not erase the field
+    assert again["teacher_providers_used"] == ["DeepInfra", "Relace"]
+
+
 def test_checkpoint_repair_frees_unreachable_questions():
     """A shard's checkpoint records a sample as completed once the worker has finished
     *attempting* it, and sets status=completed at the end of its list -- whether or not an
