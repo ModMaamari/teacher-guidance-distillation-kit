@@ -113,6 +113,17 @@ def main() -> int:
     per = collections.Counter(dataset_of(d) for d in unique.values())
     bad = collections.Counter(dataset_of(d) for d in lost.values())
 
+    # Error-free: at least one run of the question holds an episode that did not end in error.
+    # The collector no longer treats errored episodes as done, so these are what it retries.
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from tgd.collection_state import record_has_good_episode
+    dirs_by_key = collections.defaultdict(list)
+    for d in complete:
+        dirs_by_key[key(d)].append(d)
+    errored_keys = {k for k, ds in dirs_by_key.items()
+                    if not any(record_has_good_episode(x / RECORD) for x in ds)}
+    errd = collections.Counter(dataset_of(unique[k]) for k in errored_keys)
+
     print(f"marked done {len(complete) + len(orphan)}   "
           f"real {len(unique)} distinct questions   orphaned markers {len(orphan)}"
           f"   (never collected anywhere: {len(lost)})")
@@ -120,9 +131,12 @@ def main() -> int:
         print(f"duplicate episode directories: {dup_dirs} (same question collected again in a"
               f" later run; consolidation keeps one per question)")
     print()
-    print(f"  {'dataset':<20}{'real':>8}{'orphaned':>10}")
+    print(f"  {'dataset':<20}{'real':>8}{'errored':>9}{'error-free':>12}{'orphaned':>10}")
     for ds in DATASETS:
-        print(f"  {ds:<20}{per.get(ds, 0):>8}{bad.get(ds, 0):>10}")
+        print(f"  {ds:<20}{per.get(ds, 0):>8}{errd.get(ds, 0):>9}"
+              f"{per.get(ds, 0) - errd.get(ds, 0):>12}{bad.get(ds, 0):>10}")
+    if errored_keys:
+        print(f"\n{len(errored_keys)} questions hold only errored episodes; a resume retries them.")
 
     t, fr = repair_checkpoints(root, apply=a.repair_checkpoints)
     if t:

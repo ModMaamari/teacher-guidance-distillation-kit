@@ -652,6 +652,115 @@ def test_done_is_judged_across_runs_and_requires_the_episode():
         "a shard with gaps must stay resumable rather than be marked completed"
 
 
+def test_errored_episode_is_not_done_until_a_retry_succeeds():
+    """An episode that ended in error must not count as done, or the collector never retries
+    it: 608 of 7,031 questions (8.6%) were stuck that way. Retries APPEND to the same record
+    file, so one good line after an errored one makes the question done."""
+    import json
+    import pathlib
+    import tempfile
+    from tgd import collection_state as cs
+
+    with tempfile.TemporaryDirectory() as d:
+        q = pathlib.Path(d) / "run" / "questions" / "sample_001"
+        q.mkdir(parents=True)
+        (q / cs.MARKER).write_text("{}", encoding="utf-8")
+        rec = q / cs.TG_RECORD
+        rec.write_text(json.dumps({"stop_reason": "error"}) + "\n", encoding="utf-8")
+        assert not cs.sample_done(q, require_record=True), "an errored episode is not done"
+
+        with rec.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps({"stop_reason": "budget_forced_finish"}) + "\n")
+        assert cs.sample_done(q, require_record=True), "a successful retry makes it done"
+
+        other = pathlib.Path(d) / "run" / "questions" / "sample_002"
+        other.mkdir(parents=True)
+        (other / cs.MARKER).write_text("{}", encoding="utf-8")
+        (other / cs.TG_RECORD).write_text(json.dumps({"error": "boom"}) + "\n", encoding="utf-8")
+        assert not cs.sample_done(other, require_record=True), "an 'error' field also means errored"
+
+
+def test_ladder_steps_down_on_connection_error_and_accepts_ladder_setting():
+    """With OPENROUTER_PROVIDER_ONLY=ladder the call must use the ladder, and a connection
+    error on one rung must step down rather than end the episode in error. Before this, a
+    frozen job script pinned DeepInfra, and a transport error on any rung escaped the loop."""
+    import asyncio
+    import copy
+    import importlib
+    import os
+    import tempfile
+    import httpx
+    from agentsim.config import config
+
+    with tempfile.TemporaryDirectory() as d:
+        os.environ["PROVIDER_STATE_PATH"] = os.path.join(d, "health.json")
+        os.environ["PROVIDER_LADDER"] = "A,B"
+        from tgd import provider_ladder
+        importlib.reload(provider_ladder)
+        from agentsim.clients.llm_client import LLMClient
+
+        seen = []
+
+        class Resp:
+            status_code = 200
+            headers = {}
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {"choices": [{"message": {"content": "ok"}}], "usage": {}}
+
+        class Client:
+            def __init__(self, *a, **k):
+                pass
+            async def __aenter__(self):
+                return self
+            async def __aexit__(self, *a):
+                return False
+            async def post(self, url, headers=None, json=None):
+                seen.append(copy.deepcopy(json))
+                if len(seen) == 1:
+                    raise httpx.ConnectError("boom", request=httpx.Request("POST", url))
+                return Resp()
+
+        old = (httpx.AsyncClient, config.OPENROUTER_PROVIDER_ONLY,
+               config.CUSTOM_LLM_ENDPOINT, config.CUSTOM_LLM_API_KEY)
+        try:
+            httpx.AsyncClient = Client
+            config.OPENROUTER_PROVIDER_ONLY = "ladder"
+            config.CUSTOM_LLM_ENDPOINT = "https://openrouter.ai/api"
+            config.CUSTOM_LLM_API_KEY = "k"
+            out = asyncio.run(LLMClient()._custom_completion("hi", "custom/m", 0.1, 50))
+            assert out == "ok"
+            assert seen[0]["provider"]["only"] == ["A"], "'ladder' must not be sent as a provider name"
+            assert seen[1]["provider"]["only"] == ["B"], "a connection error must step down a rung"
+        finally:
+            (httpx.AsyncClient, config.OPENROUTER_PROVIDER_ONLY,
+             config.CUSTOM_LLM_ENDPOINT, config.CUSTOM_LLM_API_KEY) = old
+            del os.environ["PROVIDER_STATE_PATH"], os.environ["PROVIDER_LADDER"]
+            importlib.reload(provider_ladder)
+
+
+def test_plan_review_metrics_tolerate_text_where_objects_are_expected():
+    """A small student sometimes writes plan steps as strings, and the teacher sometimes
+    returns private_diagnosis as text. The metrics called .get on those and ended the whole
+    episode in error with "'str' object has no attribute 'get'"."""
+    from agentsim.teacher_guidance.plan_review import compute_plan_review_metrics
+
+    m = compute_plan_review_metrics(
+        {"steps": ["search the director", {"intended_tool": "search"}]},
+        {"steps": "one long string instead of a list"},
+        {"private_diagnosis": "free text", "teacher_decision": "accept_plan"},
+    )
+    assert m["initial_tools"] == ["", "search"]
+    assert m["revised_tools"] == []
+    assert m["teacher_decision"] == "accept_plan"
+    assert m["premature_answering_risk"] is False
+
+    # entirely missing or wrong-typed inputs must also be survivable
+    m = compute_plan_review_metrics(None, "not a dict", "not a dict")
+    assert m["initial_step_count"] == 0 and m["teacher_decision"] is None
+
+
 def test_checkpoint_repair_frees_unreachable_questions():
     """A shard's checkpoint records a sample as completed once the worker has finished
     *attempting* it, and sets status=completed at the end of its list -- whether or not an

@@ -36,7 +36,10 @@ PORT="${PORT:-8310}"
 # Pin the upstream provider and switch reasoning off. allow_fallbacks=False is applied by
 # the client, so a routing failure stops the run rather than quietly moving to a provider
 # with different pricing and different sampling.
-export OPENROUTER_PROVIDER_ONLY="${OPENROUTER_PROVIDER_ONLY:-DeepInfra}"
+# No default provider. `:-DeepInfra` pinned every job to DeepInfra whenever .env left this
+# empty to enable the self-reordering ladder, so the ladder never ran and ~98% of episode
+# errors were DeepInfra 429s that should have stepped down to Relace or Morph.
+export OPENROUTER_PROVIDER_ONLY="${OPENROUTER_PROVIDER_ONLY-}"
 # glm-5.3-flash refuses reasoning:{enabled:false} on every provider ("Reasoning is
 # mandatory for this endpoint"), so low effort is the cheapest setting available.
 export OPENROUTER_REASONING="${OPENROUTER_REASONING:-low}"

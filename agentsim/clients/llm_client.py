@@ -346,7 +346,11 @@ class LLMClient:
         # ladder, healthiest first. Pinning one provider is what turned two throttling
         # episodes into two abandoned runs.
         from tgd import provider_ladder
-        pinned = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
+        # "ladder" or "auto" also select the ladder. That lets a job whose script was frozen at
+        # submission (Slurm copies it) switch to the ladder through .env, since an EMPTY value
+        # was being replaced by a hard-coded provider default in those scripts.
+        raw_pin = (config.OPENROUTER_PROVIDER_ONLY or "").strip()
+        pinned = "" if raw_pin.lower() in ("", "ladder", "auto") else raw_pin
         candidates = ([pinned] if pinned else provider_ladder.order()) or [None]
         if response_schema:
             # Full JSON-Schema enforcement support varies by model on OpenRouter, so
@@ -354,47 +358,64 @@ class LLMClient:
             # guarantee here rather than relying on schema conformance being honored.
             payload["response_format"] = {"type": "json_object"}
 
-        async def _send() -> Any:
-            last_exc = None
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                for prov in candidates:
-                    body = dict(payload)
-                    if prov:
-                        body["provider"] = provider_payload(prov)
-                    # max_retries=0: when there is another rung below, stepping down beats
-                    # waiting. A throttled provider should cost one request, not a backoff.
-                    retries = None if (len(candidates) == 1 or prov is None) else 0
-                    response = await self._post_json_with_backoff(
-                        client, f"{endpoint.rstrip('/')}/v1/chat/completions", headers, body,
-                        provider_label=f"custom/{prov or 'auto'}", max_retries=retries,
-                    )
-                    if response.status_code < 400:
-                        if prov and not pinned:
-                            provider_ladder.record(prov, True)
-                        return response.json()
-                    if prov and not pinned:
-                        provider_ladder.record(prov, False)
-                    last_exc = httpx.HTTPStatusError(
-                        f"{response.status_code} from {prov or 'auto'}",
-                        request=None, response=response)
-                    logger.warning(f"[ladder] {prov} returned {response.status_code}; "
-                                   f"stepping down")
-                if last_exc:
-                    raise last_exc
-                raise RuntimeError("no provider candidates")
+        url = f"{endpoint.rstrip('/')}/v1/chat/completions"
+        rung_timeout = float(config.CUSTOM_TIMEOUT)
+        # A failed teacher call ends the episode in "error", so before giving up walk the whole
+        # ladder again after a pause. One provider throttling, one connection blip or one hung
+        # request should cost a step down, not a training example.
+        rounds = 1 if pinned else max(1, int(os.environ.get("LADDER_ROUNDS", "3")))
 
-        # Hard wall-clock cap, same rationale as _oai_completion: httpx's read timeout
-        # only measures the gap between bytes, so a half-dead connection that trickles
-        # keepalive bytes hangs forever (observed in production: an OpenRouter blip left
-        # six workers frozen mid-call for 10+ minutes with the API healthy again).
-        # asyncio.wait_for turns that into an error the caller's retry/router can handle.
-        try:
-            data = await asyncio.wait_for(_send(), timeout=config.CUSTOM_TIMEOUT)
-        except asyncio.TimeoutError as exc:
-            raise TimeoutError(
-                f"custom/OpenRouter request exceeded hard timeout of "
-                f"{config.CUSTOM_TIMEOUT}s (model={model_name})"
-            ) from exc
+        async def _send() -> Any:
+            last_exc: Optional[BaseException] = None
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                for rnd in range(rounds):
+                    order = candidates if (pinned or rnd == 0) else (provider_ladder.order() or candidates)
+                    for prov in order:
+                        body = dict(payload)
+                        if prov:
+                            body["provider"] = provider_payload(prov)
+                        # With another rung below, stepping down beats backing off in place.
+                        retries = None if (len(order) == 1 or prov is None) else 0
+                        try:
+                            # Per-rung wall-clock cap: httpx's read timeout only measures gaps
+                            # between bytes, so a half-dead connection can hang indefinitely.
+                            # Capping each rung (not the whole ladder) lets a hung provider be
+                            # skipped instead of consuming the entire budget.
+                            response = await asyncio.wait_for(
+                                self._post_json_with_backoff(
+                                    client, url, headers, body,
+                                    provider_label=f"custom/{prov or 'auto'}", max_retries=retries),
+                                timeout=rung_timeout)
+                        except (asyncio.TimeoutError, httpx.TransportError) as exc:
+                            if prov and not pinned:
+                                provider_ladder.record(prov, False)
+                            last_exc = (TimeoutError(f"custom/OpenRouter request to {prov or 'auto'} "
+                                                     f"exceeded hard timeout of {rung_timeout:.0f}s "
+                                                     f"(model={model_name})")
+                                        if isinstance(exc, asyncio.TimeoutError) else exc)
+                            logger.warning(f"[ladder] {prov} failed ({type(exc).__name__}); stepping down")
+                            continue
+                        if response.status_code < 400:
+                            if prov and not pinned:
+                                provider_ladder.record(prov, True)
+                            return response.json()
+                        if prov and not pinned:
+                            provider_ladder.record(prov, False)
+                        last_exc = httpx.HTTPStatusError(
+                            f"{response.status_code} from {prov or 'auto'}",
+                            request=None, response=response)
+                        logger.warning(f"[ladder] {prov} returned {response.status_code}; "
+                                       f"stepping down")
+                    if rnd < rounds - 1:
+                        wait = min(_BACKOFF_BASE_S * (2 ** rnd), _BACKOFF_MAX_S) + random.uniform(0, _BACKOFF_JITTER_S)
+                        logger.warning(f"[ladder] every provider failed (round {rnd + 1}/{rounds}); "
+                                       f"trying the ladder again in {wait:.0f}s")
+                        await asyncio.sleep(wait)
+            if last_exc is not None:
+                raise last_exc
+            raise RuntimeError("no provider candidates")
+
+        data = await _send()
         # A reasoning model can return content: null (budget spent thinking); coerce so the
         # caller's parse/repair path sees an empty string rather than a TypeError.
         text = data["choices"][0]["message"].get("content") or ""

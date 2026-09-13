@@ -23,7 +23,10 @@ SHARDS="${SHARDS:-16}"
 PORT="${PORT:-8310}"
 N="${N:-2000}"
 DATASETS="${DATASETS:-2wikimultihopqa hotpotqa strategyqa musique}"
-export OPENROUTER_PROVIDER_ONLY="${OPENROUTER_PROVIDER_ONLY:-DeepInfra}"
+# No default provider. `:-DeepInfra` pinned every job to DeepInfra whenever .env left this
+# empty to enable the self-reordering ladder, so the ladder never ran and ~98% of episode
+# errors were DeepInfra 429s that should have stepped down to Relace or Morph.
+export OPENROUTER_PROVIDER_ONLY="${OPENROUTER_PROVIDER_ONLY-}"
 export OPENROUTER_REASONING="${OPENROUTER_REASONING:-low}"
 export VLLM_ENDPOINT="http://127.0.0.1:$PORT"
 

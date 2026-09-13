@@ -6,7 +6,13 @@ from typing import Any, Dict, List
 
 
 def _tools_in_plan(plan: Dict[str, Any]) -> List[str]:
-    return [str(step.get("intended_tool", "")) for step in (plan or {}).get("steps", []) or []]
+    # A small student sometimes writes steps as plain strings, or `steps` itself as a string.
+    # Calling .get on those raised "'str' object has no attribute 'get'" and ended the whole
+    # episode in error, so treat anything that is not the expected shape as a step with no tool.
+    steps = plan.get("steps", []) if isinstance(plan, dict) else []
+    if not isinstance(steps, list):
+        return []
+    return [str(step.get("intended_tool", "")) if isinstance(step, dict) else "" for step in steps]
 
 
 def compute_plan_review_metrics(
@@ -17,8 +23,13 @@ def compute_plan_review_metrics(
     """Lightweight, deterministic plan-review metrics."""
     initial_tools = _tools_in_plan(initial_plan)
     revised_tools = _tools_in_plan(revised_plan)
-    private = (review_full or {}).get("private_diagnosis", {}) or {}
-    decision = (review_full or {}).get("teacher_decision")
+    # The teacher sometimes returns private_diagnosis as text rather than an object; the
+    # schema check flags that, but these metrics ran anyway and raised on private.get(...).
+    rf = review_full if isinstance(review_full, dict) else {}
+    private = rf.get("private_diagnosis")
+    if not isinstance(private, dict):
+        private = {}
+    decision = rf.get("teacher_decision")
     return {
         "initial_step_count": len(initial_tools),
         "revised_step_count": len(revised_tools),
@@ -28,6 +39,6 @@ def compute_plan_review_metrics(
         "revised_tools": revised_tools,
         "initial_covers_verification": "verify" in initial_tools,
         "revised_covers_verification": "verify" in revised_tools,
-        "teacher_decision": (review_full or {}).get("teacher_decision"),
+        "teacher_decision": decision,
         "premature_answering_risk": bool(private.get("premature_answering_risk", False)),
     }
