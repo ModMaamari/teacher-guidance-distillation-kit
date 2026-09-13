@@ -33,11 +33,63 @@ def is_tg_output(output_dir) -> bool:
     return d.exists() and next(d.rglob(TG_RECORD), None) is not None
 
 
+# (path, mtime_ns, size) -> whether the record file holds at least one non-error episode.
+# The parent collector re-checks every shard every 30 s, so re-reading thousands of record
+# files each time would be expensive; a file is re-read only when it changes.
+_RECORD_OK: dict = {}
+
+
+def _is_error_episode(ep: dict) -> bool:
+    """Same rule consolidation uses (tgd.episodes.is_error)."""
+    return str(ep.get("stop_reason", "")).startswith("error") or bool(ep.get("error"))
+
+
+def record_has_good_episode(record_path) -> bool:
+    """True if the episode file holds at least one episode that did not end in error.
+
+    A retried question APPENDS to the same file, so a file can hold an errored attempt
+    followed by a good one; any good line is enough.
+    """
+    import json
+    rp = pathlib.Path(record_path)
+    try:
+        st = rp.stat()
+    except OSError:
+        return False
+    key = (str(rp), st.st_mtime_ns, st.st_size)
+    hit = _RECORD_OK.get(key)
+    if hit is not None:
+        return hit
+    ok = False
+    try:
+        with rp.open(encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    ep = json.loads(line)
+                except ValueError:
+                    continue
+                if isinstance(ep, dict) and not _is_error_episode(ep):
+                    ok = True
+                    break
+    except OSError:
+        ok = False
+    _RECORD_OK[key] = ok
+    return ok
+
+
 def sample_done(sample_dir, require_record: bool) -> bool:
+    """Done = marker present and, for a teacher-guidance collection, an episode that did not
+    end in error. An errored episode used to count as done, so the 8.6% of questions whose
+    teacher calls failed were never retried."""
     s = pathlib.Path(sample_dir)
     if not (s / MARKER).exists():
         return False
-    return (s / TG_RECORD).exists() if require_record else True
+    if not require_record:
+        return True
+    return record_has_good_episode(s / TG_RECORD)
 
 
 def completed_on_disk(output_dir, dataset_name: str) -> Set[str]:

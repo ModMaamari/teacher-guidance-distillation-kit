@@ -172,7 +172,9 @@ class WorkflowExecutor:
                     break
 
             except Exception as e:
-                logger.error(f"Error executing component {comp_type}: {e}", exc_info=True)
+                # loguru ignores the stdlib `exc_info=True` keyword, so no traceback was ever
+                # written and component crashes could not be located from the logs.
+                logger.opt(exception=e).error(f"Error executing component {comp_type}: {e}")
                 
                 # Create error message
                 message = Message(

@@ -115,7 +115,17 @@ def main() -> int:
     body = {"model": a.model,
             "messages": [{"role": "user", "content": CRITIQUE}],
             "max_tokens": 600, "temperature": 0.1, "usage": {"include": True}}
-    if a.provider:
+    # "ladder"/"auto" mean the collection routes through tgd.provider_ladder, not a pin.
+    # Sending them as a provider name would fail this gate and abort the job, so probe
+    # the ladder's current top rung instead.
+    ladder_mode = (a.provider or "").strip().lower() in ("", "ladder", "auto")
+    if ladder_mode:
+        from tgd import provider_ladder
+        top = (provider_ladder.order() or [None])[0]
+        print(f"  routing   : ladder {provider_ladder.order()} (probing top rung {top})")
+        if top:
+            body["provider"] = provider_payload(top)
+    elif a.provider:
         body["provider"] = provider_payload(a.provider)
     reason = reasoning_payload(a.reasoning)
     if reason:
@@ -163,7 +173,7 @@ def main() -> int:
 
     # A mandatory-reasoning model is fine; an empty critique is not.
     ok = bool(content)
-    if a.provider and str(d.get("provider", "")).lower() != a.provider.lower():
+    if not ladder_mode and a.provider and str(d.get("provider", "")).lower() != a.provider.lower():
         print(f"  !! served by {d.get('provider')}, not {a.provider}")
         ok = False
     if not content:

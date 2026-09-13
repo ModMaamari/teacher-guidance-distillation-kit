@@ -32,11 +32,17 @@ def episode_files(out: pathlib.Path):
     # One per question. A shard relaunched into a fresh run directory repeats questions it
     # already had, and counting every marker reported 3,110 episodes for a 2,000-question
     # dataset. Layout: <out>/<dataset>/<shard>/<run>/<dataset_name>/<sample>/_SUCCESS.
+    # A question counts only once a run holds an episode that did not end in error: errored
+    # episodes are retried by the collector, so counting them overstated progress.
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+    from tgd.collection_state import record_has_good_episode
     seen = {}
     for m in out.rglob("_SUCCESS"):
-        if not (m.parent / "teacher_guidance_episodes.jsonl").exists():
+        key = (str(m.parent.parent.parent.parent), m.parent.name)
+        if key in seen:
             continue
-        seen.setdefault((str(m.parent.parent.parent.parent), m.parent.name), m)
+        if record_has_good_episode(m.parent / "teacher_guidance_episodes.jsonl"):
+            seen[key] = m
     return list(seen.values())
 
 
