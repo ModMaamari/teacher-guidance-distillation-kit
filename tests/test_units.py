@@ -761,6 +761,29 @@ def test_plan_review_metrics_tolerate_text_where_objects_are_expected():
     assert m["initial_step_count"] == 0 and m["teacher_decision"] is None
 
 
+def test_parsers_tolerate_text_where_objects_are_expected():
+    """Model output is untrusted. "decision", "action", "params", facts and the teacher's
+    diagnosis can each arrive as a string, and every one of those used to raise inside the
+    agent step and end the episode in error instead of being handled as an invalid reply."""
+    from agentsim.teacher_guidance.schemas import StudentAction, TeacherEvaluation, ExtractedFact
+
+    a = StudentAction.from_dict({"decision": "search", "action": "finish",
+                                 "new_facts_extracted": ["Paris is the capital", {"fact": "x"}]})
+    assert a.action.tool == "" and a.action.params == {}
+    assert [f.fact for f in a.new_facts_extracted] == ["Paris is the capital", "x"]
+
+    a = StudentAction.from_dict({"action": {"tool": "search", "params": "q=paris"}})
+    assert a.action.tool == "search" and a.action.params == {}
+
+    assert StudentAction.from_dict("not json").action.tool == ""
+    assert ExtractedFact.from_dict(None).fact == ""
+
+    e = TeacherEvaluation.from_dict({"guidance_level": "high", "student_visible": "good step",
+                                     "private_diagnosis": "looks right", "teacher_decision": "continue"})
+    assert e.guidance_level == 0 and e.student_visible == {} and e.private_diagnosis == {}
+    assert e.teacher_decision == "continue"
+
+
 def test_checkpoint_repair_frees_unreachable_questions():
     """A shard's checkpoint records a sample as completed once the worker has finished
     *attempting* it, and sets status=completed at the end of its list -- whether or not an

@@ -66,7 +66,9 @@ def _extract_teacher_final_judgment(private_diagnosis: Optional[Dict[str, Any]])
     Tolerant of the shapes a model may emit: bool/int/float/str for the binary flag and
     any 0-1-ish value for the continuous score. If only one is present the other is
     derived (score>=0.5 -> correct; correct -> score 1.0/0.0)."""
-    pd = private_diagnosis or {}
+    # The teacher sometimes returns private_diagnosis as text; `in` on a string is a substring
+    # test and the following .get raised, ending the episode in error.
+    pd = private_diagnosis if isinstance(private_diagnosis, dict) else {}
     if "final_answer_correct" not in pd and "final_answer_score" not in pd:
         return None
 
@@ -130,7 +132,7 @@ def get_retriever(context: WorkflowContext) -> HotpotLocalRetriever:
 def _visibility(context: WorkflowContext, retriever: HotpotLocalRetriever) -> Dict[str, Any]:
     gold = context.metadata.get("gold", {}) or {}
     retrieved_docs = context.metadata.get("retrieved_docs", []) or []
-    retrieved_titles = [d.get("title", "") for d in retrieved_docs]
+    retrieved_titles = [d.get("title", "") for d in retrieved_docs if isinstance(d, dict)]
     retrieved_doc_ids = context.metadata.get("retrieved_doc_ids", []) or []
 
     # Hidden spans: gold supporting-fact sentences not yet retrieved.

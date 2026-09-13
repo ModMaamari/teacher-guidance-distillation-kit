@@ -75,7 +75,10 @@ class ExtractedFact:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ExtractedFact":
-        data = data or {}
+        # A small student sometimes lists facts as plain strings.
+        if isinstance(data, str):
+            return cls(fact=data)
+        data = data if isinstance(data, dict) else {}
         return cls(
             doc_id=str(data.get("doc_id", "")),
             span=str(data.get("span", "")),
@@ -92,10 +95,18 @@ class StudentAction:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "StudentAction":
-        data = data or {}
-        decision_raw = data.get("decision", {}) or {}
-        action_raw = data.get("action", {}) or {}
-        facts_raw = data.get("new_facts_extracted", []) or []
+        # Model output is untrusted: any of these can arrive as a string ("decision": "search",
+        # "action": "finish"), and calling .get on it raised "'str' object has no attribute
+        # 'get'", ending the whole episode in error. Wrong shapes become empty values, which
+        # the action validator then reports as an invalid action the repair loop can retry.
+        data = data if isinstance(data, dict) else {}
+        decision_raw = data.get("decision")
+        decision_raw = decision_raw if isinstance(decision_raw, dict) else {}
+        action_raw = data.get("action")
+        action_raw = action_raw if isinstance(action_raw, dict) else {}
+        params_raw = action_raw.get("params")
+        facts_raw = data.get("new_facts_extracted")
+        facts_raw = facts_raw if isinstance(facts_raw, list) else []
         return cls(
             thought=str(data.get("thought", "")),
             decision=Decision(
@@ -106,7 +117,7 @@ class StudentAction:
             ),
             action=ToolCall(
                 tool=str(action_raw.get("tool", "")),
-                params=dict(action_raw.get("params", {}) or {}),
+                params=dict(params_raw) if isinstance(params_raw, dict) else {},
             ),
             new_facts_extracted=[ExtractedFact.from_dict(f) for f in facts_raw],
         )
@@ -161,11 +172,18 @@ class TeacherEvaluation:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "TeacherEvaluation":
-        data = data or {}
+        data = data if isinstance(data, dict) else {}
+        try:
+            level = int(data.get("guidance_level", 0) or 0)
+        except (TypeError, ValueError):
+            level = 0
+        sv = data.get("student_visible")
+        pd = data.get("private_diagnosis")
         return cls(
-            guidance_level=int(data.get("guidance_level", 0) or 0),
-            student_visible=dict(data.get("student_visible", {}) or {}),
-            private_diagnosis=dict(data.get("private_diagnosis", {}) or {}),
+            guidance_level=level,
+            # dict("some text") raises ValueError; text feedback becomes an empty object.
+            student_visible=dict(sv) if isinstance(sv, dict) else {},
+            private_diagnosis=dict(pd) if isinstance(pd, dict) else {},
             teacher_decision=str(data.get("teacher_decision", "continue")),
         )
 
