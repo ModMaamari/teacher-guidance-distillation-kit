@@ -615,6 +615,55 @@ def _fake_httpx(seen, codes):
     return Client
 
 
+def test_checkpoint_repair_frees_unreachable_questions():
+    """A shard's checkpoint records a sample as completed once the worker has finished
+    *attempting* it, and sets status=completed at the end of its list -- whether or not an
+    episode came out. A shard can claim 125/125 while holding 93 episodes, and because the
+    status is terminal the resume skips it, so those questions are unreachable and the
+    collector's own "re-run to retry the missing ones" does nothing. Repair drops the
+    samples with no episode so the worker tries them again.
+
+    This test exists because the first version of the repair was a silent no-op: `json`
+    was never imported and a bare `except Exception` swallowed the NameError, so it
+    reported a clean bill of health over 58 overclaiming shards."""
+    import importlib.util
+    import json
+    import pathlib
+    import tempfile
+
+    spec = importlib.util.spec_from_file_location("vc", "scripts/verify_collection.py")
+    vc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(vc)
+
+    with tempfile.TemporaryDirectory() as d:
+        root = pathlib.Path(d)
+        shard = root / "ds" / "collect_ds_s0"
+        for name in ("sample_001", "sample_002"):          # these produced episodes
+            q = shard / "run1" / "questions" / name
+            q.mkdir(parents=True)
+            (q / vc.RECORD).write_text("{}", encoding="utf-8")
+        cp = shard / "checkpoint_collect_ds_s0.json"
+        cp.write_text(json.dumps({
+            "template_id": "collect_ds_s0", "status": "completed",
+            "completed_samples": ["sample_001", "sample_002", "sample_003", "sample_004"],
+            "completed_at": "2026-01-01T00:00:00Z"}), encoding="utf-8")
+
+        touched, freed = vc.repair_checkpoints(root, apply=False)
+        assert (touched, freed) == (1, 2), f"dry run should find 2 phantoms, got {freed}"
+        assert json.loads(cp.read_text(encoding="utf-8"))["status"] == "completed", \
+            "a dry run must not modify anything"
+
+        touched, freed = vc.repair_checkpoints(root, apply=True)
+        assert (touched, freed) == (1, 2)
+        after = json.loads(cp.read_text(encoding="utf-8"))
+        assert after["completed_samples"] == ["sample_001", "sample_002"]
+        assert after["status"] == "in_progress", "status must reopen or the resume skips it"
+        assert "completed_at" not in after
+
+        # idempotent: a repaired checkpoint has nothing left to free
+        assert vc.repair_checkpoints(root, apply=True) == (0, 0)
+
+
 def test_provider_ladder_demotes_what_fails():
     """A provider that misbehaves must sink for LATER calls, not just the current one.
 
