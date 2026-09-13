@@ -263,13 +263,15 @@ def derive_final_answer(context: Any, params: Optional[Dict[str, Any]] = None) -
         answer = wiki_answer_candidate(context.metadata.get("wiki"))
     if not answer:
         facts = context.metadata.get("extracted_facts", []) or []
-        answer = " ".join(str(f.get("fact", "")).strip() for f in facts).strip()
+        # facts can arrive as plain strings from a small student; .get on those raised
+        answer = " ".join((str(f.get("fact", "")) if isinstance(f, dict) else str(f)).strip()
+                          for f in facts).strip()
     return answer or "unknown"
 
 
 def _do_finish(context: Any, params: Dict[str, Any]) -> ToolObservation:
     answer = derive_final_answer(context, params)
-    citations = params.get("citations", []) or []
+    citations = (params if isinstance(params, dict) else {}).get("citations", []) or []
     context.metadata["candidate_final_answer"] = answer
     context.metadata["final_answer"] = answer
     context.metadata["final_citations"] = citations
