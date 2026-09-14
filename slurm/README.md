@@ -7,6 +7,7 @@
 | `eval_guided.sbatch <arm> <served[:adapter]> "<teacher>" "<test-set> ..."` | 1 GPU + API | student guided by a teacher |
 | `eval_teacher.sbatch <arm> "<agent>" "<test-set> ..."` | CPU + API | the teacher as the agent |
 | `judge.sbatch "<judge>"` | CPU + API | judge all episodes, build `runs/results` |
+| `collect_api.sbatch [collect args]` | CPU + API | collect episodes when student and teacher are API models (self-teaching); `STUDENT`, `TEACHER`, `OUT`, `DATASETS` from the environment |
 | `run_pipeline.sh` | — | submits the uniform four-arm comparison as a dependency chain |
 
 Pass partition/account as normal sbatch options: `sbatch -p <partition> -A <account> slurm/train.sbatch ...`.

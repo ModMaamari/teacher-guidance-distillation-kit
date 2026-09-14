@@ -22,8 +22,6 @@ from __future__ import annotations
 import argparse
 import collections
 import json
-import math
-import random
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -33,26 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # project root -> 
 import tgd  # noqa: F401
 from tgd.io import load_jsonl, read_jsonl
 from tgd.metrics import aggregate
-
-
-def paired_bootstrap(a: List[int], b: List[int], iters=10000, seed=13):
-    rnd = random.Random(seed)
-    n = len(a)
-    diffs = [b[i] - a[i] for i in range(n)]
-    obs = sum(diffs) / n
-    boots = sorted(sum(diffs[rnd.randrange(n)] for _ in range(n)) / n for _ in range(iters))
-    return {"diff": round(obs, 4), "ci95": [round(boots[int(0.025 * iters)], 4), round(boots[int(0.975 * iters) - 1], 4)], "n": n}
-
-
-def mcnemar_exact(a: List[int], b: List[int]):
-    b01 = sum(1 for x, y in zip(a, b) if x == 0 and y == 1)
-    b10 = sum(1 for x, y in zip(a, b) if x == 1 and y == 0)
-    m = b01 + b10
-    if m == 0:
-        return {"b_wins": 0, "a_wins": 0, "p": 1.0}
-    k = min(b01, b10)
-    p = min(1.0, 2 * sum(math.comb(m, i) for i in range(k + 1)) / 2 ** m)
-    return {"b_wins": b01, "a_wins": b10, "p": round(p, 6)}
+from tgd.stats import mcnemar_exact, paired_bootstrap  # noqa: F401 -- shared with compare_teachers.py
 
 
 def main() -> int:
