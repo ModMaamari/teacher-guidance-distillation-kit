@@ -39,7 +39,7 @@ STUDENT_MODEL=Qwen/Qwen2.5-3B-Instruct sbatch -p <partition> \
 | **decoder** | `--student-temperature`, `--top-p`, `--min-p`, `--top-k` on `eval.py` | relative truncation matters for fine-tuned students — `docs/STABILITY.md` |
 | **budget / prompts** | `--budget`, `--hidden-budget`, `--no-plan` | the agent's step budget and whether it is told what it is |
 
-## Four experiments worth running first
+## Five experiments worth running first
 
 **1. Does it work at all with your student?** Train on `data/splits/uniform`, evaluate the base
 and trained arms on the four held-out sets, and judge. That reproduces the headline comparison
@@ -74,6 +74,38 @@ interval on the headline metric, and writes the tidy numbers next to it as CSV.
 **4. What did it cost?** `slurm/eval_forgetting.sbatch` for general ability, and
 `slurm/eval_stability.sbatch` for whether the model can still be sampled. Both are cheap and
 both catch failures that the headline evaluation cannot see.
+
+**5. Does the teacher have to be stronger than the student?** A teacher helps through two
+things at once: privileged information (it sees the gold answer and the supporting facts) and
+capability (it is usually a far larger model). Self-teaching separates them. One model plays
+both roles: as the teacher it sees the answer and reviews the plan and every step, the leakage
+sanitiser removes any statement of the answer from its guidance, and the same model then acts
+on that guidance as the student. Collect the same questions with both teachers, judge both
+with the same judge, and compare:
+
+```bash
+M=oai-<name>/<student-model>          # the student, served behind an OpenAI-compatible API
+for ds in hotpotqa 2wikimultihopqa musique strategyqa; do    # one job and one OUT per dataset
+  STUDENT=$M TEACHER=$M OUT=runs/collect_self/$ds DATASETS=$ds sbatch -p <partition> slurm/collect_api.sbatch
+done
+python scripts/consolidate_episodes.py --runs runs/collect_self --out data/episodes_self --gzip \
+    --strict --rename-model $M=<student-model>
+python scripts/judge.py --judge <judge> --episodes data/episodes_self/episodes.jsonl.gz --out runs/judge_self
+python scripts/judge.py --judge <judge> --episodes data/episodes/episodes.jsonl.gz --out runs/judge_shipped
+python scripts/compare_teachers.py \
+    --arm self=data/episodes_self,runs/judge_self/verdicts.jsonl \
+    --arm shipped=data/episodes,runs/judge_shipped/verdicts.jsonl \
+    --baseline self --out runs/compare_teachers
+```
+
+A student served locally works the same way: pass its id as both `--student` and `--teacher`
+to `scripts/collect_episodes.py`. `REPORT.md` gives the outcome with paired tests, the SFT
+examples each collection yields, and the teacher's behaviour: how often its guidance stated
+the answer and was redacted, whether any statement reached the student (must be 0), how often
+its output was unusable and generic feedback was substituted, and how often it rejected an
+answer the judge accepts. The difference is the teacher's only when every arm has the same
+student and collection config, and the report warns when they differ. Add further arms
+(`--arm name=...`) to compare several teachers at once.
 
 ## Costs to plan around, measured on this hardware
 

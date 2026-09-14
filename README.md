@@ -9,6 +9,7 @@ The kit ships the data, the harness, and one command per stage:
 | Stage | Command | Needs |
 |---|---|---|
 | (optional) collect new teacher-guided episodes | `scripts/collect_episodes.py` | student server + teacher API |
+| (optional) collect with an API student, e.g. self-teaching | `slurm/collect_api.sbatch` | CPU + API |
 | consolidate episodes | `scripts/consolidate_episodes.py` | CPU |
 | build train/test splits | `scripts/build_splits.py` | CPU |
 | audit the splits for leakage | `scripts/check_leakage.py` | CPU |
@@ -17,6 +18,7 @@ The kit ships the data, the harness, and one command per stage:
 | evaluate an arm | `scripts/eval.py --arm student\|guided\|teacher` | GPU / API |
 | judge final answers | `scripts/judge.py` | judge API |
 | results tables + significance | `scripts/collect_results.py` | CPU |
+| stronger teacher vs self-teaching | `scripts/compare_teachers.py` | CPU |
 | training-set-size ablation splits | `scripts/make_size_splits.py` | CPU |
 | accuracy-vs-data plot | `scripts/plot_size_curve.py` | CPU |
 | forgetting check on MMLU / GSM8K / HellaSwag | `scripts/eval_benchmarks.py` | 1 GPU |

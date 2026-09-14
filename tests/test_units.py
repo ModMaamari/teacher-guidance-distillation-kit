@@ -1339,3 +1339,103 @@ def test_json_artifacts_round_trip_non_latin_text(tmp_path):
     append_jsonl(tmp_path / "b.jsonl", {"answer": value})
     rows = load_jsonl(tmp_path / "b.jsonl")
     assert [r["answer"] for r in rows] == [value, value]
+
+
+# ---- scripts/compare_teachers.py: a stronger teacher vs the student teaching itself ----
+
+def _load_compare_teachers():
+    import importlib.util
+    path = Path(__file__).resolve().parents[1] / "scripts" / "compare_teachers.py"
+    spec = importlib.util.spec_from_file_location("compare_teachers", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _teacher_cmp_episode(qid, dataset, *, correct, teacher, student="ibm-granite/granite-4.1-3b",
+                         redacted=False, visible="Search for the director first.", teacher_verdict=None,
+                         query="Where was the director born?", gold="Paris"):
+    step = {
+        "t": 1, "student_prompt": "Question: where was the director born?", "student_raw": "{}",
+        "student_action": {"thought": "look it up", "action": {"tool": "search", "params": {"query": "director"}}},
+        "tool_observation": {}, "teacher_skipped": False,
+        "leakage_check": {"gold_answer_leaked": redacted, "feedback_fallback_used": False},
+        "student_visible_guidance": {"score": 0.5, "feedback": visible},
+    }
+    return {"qid": qid, "dataset": dataset, "query": query, "gold_answer": gold,
+            "final_answer": gold if correct else "Rome", "stop_reason": "budget_forced_finish", "used_steps": 1,
+            "student_model": student, "teacher_model": teacher, "teacher_models_used": [teacher],
+            "config_hash": "cfg1", "plan_review": {"enabled": False}, "steps": [step],
+            "final_metrics": {"answer_correct": correct, "exact_match": correct, "f1": 1.0 if correct else 0.0,
+                              "supporting_doc_recall": 1.0, "answer_grounded": correct,
+                              "teacher_answer_correct": teacher_verdict}}
+
+
+def _write_arm(tmp_path, name, episodes, verdicts):
+    ep_file = tmp_path / name / "episodes.jsonl"
+    ep_file.parent.mkdir(parents=True)
+    ep_file.write_text("".join(json.dumps(e) + "\n" for e in episodes), encoding="utf-8")
+    v_file = tmp_path / name / "verdicts.jsonl"
+    v_file.write_text("".join(json.dumps({"source": str(ep_file), "qid": q, "verdict": {"correct": c}}) + "\n"
+                              for q, c in verdicts.items()), encoding="utf-8")
+    return f"{name}={ep_file},{v_file}"
+
+
+def test_stats_helpers_are_shared_and_exact():
+    from tgd.stats import mcnemar_exact, paired_bootstrap
+    assert mcnemar_exact([0, 0, 1], [1, 1, 1]) == {"b_wins": 2, "a_wins": 0, "p": 0.5}
+    assert paired_bootstrap([0, 0, 1], [1, 1, 1], iters=200)["diff"] == 0.6667
+
+
+def test_compare_teachers_bare_model_ignores_the_provider_prefix():
+    ct = _load_compare_teachers()
+    assert ct.bare_model("oai-x/ibm-granite/granite-4.1-3b") == "ibm-granite/granite-4.1-3b"
+    assert ct.bare_model("vllm/IBM-Granite/granite-4.1-3b") == "ibm-granite/granite-4.1-3b"
+    assert ct.bare_model("deepseek-ai/DeepSeek-V4-Flash") == "deepseek-ai/deepseek-v4-flash"
+
+
+def test_compare_teachers_pairs_arms_and_reports_teacher_behaviour(tmp_path):
+    ct = _load_compare_teachers()
+    small = "oai-x/ibm-granite/granite-4.1-3b"
+    big = "deepseek-ai/DeepSeek-V4-Flash"
+    qs = [("q1", "hotpotqa"), ("q2", "hotpotqa"), ("q3", "hotpotqa"), ("q4", "musique"), ("q5", "musique"), ("q6", "musique")]
+    self_eps = [_teacher_cmp_episode(q, d, correct=q == "q1", teacher=small, redacted=q == "q2",
+                                     teacher_verdict=1 if q in ("q1", "q2") else None) for q, d in qs]
+    big_eps = [_teacher_cmp_episode(q, d, correct=q in ("q1", "q2", "q3", "q4"), teacher=big) for q, d in qs]
+    big_eps.append(_teacher_cmp_episode("q7", "musique", correct=True, teacher=big))  # not in the other arm
+    a = _write_arm(tmp_path, "self", self_eps, {q: int(q == "q1") for q, _ in qs})
+    b = _write_arm(tmp_path, "big", big_eps, {q: int(q in ("q1", "q2", "q3", "q4")) for q, _ in qs + [("q7", "")]})
+
+    assert ct.main(["--arm", a, "--arm", b, "--baseline", "self", "--out", str(tmp_path / "out"), "--iters", "300"]) == 0
+    res = json.loads((tmp_path / "out" / "comparison.json").read_text(encoding="utf-8"))
+    arms = {x["name"]: x for x in res["arms"]}
+    assert arms["self"]["self_teaching"] and not arms["big"]["self_teaching"]
+    assert res["shared_questions"] == 6 and res["datasets"] == ["hotpotqa", "musique"]
+    s, g = res["summary"]["self"]["ALL"], res["summary"]["big"]["ALL"]
+    assert (s["judge_correct"], g["judge_correct"]) == (0.1667, 0.6667)
+    pooled = next(p for p in res["paired"] if p["arm"] == "big" and p["scope"] == "ALL" and p["metric"] == "judge")
+    assert (pooled["diff"], pooled["arm_wins"], pooled["baseline_wins"], pooled["n"]) == (0.5, 3, 0, 6)
+    assert s["leak_redaction_rate"] == 0.1667 and s["residual_leaks"] == 0
+    # the self-teacher approved q2, which the judge rejects
+    assert (s["teacher_false_approval"], s["teacher_verdict_agreement"]) == (1.0, 0.5)
+    assert g["sft_examples"] > s["sft_examples"] > 0
+    assert any("left out" in w for w in res["warnings"])
+    assert not any("different students" in w for w in res["warnings"])
+    assert "Teacher behaviour" in (tmp_path / "out" / "REPORT.md").read_text(encoding="utf-8")
+
+
+def test_compare_teachers_warns_on_a_leak_and_on_a_different_student(tmp_path):
+    ct = _load_compare_teachers()
+    leak = _teacher_cmp_episode("q1", "hotpotqa", correct=True, teacher="x/t", visible="The answer is Paris.")
+    assert ct.episode_row(leak, 1)["residual_leaks"] == 1
+    # an answer already named in the question reveals nothing
+    echo = _teacher_cmp_episode("q1", "hotpotqa", correct=True, teacher="x/t", visible="Is it Paris or Rome?",
+                                query="Was the director born in Paris or Rome?")
+    assert ct.episode_row(echo, 1)["residual_leaks"] == 0
+    other = _teacher_cmp_episode("q1", "hotpotqa", correct=True, teacher="x/t", student="ibm-granite/granite-4.2-3b")
+    a = _write_arm(tmp_path, "a", [leak], {"q1": 1})
+    b = _write_arm(tmp_path, "b", [other], {"q1": 1})
+    assert ct.main(["--arm", a, "--arm", b, "--out", str(tmp_path / "out"), "--iters", "50"]) == 0
+    warnings = json.loads((tmp_path / "out" / "comparison.json").read_text(encoding="utf-8"))["warnings"]
+    assert any("different students" in w for w in warnings)
+    assert any("state the gold answer" in w for w in warnings)
