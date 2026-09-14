@@ -32,6 +32,11 @@ PORT="${PORT:-8310}"
 DATASETS="${DATASETS:-2wikimultihopqa hotpotqa musique strategyqa}"
 # Teacher prompts carry the whole trajectory, and a repair retry doubles the output budget.
 export MAX_LEN="${MAX_LEN:-32768}"
+# A vLLM call gets LLM_TIMEOUT seconds in all (no streaming), 60 by default. With 32 workers
+# sharing the GPU a 2,500-token teacher reply already takes ~50 s, and the engine was seen
+# to stall for ~40 s with requests running: every call in flight then timed out and, with
+# no fallback teacher, errored its episode.
+export LLM_TIMEOUT="${LLM_TIMEOUT:-300}"
 export VLLM_ENDPOINT="http://127.0.0.1:$PORT"
 
 echo "== served model $MODEL (as vllm/student)"
