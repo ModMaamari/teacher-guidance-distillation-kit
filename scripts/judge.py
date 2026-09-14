@@ -54,17 +54,26 @@ def utc() -> str:
 
 
 def parse_verdict(raw: str) -> Optional[Dict[str, Any]]:
+    """The last JSON object in the reply that carries ``correct``.
+
+    A judge sometimes commits to a verdict, keeps reasoning, and emits a corrected one; the
+    later object is its final answer. Decoding object by object also survives prose with
+    braces of its own (LaTeX such as ``\\text{ m}``): a single greedy ``{...}`` match spanned
+    both objects and the text between them, failed to parse, and left that episode
+    unjudgeable on every retry.
+    """
     if not raw:
         return None
-    m = re.search(r"\{.*\}", raw, re.S)
-    if not m:
-        return None
-    try:
-        obj = json.loads(m.group(0))
-        c = int(obj["correct"])
-    except Exception:
-        return None
-    return {"correct": 1 if c else 0, "reason": str(obj.get("reason", ""))[:160]}
+    decoder = json.JSONDecoder()
+    verdict = None
+    for m in re.finditer(r"\{", raw):
+        try:
+            obj, _ = decoder.raw_decode(raw, m.start())
+            c = int(obj["correct"])
+        except Exception:  # noqa: BLE001 -- not a verdict object; keep scanning
+            continue
+        verdict = {"correct": 1 if c else 0, "reason": str(obj.get("reason", ""))[:160]}
+    return verdict
 
 
 async def judge_one(client, sem, row, router, attempts, prompt_tpl, max_tokens):
