@@ -98,8 +98,10 @@ python scripts/compare_teachers.py \
     --baseline self --out runs/compare_teachers
 ```
 
-A student served locally works the same way: pass its id as both `--student` and `--teacher`
-to `scripts/collect_episodes.py`. `REPORT.md` gives the outcome with paired tests, the SFT
+A student served locally works the same way: `slurm/collect_local.sbatch` serves it with vLLM on
+the job's GPU and uses it as both student and teacher
+(`MODEL=<hf model id> OUT=runs/collect_self sbatch -p <partition> --gres=gpu:<type>:1 slurm/collect_local.sbatch`),
+after checking one question end to end. `REPORT.md` gives the outcome with paired tests, the SFT
 examples each collection yields, and the teacher's behaviour: how often its guidance stated
 the answer and was redacted, whether any statement reached the student (must be 0), how often
 its output was unusable and generic feedback was substituted, and how often it rejected an
