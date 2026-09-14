@@ -373,7 +373,10 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
         else:
             print(f"Processing {total_seeds} samples...\n")
         
-        all_results = []
+        # Count outcomes instead of keeping each result: a result carries the whole workflow
+        # context (retrieved documents, evidence, prompts), and holding every one for the run
+        # grew a collection worker by about 2 GB an hour until its job's memory limit killed it.
+        run_ok = run_failed = 0
         for i, sample in enumerate(dataset):
             sample_id = f"sample_{i+1:03d}"
             sample_query = sample.get('query', sample.get('question', 'N/A'))
@@ -415,7 +418,6 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                     runner = ExploratoryRunner(template, clients, workflow_executor, run_uuid=run_uuid)
                 
                 result = await runner.run(workflow, sample, sample_id=sample_id)
-                all_results.append(result)
                 
                 # Export summary files (traces were streamed during execution)
                 query = sample.get("query") or sample.get("question", "")
@@ -442,6 +444,7 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                 if (sample_dir / TG_RECORD).exists():
                     tg_mode = True
                 print(f"  ✓ Exported")
+                run_ok += 1
                 
                 # Mark sample as completed (checkpoint)
                 completion_payload = {
@@ -460,13 +463,12 @@ async def cmd_simulate(template_id: str, validate_only: bool = False):
                 import traceback
                 print(f"  ✗ Error: {e}")
                 print(traceback.format_exc())
-                all_results.append({"error": str(e), "sample": sample})
+                run_failed += 1
         
-        successful_in_run = sum(1 for r in all_results if 'error' not in r)
         print(f"\n✓ Simulation complete")
         print(f"Output: {run_dir}")
-        if all_results:
-            print(f"  └─ This run: {successful_in_run}/{len(all_results)} seeds processed")
+        if run_ok or run_failed:
+            print(f"  └─ This run: {run_ok}/{run_ok + run_failed} seeds processed")
         print(f"  └─ Overall completed: {len(completed_samples)}/{total_seeds} seeds")
         print(f"Run UUID: {run_uuid}")
         
