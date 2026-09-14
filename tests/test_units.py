@@ -61,6 +61,12 @@ def test_judge_parse():
     assert parse_verdict('{"correct": "0"}')["correct"] == 0
     assert parse_verdict("no json") is None
     assert parse_verdict('{"score": 1}') is None
+    # A judge that corrects itself (a real reply): the later verdict is final, and the LaTeX
+    # braces between the two objects must not merge them into one unparseable span.
+    reply = ('```json\n{"correct": 1, "reason": "1911 ft is 582 m"}\n```\n'
+             'Conversion: $115.7 \\text{ m} \\times 3.28084 \\text{ ft/m}$.\n'
+             '```json\n{"correct": 0, "reason": "1911 feet does not equal 115.7 metres."}\n```')
+    assert parse_verdict(reply) == {"correct": 0, "reason": "1911 feet does not equal 115.7 metres."}
 
 
 def test_metrics_aggregate_and_tokens():
