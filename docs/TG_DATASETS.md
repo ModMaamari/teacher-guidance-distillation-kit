@@ -13,8 +13,8 @@ In every table the column order is **Self**, **DeepSeek**, **GLM**.
 * **Same student, different teacher (Self vs DeepSeek).** Both datasets use the student
   `ibm-granite/granite-4.1-3b`. Judge-correct is 61.5 % with the student as its own
   teacher and 62.3 % with DeepSeek-V4-Flash as the teacher: DeepSeek − Self =
-  +0.8 points, 95 % CI −0.3 to +1.8, McNemar p 0.141, not a significant difference. Per dataset, only StrategyQA differs
-  significantly (+5.3 points, 95 % CI +3.2 to +7.3, McNemar p 1e-06); on 2WikiMultihopQA, HotpotQA and MuSiQue the confidence
+  +0.8 points, 95 % CI −0.2 to +1.8, McNemar p 0.135, not a significant difference. Per dataset, only StrategyQA differs
+  significantly (+5.3 points, 95 % CI +3.3 to +7.3, McNemar p < 1e-6); on 2WikiMultihopQA, HotpotQA and MuSiQue the confidence
   intervals include zero.
 * **The rule-based metrics separate the two more than the judge does**, because the answers
   differ in form. The self-taught student's final answers have a median of 20
@@ -27,7 +27,7 @@ In every table the column order is **Self**, **DeepSeek**, **GLM**.
 * **The self-teacher is a weak grader of final answers.** Its own verdict on the final answer
   agrees with the judge in 38.6 % of episodes (DeepSeek 78.4 %, GLM 97.1 %),
   and it marks 99.96 % of judge-correct answers as incorrect. Its guidance stated the gold
-  answer and was redacted in 17.4 % of guidance events (DeepSeek 7.4 %, GLM
+  answer and was redacted in 17.5 % of guidance events (DeepSeek 7.4 %, GLM
   18.2 %). In all three datasets, no student-visible message states the gold answer.
 * **GLM has the highest judge-correct score** (65.6 %; GLM − Self +4.1 points, 95 % CI +3.1 to +5.2, McNemar p < 1e-6,
   GLM − DeepSeek +3.3 points, 95 % CI +2.3 to +4.4, McNemar p < 1e-6) but it is lower than DeepSeek on StrategyQA
@@ -41,11 +41,11 @@ In every table the column order is **Self**, **DeepSeek**, **GLM**.
 | Location | `data/episodes_self/` (not committed) | `data/episodes/` (shipped with the kit) | `data/episodes_glm/` (not committed) |
 | Student | `ibm-granite/granite-4.1-3b` | `ibm-granite/granite-4.1-3b` | `ibm-granite/granite-4.2-3b` |
 | Teacher | `ibm-granite/granite-4.1-3b` (the student itself) | DeepSeek-V4-Flash: `deepseek-ai/DeepSeek-V4-Flash` (5,475 episodes) and `deepseek-ai/DeepSeek-V4-Flash-0731` (2,524 episodes) | `z-ai/glm-5.3-flash` |
-| Collected (UTC, first → last episode) | 2026-09-14 18:28 → 2026-09-15 00:26 | 2026-08-30 19:35 → 2026-08-31 14:44 | 2026-09-12 14:27 → 2026-09-13 19:02 |
+| Collected (UTC, first → last episode) | 2026-09-14 18:28 → 2026-09-15 06:59 | 2026-08-30 19:35 → 2026-08-31 14:44 | 2026-09-12 14:27 → 2026-09-13 19:02 |
 | Collector config hash | `dfc43e9c5a8d8f4a` | `1716bb7efcbd32d0` | `dfc43e9c5a8d8f4a` |
 | Episodes | 7,999 | 7,999 | 7,999 |
 | Errored episodes | 0 | 0 | 0 |
-| Episodes with a judge verdict | 7,998 | 7,999 | 7,999 |
+| Episodes with a judge verdict | 7,999 | 7,999 | 7,999 |
 
 All three contain exactly the same questions (identical `qid` sets and dataset labels):
 2WikiMultihopQA 2,000, HotpotQA 2,000, MuSiQue 2,000 and StrategyQA 1,999. Each episode is one
@@ -94,7 +94,7 @@ All three datasets were judged by the same model with the same prompt, using `sc
 
 * **Judge model:** Gemma-4-31B-it, served as `RedHatAI/gemma-4-31B-it-FP8-block` on one
   OpenAI-compatible endpoint, with the same model on a second endpoint as the fallback for calls the
-  first could not answer. Verdicts by endpoint: Self 7,979 primary / 19 fallback; DeepSeek 7,985 primary / 14 fallback; GLM 7,999 primary / 0 fallback.
+  first could not answer. Verdicts by endpoint: Self 7,980 primary / 19 fallback; DeepSeek 7,985 primary / 14 fallback; GLM 7,999 primary / 0 fallback.
 * **Input:** only the question, the gold answer and the episode's final answer. The judge never sees
   the trajectory, the teacher or which dataset an answer comes from.
 * **Decoding:** temperature 0, at most 600 output tokens.
@@ -124,7 +124,7 @@ answer was graded against a deliberately altered gold answer. Kimi-K2.6, the jud
 `docs/RESULTS.md`, scored 94.5 % and accepted 11.9 % of incorrect answers on the same items, so
 judge-correct numbers in `docs/RESULTS.md` are not directly comparable with the ones here.
 
-**Episodes without a verdict:** `c027d949f7b4a6af5869` (StrategyQA) in the Self dataset, whose final answer is `[answer hidden]`. The judge replied that it could not grade the answer, so this episode is excluded from judge-correct and from the paired judge comparisons (which therefore use one question fewer).
+Every episode in all three datasets has a judge verdict.
 
 ## Metric definitions
 
@@ -184,7 +184,7 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
 | 2WikiMultihopQA | 72.8 % | 71.7 % | 78.9 % |
 | HotpotQA | 70.6 % | 70.8 % | 72.8 % |
 | MuSiQue | 37.5 % | 36.3 % | 44.6 % |
-| StrategyQA | 65.1 % | 70.3 % | 66.1 % |
+| StrategyQA | 65.0 % | 70.3 % | 66.1 % |
 | **All** | 61.5 % | 62.3 % | 65.6 % |
 
 ### Paired differences in judge-correct
@@ -194,13 +194,13 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
 | DeepSeek − Self | 2WikiMultihopQA | 2,000 | −1.1 | [−3.2, +1.0] | 210 / 232 | 0.318 |
 | DeepSeek − Self | HotpotQA | 2,000 | +0.3 | [−1.6, +2.1] | 183 / 178 | 0.833 |
 | DeepSeek − Self | MuSiQue | 2,000 | −1.3 | [−3.5, +1.1] | 257 / 282 | 0.301 |
-| DeepSeek − Self | StrategyQA | 1,998 | +5.3 | [+3.2, +7.3] | 270 / 165 | 1e-06 |
-| DeepSeek − Self | **All** | 7,998 | +0.8 | [−0.3, +1.8] | 920 / 857 | 0.141 |
+| DeepSeek − Self | StrategyQA | 1,999 | +5.3 | [+3.3, +7.3] | 271 / 165 | < 1e-6 |
+| DeepSeek − Self | **All** | 7,999 | +0.8 | [−0.2, +1.8] | 921 / 857 | 0.135 |
 | GLM − Self | 2WikiMultihopQA | 2,000 | +6.2 | [+4.2, +8.2] | 272 / 149 | < 1e-6 |
 | GLM − Self | HotpotQA | 2,000 | +2.3 | [+0.3, +4.2] | 217 / 172 | 0.0256 |
 | GLM − Self | MuSiQue | 2,000 | +7.0 | [+4.7, +9.5] | 363 / 222 | < 1e-6 |
-| GLM − Self | StrategyQA | 1,998 | +1.1 | [−0.9, +3.1] | 218 / 197 | 0.326 |
-| GLM − Self | **All** | 7,998 | +4.1 | [+3.1, +5.2] | 1070 / 740 | < 1e-6 |
+| GLM − Self | StrategyQA | 1,999 | +1.1 | [−1.0, +3.0] | 218 / 197 | 0.326 |
+| GLM − Self | **All** | 7,999 | +4.1 | [+3.1, +5.2] | 1070 / 740 | < 1e-6 |
 | GLM − DeepSeek | 2WikiMultihopQA | 2,000 | +7.2 | [+5.3, +9.3] | 283 / 138 | < 1e-6 |
 | GLM − DeepSeek | HotpotQA | 2,000 | +2.0 | [+0.1, +4.0] | 210 / 170 | 0.0453 |
 | GLM − DeepSeek | MuSiQue | 2,000 | +8.3 | [+5.9, +10.7] | 376 / 210 | < 1e-6 |
@@ -310,7 +310,7 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
 
 | All 7,999 questions | Self | DeepSeek | GLM |
 |---|---|---|---|
-| Guidance events redacted because they stated the gold answer | 17.4 % | 7.4 % | 18.2 % |
+| Guidance events redacted because they stated the gold answer | 17.5 % | 7.4 % | 18.2 % |
 | Episodes with at least one redaction | 53.3 % | 22.7 % | 44.6 % |
 | Student-visible messages still stating the gold answer | 0 | 0 | 0 |
 | Generic fallback feedback substituted for unusable teacher output | 0.0 % | 0.1 % | 0.0 % |
@@ -331,7 +331,7 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
 | HotpotQA | 23.5 % | 13.3 % | 19.5 % |
 | MuSiQue | 16.9 % | 6.8 % | 13.6 % |
 | StrategyQA | 15.5 % | 5.7 % | 28.1 % |
-| **All** | 17.4 % | 7.4 % | 18.2 % |
+| **All** | 17.5 % | 7.4 % | 18.2 % |
 
 #### Teacher's final verdict agrees with the judge, by dataset
 
@@ -358,13 +358,13 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
 | StrategyQA final answers that are exactly "yes" or "no" (of 1,999) | 1 | 895 | 26 |
 | Episodes ended by `budget_forced_finish` | 7,914 | 7,448 | 7,254 |
 | Episodes ended by `teacher_accept` | 85 | 551 | 745 |
-| Final answers containing the placeholder `[answer hidden]` | 1 | 0 | 1 |
+| Final answers containing the placeholder `[answer hidden]` | 0 | 0 | 1 |
 
 ## What the numbers show
 
 1. **With the student fixed, replacing DeepSeek-V4-Flash by the student itself as teacher does not
-   change judge-correct significantly overall** (+0.8 points, 95 % CI −0.3 to +1.8, McNemar p 0.141). The one significant
-   per-dataset difference is StrategyQA, in DeepSeek's favour (+5.3 points, 95 % CI +3.2 to +7.3, McNemar p 1e-06).
+   change judge-correct significantly overall** (+0.8 points, 95 % CI −0.2 to +1.8, McNemar p 0.135). The one significant
+   per-dataset difference is StrategyQA, in DeepSeek's favour (+5.3 points, 95 % CI +3.3 to +7.3, McNemar p < 1e-6).
 2. **The rule-based and exact-match metrics favour DeepSeek more than the judge does, and the
    difference is concentrated on StrategyQA** (rule-based: +10.6 points, 95 % CI +8.3 to +12.9, McNemar p < 1e-6). In the
    DeepSeek dataset 895 StrategyQA answers are a bare "yes" or "no"; in the self-taught
@@ -376,7 +376,7 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
    cases vs 99.5 %. Its own final verdicts mark 99.96 % of judge-correct answers
    incorrect.
 4. **Leakage control held in all three datasets.** Redaction was needed more often with the
-   self-teacher (17.4 % of guidance events) and GLM (18.2 %) than with DeepSeek
+   self-teacher (17.5 % of guidance events) and GLM (18.2 %) than with DeepSeek
    (7.4 %); in every dataset, zero student-visible messages state the gold answer.
 5. **GLM** scores highest on judge-correct, has the highest gold supporting-document recall
    (0.843 vs 0.761 Self and 0.790 DeepSeek), uses the fewest steps and
@@ -404,12 +404,13 @@ and stored in `final_metrics`; teacher-behaviour metrics are computed by `script
   question.
 * **Self:** a first attempt that called the student and teacher through a shared API endpoint was
   stopped after about an hour because the endpoint was saturated; its episodes are not part of the
-  dataset. The dataset was then collected on one GPU with `slurm/collect_local.sbatch` in two jobs.
+  dataset. The dataset was then collected on one GPU with `slurm/collect_local.sbatch` in two jobs,
+and a third job re-collected the one episode described below.
   In the first, workers were killed on reaching the job's memory limit (a leak in the simulate loop,
   fixed in commit `d3464b1`), and 14 episodes errored when vLLM calls exceeded their 60-second timeout
   (raised to 300 seconds in `8215f5f`). The second job re-collected the errored questions and
   completed the rest; consolidation kept an error-free episode for every question.
-* **Pending replacement:** the Self episode for StrategyQA question `c027d949f7b4a6af5869` ended with the literal placeholder `[answer hidden]` as its final answer: the student repeated the sanitiser's placeholder from the redacted guidance instead of answering. The judge cannot grade it. The episode has been moved out of the run and the question is queued for re-collection with the same setup; this page will be regenerated when the replacement is judged.
+* **One replaced episode:** the original Self episode for StrategyQA question `c027d949f7b4a6af5869` ended with the literal placeholder `[answer hidden]` as its final answer (the student repeated the sanitiser's placeholder instead of answering), which the judge could not grade. That question was re-collected with the same setup (2026-09-15 06:59 UTC); the original episode is kept outside the dataset in `runs/collect_self_gpu_replaced/`. Because this episode was replaced on account of its outcome, 1 of the 7,999 Self episodes is a second attempt.
 
 ## Reproducing the comparison
 
