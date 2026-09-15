@@ -1445,3 +1445,26 @@ def test_compare_teachers_warns_on_a_leak_and_on_a_different_student(tmp_path):
     warnings = json.loads((tmp_path / "out" / "comparison.json").read_text(encoding="utf-8"))["warnings"]
     assert any("different students" in w for w in warnings)
     assert any("state the gold answer" in w for w in warnings)
+
+
+def test_router_breaker_is_per_endpoint_so_a_hung_endpoint_keeps_its_fallback(monkeypatch):
+    from agentsim.clients import llm_client as lc
+    from agentsim.config import config
+    client = lc.LLMClient()
+    calls = []
+
+    async def fake_get_completion(*, prompt, model, **kwargs):
+        calls.append(model)
+        if model.startswith("oai-slow/"):
+            raise asyncio.TimeoutError()
+        return {"text": "ok"}
+
+    monkeypatch.setattr(client, "get_completion", fake_get_completion)
+    monkeypatch.setattr(config, "provider_available", lambda m: True)
+    chain = ["oai-slow/judge-model", "oai-backup/judge-model"]
+    for _ in range(lc._BREAKER_CONSECUTIVE_TIMEOUTS):
+        assert asyncio.run(client.get_completion_with_fallback(chain, prompt="p"))[1] == "oai-backup/judge-model"
+    calls.clear()
+    # the hung endpoint is now skipped, but the fallback of the same provider type still serves
+    assert asyncio.run(client.get_completion_with_fallback(chain, prompt="p"))[1] == "oai-backup/judge-model"
+    assert calls == ["oai-backup/judge-model"]

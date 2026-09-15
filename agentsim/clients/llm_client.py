@@ -472,12 +472,24 @@ class LLMClient:
             attempt += 1
 
     # -- provider circuit breaker -------------------------------------------------
+    @staticmethod
+    def _breaker_key(model: str) -> str:
+        """The endpoint a breaker trips for.
+
+        Every ``oai-<name>/`` model resolves to the provider type ``oai``, so keying the
+        breaker by provider let one hung endpoint disable every OpenAI-compatible endpoint,
+        including the fallback listed to cover it: a judge run whose first endpoint timed out
+        three times in a row skipped its second endpoint too and left 81 answers unjudged.
+        """
+        head = model.split("/", 1)[0]
+        return head if head.startswith("oai") else config.get_provider_from_model_id(model)
+
     def _breaker_open(self, provider: str) -> bool:
         """True while ``provider`` is in its post-trip cooldown (router skips it)."""
         return time.monotonic() < self._provider_tripped_until.get(provider, 0.0)
 
     def _breaker_remaining(self, model: str) -> float:
-        provider = config.get_provider_from_model_id(model)
+        provider = self._breaker_key(model)
         return max(0.0, self._provider_tripped_until.get(provider, 0.0) - time.monotonic())
 
     def _note_timeout(self, provider: str) -> None:
@@ -530,7 +542,7 @@ class LLMClient:
                     f"[router] skipping '{m}' -- provider not configured "
                     "(missing API key/endpoint)"
                 )
-            elif self._breaker_open(config.get_provider_from_model_id(m)):
+            elif self._breaker_open(self._breaker_key(m)):
                 logger.info(
                     f"[router] skipping '{m}' -- provider circuit breaker open after "
                     f"{_BREAKER_CONSECUTIVE_TIMEOUTS} consecutive hard timeouts; "
@@ -550,7 +562,7 @@ class LLMClient:
             call_kwargs = dict(kwargs)
             if not is_last:
                 call_kwargs["max_retries"] = 0  # fail fast, fall through on any error
-            provider = config.get_provider_from_model_id(model)
+            provider = self._breaker_key(model)
             try:
                 result = await self.get_completion(prompt=prompt, model=model, **call_kwargs)
                 self._provider_timeouts[provider] = 0  # healthy again
