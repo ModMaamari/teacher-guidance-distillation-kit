@@ -39,6 +39,10 @@ data/questions/<ds>/     2,000 questions each for HotpotQA, 2WikiMultihopQA and 
                          (gzipped, with provenance manifests)
 data/episodes/           7,999 teacher-guided episodes (student granite-4.1-3b,
                          teacher DeepSeek-V4-Flash), gzipped, plus an index
+data/episodes_glm/       7,999 episodes on the same questions (student granite-4.2-3b,
+                         teacher GLM-5.3-flash)
+data/episodes_self/      7,999 episodes on the same questions, granite-4.1-3b teaching
+                         itself; docs/TG_DATASETS.md compares all three
 data/benchmarks/         MMLU, GSM8K and HellaSwag eval items for the forgetting check
 data/splits/             test question files, pool assignment, stats, leakage report.
                          The SFT train/dev files are NOT shipped: build them once with

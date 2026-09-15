@@ -57,6 +57,12 @@ DeepSeek-V4-Flash — checkpoint `deepseek-ai/DeepSeek-V4-Flash` for 5,475 episo
 | MuSiQue | 2,000 | 595 (29.8 %) | 1,491 |
 | StrategyQA | 1,999 | 1,111 (55.6 %) | 1,139 |
 
+Two more episode sets on the same 7,999 questions sit next to it, in the same three files and the
+same record format: `data/episodes_glm/` (student `ibm-granite/granite-4.2-3b`, teacher
+`z-ai/glm-5.3-flash`; each episode also records `teacher_providers_used`) and `data/episodes_self/`
+(student and teacher both `ibm-granite/granite-4.1-3b`). `docs/TG_DATASETS.md` describes how they
+were collected and judged, and compares all three.
+
 An episode record (abridged):
 
 ```

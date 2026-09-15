@@ -38,7 +38,7 @@ In every table the column order is **Self**, **DeepSeek**, **GLM**.
 
 | | **Self** | **DeepSeek** | **GLM** |
 |---|---|---|---|
-| Location | `data/episodes_self/` (not committed) | `data/episodes/` (shipped with the kit) | `data/episodes_glm/` (not committed) |
+| Location | `data/episodes_self/` | `data/episodes/` | `data/episodes_glm/` |
 | Student | `ibm-granite/granite-4.1-3b` | `ibm-granite/granite-4.1-3b` | `ibm-granite/granite-4.2-3b` |
 | Teacher | `ibm-granite/granite-4.1-3b` (the student itself) | DeepSeek-V4-Flash: `deepseek-ai/DeepSeek-V4-Flash` (5,475 episodes) and `deepseek-ai/DeepSeek-V4-Flash-0731` (2,524 episodes) | `z-ai/glm-5.3-flash` |
 | Collected (UTC, first → last episode) | 2026-09-14 18:28 → 2026-09-15 06:59 | 2026-08-30 19:35 → 2026-08-31 14:44 | 2026-09-12 14:27 → 2026-09-13 19:02 |
@@ -440,7 +440,7 @@ python scripts/compare_teachers.py \
 | Path | Content | In the repository |
 |---|---|---|
 | `data/episodes/` | DeepSeek dataset | yes |
-| `data/episodes_glm/` | GLM dataset (65 MB compressed) | no |
-| `data/episodes_self/` | self-taught dataset (75 MB compressed) | no |
+| `data/episodes_glm/` | GLM dataset (65 MB compressed) | yes |
+| `data/episodes_self/` | self-taught dataset (75 MB compressed) | yes |
 | `runs/judge_shipped/`, `runs/judge_glm/`, `runs/judge_self/` | `verdicts.jsonl`, one verdict per episode | no (`runs/` is not tracked) |
 | `runs/compare_teachers/` | `REPORT.md`, `comparison.json`, `per_question.jsonl` | no |
