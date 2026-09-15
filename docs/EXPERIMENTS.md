@@ -108,6 +108,8 @@ its output was unusable and generic feedback was substituted, and how often it r
 answer the judge accepts. The difference is the teacher's only when every arm has the same
 student and collection config, and the report warns when they differ. Add further arms
 (`--arm name=...`) to compare several teachers at once.
+`docs/TG_DATASETS.md` reports this comparison for three collected datasets: a DeepSeek-V4-Flash
+teacher, a GLM-5.3-flash teacher, and the student `granite-4.1-3b` teaching itself.
 
 ## Costs to plan around, measured on this hardware
 

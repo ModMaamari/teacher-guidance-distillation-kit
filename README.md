@@ -50,7 +50,7 @@ slurm/                   sbatch templates + a one-command pipeline for HPC clust
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
 docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATASET, DATA, TRAINING,
                          EVALUATION, FORGETTING, STABILITY, TROUBLESHOOTING, PROVIDERS,
-                         REPRODUCE, RESULTS
+                         REPRODUCE, RESULTS, TG_DATASETS
 ```
 
 ## The four evaluation arms
