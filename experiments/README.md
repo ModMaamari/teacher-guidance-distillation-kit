@@ -1,5 +1,8 @@
 # Experiments
 
+`HANDOFF.md` is the operational guide: repository state, setup, what changed since these
+folders were written, and the order to run them in. Read it first if you are new here.
+
 One folder per experiment. Each has a `README.md` saying what it answers and how to read
 the result, and scripts numbered in the order you run them. Everything here drives the
 kit's existing stage scripts; nothing re-implements training or evaluation.
