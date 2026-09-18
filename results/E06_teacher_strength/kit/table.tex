@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Teacher strength: the same student trained on episodes collected with different teachers.}
+\label{tab:E06-teachers}
+\begin{tabular}{lrrrrrrl}
+\toprule
+Arm & HotpotQA & 2Wiki & MuSiQue & StrategyQA & All & $\Delta$ vs base [95\% CI] & $p$ \\
+\midrule
+Base student & 42.9 & 35.3 & 17.2 & 15.1 & 27.3 & -- & -- \\
+Taught by DeepSeek-V4-Flash & 63.5 & 76.5 & 38.9 & 73.0 & 62.1 & +34.8 [+30.8, +38.7] & $<$0.001 \\
+Taught by GLM-5.3-flash & 66.7 & 84.1 & 45.8 & 63.8 & 64.3 & +37.0 [+33.1, +40.8] & $<$0.001 \\
+Taught by itself & 68.8 & 78.8 & 49.3 & 72.4 & 66.7 & +39.4 [+35.5, +43.4] & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
