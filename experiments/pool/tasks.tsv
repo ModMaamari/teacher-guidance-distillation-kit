@@ -84,8 +84,8 @@ collect_teachdist	0	8	10	1	-
 prep_selfdist	0	8	0.3	1	done:collect_selfdist
 prep_teachdist	0	8	0.3	1	done:collect_teachdist
 prep_e01_match	0	8	0.3	1	done:prep_selfdist,done:prep_teachdist
-teacher_b1	0	2	3	1	-
-teacher_b5	0	2	3	1	-
+teacher_b1	0	2	3	1	done:collect_teachdist
+teacher_b5	0	2	3	1	done:collect_teachdist
 teacher_b8	0	2	3	1	done:teacher_b1
 teacher_b3	0	2	3	1	done:teacher_b5
 judge_e13	0	1	1	1	done:import_research
