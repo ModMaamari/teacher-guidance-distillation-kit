@@ -184,7 +184,10 @@ case "$TASK" in
         | tee runs/results/E02/seeds.txt && $TOOLS publish runs/results/E02 results/E02_seed_variance/kit --only seeds.txt ;;
   results_E04)
     results E04 results/E04_data_scaling/kit base=runs/eval/base ep500=runs/eval/ep500 ep1000=runs/eval/ep1000 ep2000=runs/eval/ep2000 \
-        ep4000=runs/eval/ep4000 full=runs/eval/seed13 ;;
+        ep4000=runs/eval/ep4000 full=runs/eval/seed13 &&
+      $TOOLS figdata --results runs/results/E04/results.json --out runs/results/E04/figure_scaling.csv \
+        --point base:x=0 --point ep500:x=500 --point ep1000:x=1000 --point ep2000:x=2000 --point ep4000:x=4000 \
+        --point full:x=7252 && $TOOLS publish runs/results/E04 results/E04_data_scaling/kit --only figure_scaling.csv ;;
   results_E06)
     results E06 results/E06_teacher_strength/kit base=runs/eval/base deepseek_taught=runs/eval/seed13 \
         self_taught=runs/eval/selftaught glm_taught=runs/eval/glmtaught ;;
@@ -195,7 +198,10 @@ case "$TASK" in
     results E08 results/E08_step_budget/kit $views base_b3=runs/eval/base trained_b3=runs/eval/seed13 \
         teacher_b3=runs/eval/teacher_b3 &&
       $PY_BASE experiments/exp08_step_budget/summarize_budget.py --results runs/results/E08/results.json \
-        | tee runs/results/E08/budget.txt && $TOOLS publish runs/results/E08 results/E08_step_budget/kit --only budget.txt ;;
+        | tee runs/results/E08/budget.txt &&
+      $TOOLS figdata --results runs/results/E08/results.json --out runs/results/E08/figure_budget.csv \
+        $(for a in base trained teacher; do for b in 1 3 5 8; do printf -- '--point %s_b%s:series=%s,x=%s ' $a $b $a $b; done; done) &&
+      $TOOLS publish runs/results/E08 results/E08_step_budget/kit --only budget.txt figure_budget.csv ;;
   results_E05)
     results E05 results/E05_student_family/kit granite_base=runs/eval/base granite_trained=runs/eval/seed13 \
         minicpm_base=runs/eval/base_e05 minicpm_trained=runs/eval/stu_e05 ;;
