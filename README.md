@@ -47,6 +47,8 @@ data/benchmarks/         MMLU, GSM8K and HellaSwag eval items for the forgetting
 data/splits/             test question files, pool assignment, stats, leakage report.
                          The SFT train/dev files are NOT shipped: build them once with
                          `make data` (~2 min, byte-identical on every machine)
+experiments/             one folder per experiment (expNN_*), the registry (registry.yaml ->
+                         REGISTRY.md) and pool/, which runs them all unattended on Slurm
 results/                 final numbers per experiment ID; status in experiments/REGISTRY.md
 agentsim/                the simulation harness (prompts, tools, teacher critic, metrics)
 tgd/                     library code shared by the scripts
