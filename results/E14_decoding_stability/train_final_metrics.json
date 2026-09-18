@@ -1,0 +1,16 @@
+{
+ "train_runtime": 7606.9784,
+ "train_samples_per_second": 3.806,
+ "train_steps_per_second": 0.238,
+ "total_flos": 8.504180696536013e+17,
+ "train_loss": 0.12490742160470446,
+ "epoch": 2.0,
+ "eval_loss": 0.26190802454948425,
+ "eval_runtime": 58.3402,
+ "eval_samples_per_second": 6.582,
+ "eval_steps_per_second": 0.823,
+ "eval_entropy": 0.235093725224336,
+ "eval_mean_token_accuracy": 0.913754423459371,
+ "eval_num_tokens": 20888037.0,
+ "written_at_utc": "2026-09-04T17:12:12.772338+00:00"
+}

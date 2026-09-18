@@ -1,0 +1,26 @@
+{
+ "all4_nll": {
+  "mmlu_ood": {
+   "n": 150,
+   "entropy_mean": 0.222,
+   "entropy_median": 0.0455,
+   "perplexity_mean": 1.32,
+   "top1_prob_mean": 0.9104,
+   "top1_is_valid_rate": 1,
+   "valid_mass_mean": 1.0,
+   "valid_mass_median": 1.0,
+   "tail_beyond_top10_mean": 0.0
+  },
+  "agent_in_dist": {
+   "n": 150,
+   "entropy_mean": 0.0001,
+   "entropy_median": 0.0001,
+   "perplexity_mean": 1.0,
+   "top1_prob_mean": 1.0,
+   "top1_is_valid_rate": 1,
+   "valid_mass_mean": 1.0,
+   "valid_mass_median": 1.0,
+   "tail_beyond_top10_mean": 0.0
+  }
+ }
+}

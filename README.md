@@ -47,6 +47,7 @@ data/benchmarks/         MMLU, GSM8K and HellaSwag eval items for the forgetting
 data/splits/             test question files, pool assignment, stats, leakage report.
                          The SFT train/dev files are NOT shipped: build them once with
                          `make data` (~2 min, byte-identical on every machine)
+results/                 final numbers per experiment ID; status in experiments/REGISTRY.md
 agentsim/                the simulation harness (prompts, tools, teacher critic, metrics)
 tgd/                     library code shared by the scripts
 scripts/                 the stage commands above
@@ -54,7 +55,7 @@ slurm/                   sbatch templates + a one-command pipeline for HPC clust
 tests/                   unit tests, an offline end-to-end smoke test, a GPU smoke test
 docs/                    OVERVIEW, EXPERIMENTS, MODELS, DATASET, DATA, TRAINING,
                          EVALUATION, FORGETTING, STABILITY, TROUBLESHOOTING, PROVIDERS,
-                         REPRODUCE, RESULTS, TG_DATASETS
+                         REPRODUCE, RESULTS, TG_DATASETS, RESEARCH_WORKFLOW
 ```
 
 ## The four evaluation arms

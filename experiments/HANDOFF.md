@@ -19,13 +19,12 @@ Written 2026-09-18 against commit `6ae1340`.
 | Judge verdicts | `runs/judge_shipped/`, `runs/judge_glm/`, `runs/judge_self/` — one verdict per episode for each of the three sets |
 | Collection-side comparison | `runs/compare_teachers/`, documented in `docs/TG_DATASETS.md` |
 
-**Not present:** no trained adapters, no evaluations, no results tables. `runs/train/`,
-`runs/eval/`, `runs/judge/` and `runs/results/` are empty in this checkout. The numbers in
-`docs/RESULTS.md` were produced elsewhere.
-
-That single fact drives the running order below: every experiment that reads `runs/results/` or
-`runs/eval/` (08, 09, 10, 11, 12, and the comparison half of most others) has no input until the
-reference pipeline has been run once here.
+**Finished results** live in `results/`, one folder per experiment ID, and
+`experiments/REGISTRY.md` shows the status of all of them (`docs/RESEARCH_WORKFLOW.md`). The
+reference (E00), transfer (E13) and stability (E14) results were produced in the research
+workspace and imported; their raw runs (adapters, episodes, verdicts) are not in this checkout, so
+`runs/train/`, `runs/eval/` and `runs/results/` are empty here. Experiments that need a trained
+adapter should point `ADAPTER` at the corrected-loss adapter described in E14.
 
 **Health check as of this writing:** `bash experiments/run_smoke_tests.sh` passes 67 of 67 offline
 checks against the current code. `make test` passes 55 unit tests.
@@ -115,8 +114,8 @@ Three rules that cost real results when broken:
 
 ## 5. Suggested order
 
-**Step 0 — produce the reference results.** Nothing here is trained yet, so run the headline
-pipeline once (`docs/REPRODUCE.md` §2):
+**Step 0 — the reference results.** They exist (`results/E00_reference`). Run the headline
+pipeline only to reproduce them in this checkout (`docs/REPRODUCE.md` §2):
 
 ```bash
 export PARTITION=<gpu-partition>
@@ -210,7 +209,8 @@ Report the interval, not just the point estimate, and run exp12 before quoting p
 
 ## 9. Open items
 
-* Nothing is trained in this checkout; step 0 above is the prerequisite for most experiments.
+* The raw runs behind E00, E13 and E14 are outside this checkout; set `ADAPTER` to the corrected
+  adapter for experiments that need a trained student.
 * `_common.sh` still defaults to the older judge — override `JUDGE`, or change the default once
   the team agrees.
 * `docs/RESULTS.md` numbers come from the older judge; if you re-judge those arms with the current

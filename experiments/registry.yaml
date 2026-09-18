@@ -1,0 +1,177 @@
+# Source of truth for experiment status. Edit here, then run: python experiments/status.py
+# status: planned | running | partial | done | superseded | dropped   (docs/RESEARCH_WORKFLOW.md)
+experiments:
+  - id: E00
+    name: reference
+    folder: experiments/exp00_reference
+    question: Does training on teacher-guided episodes lift the student? (four arms on the 747 held-out questions)
+    tier: 1
+    status: done
+    judge: Kimi-K2.6
+    results: results/E00_reference
+    paper: tab:E00-main
+    next: Re-judge with Gemma-4-31B-it so the paper uses one judge.
+
+  - id: E01
+    name: supervision_ablation
+    folder: experiments/exp01_supervision_ablation
+    question: Is guidance the active ingredient, or the correctness filter or plain distillation?
+    tier: 1
+    status: planned
+    results: results/E01_supervision_ablation
+    paper: tab:E01-ablation
+    next: Expose a no-teacher mode in the collector, collect the student-alone and teacher-alone sets, then train 3 matched arms.
+
+  - id: E02
+    name: seed_variance
+    folder: experiments/exp02_seed_variance
+    question: Do the small effects survive other training seeds?
+    tier: 1
+    status: planned
+    results: results/E02_seed_variance
+    paper: tab:E02-seeds
+    next: Train 2 more seeds of the uniform student, evaluate, judge.
+
+  - id: E03
+    name: judge_validity
+    folder: experiments/exp03_judge_validity
+    question: Does a human agree with the judge, and does the ranking survive another judge?
+    tier: 1
+    status: partial
+    judge: Gemma-4-31B-it
+    results: results/E03_judge_validity
+    paper: tab:E03-judge
+    next: Human-label 150-200 blind answers; re-judge the eval arms with two swap judges.
+
+  - id: E04
+    name: data_scaling
+    folder: experiments/exp04_data_scaling
+    question: How much guided data is needed?
+    tier: 2
+    status: planned
+    results: results/E04_data_scaling
+    paper: fig:E04-scaling
+    next: Build nested size splits, train one student per size.
+
+  - id: E05
+    name: student_family
+    folder: experiments/exp05_student_family
+    question: Does the method work for other small students?
+    tier: 2
+    status: planned
+    results: results/E05_student_family
+    paper: tab:E05-students
+    next: Probe the candidates; train and evaluate each on one split.
+
+  - id: E06
+    name: teacher_strength
+    folder: experiments/exp06_teacher_strength
+    question: Is the effect specific to one teacher? Does a weaker teacher still help?
+    tier: 2
+    status: partial
+    judge: Gemma-4-31B-it
+    results: results/E06_teacher_strength
+    paper: tab:E06-teachers
+    next: Train students on the self-taught (and optionally GLM) episodes; compare with E00's trained student.
+
+  - id: E07
+    name: external_testset
+    folder: experiments/exp07_external_testset
+    question: Is the result driven by benchmark contamination?
+    tier: 2
+    status: planned
+    results: results/E07_external_testset
+    paper: tab:E07-external
+    next: Run the n-gram contamination check (CPU); add an external test set if one is chosen.
+
+  - id: E08
+    name: step_budget
+    folder: experiments/exp08_step_budget
+    question: Does the conclusion depend on the 3-step budget?
+    tier: 2
+    status: planned
+    results: results/E08_step_budget
+    paper: fig:E08-budget
+    next: Evaluate base and trained students and the teacher at budgets 1, 3, 5, 8.
+
+  - id: E09
+    name: forgetting
+    folder: experiments/exp09_forgetting
+    question: What did training cost in general ability (MMLU, GSM8K, HellaSwag)?
+    tier: 2
+    status: partial
+    results: results/E09_forgetting
+    paper: tab:E09-forgetting
+    next: Rerun on the corrected-loss adapter and on each new trained arm.
+
+  - id: E10
+    name: stopping_behavior
+    folder: experiments/exp10_stopping_behavior
+    question: How much accuracy does late stopping cost, and can it be recovered?
+    tier: 3
+    status: planned
+    results: results/E10_stopping_behavior
+    paper: tab:E10-stopping
+    next: Run analyze_stopping.py on the E00 evaluation episodes (CPU).
+
+  - id: E11
+    name: training_knobs
+    folder: experiments/exp11_training_knobs
+    question: Is LoRA capacity or the training recipe the ceiling?
+    tier: 3
+    status: planned
+    results: results/E11_training_knobs
+    paper: tab:E11-knobs
+    next: Rank sweep first (8/16/32/64); learning rate and epochs only if time allows.
+
+  - id: E12
+    name: multiple_comparisons
+    folder: experiments/exp12_multiple_comparisons
+    question: Do the p-values survive Holm and Benjamini-Hochberg correction?
+    tier: 3
+    status: planned
+    results: results/E12_multiple_comparisons
+    paper: tab:E12-corrected
+    next: Run correct_pvalues.py on the final results of every judged comparison.
+
+  - id: E13
+    name: lodo_transfer
+    folder: experiments/exp13_lodo_transfer
+    question: Does guidance learned on three datasets transfer to an unseen fourth?
+    tier: 1
+    status: done
+    judge: Kimi-K2.6
+    results: results/E13_lodo_transfer
+    paper: tab:E13-lodo
+    next: Re-judge with Gemma-4-31B-it so the paper uses one judge.
+
+  - id: E14
+    name: decoding_stability
+    folder: experiments/exp14_decoding_stability
+    question: Can the trained student be sampled, and did the loss-path fix change greedy results?
+    tier: 2
+    status: done
+    results: results/E14_decoding_stability
+    paper: tab:E14-stability
+    next: none
+
+  - id: E15
+    name: teacher_datasets
+    folder: experiments/exp15_teacher_datasets
+    question: How do episodes collected with a strong teacher, a different teacher and the student itself compare?
+    tier: 2
+    status: done
+    judge: Gemma-4-31B-it
+    results: results/E15_teacher_datasets
+    paper: tab:E15-datasets
+    next: none
+
+  - id: E16
+    name: judge_selection
+    folder: experiments/exp16_judge_selection
+    question: Which available model is the most accurate judge?
+    tier: 2
+    status: done
+    results: results/E16_judge_selection
+    paper: tab:E16-judges
+    next: none (labels were assigned by the assistant; E03 adds human labels)

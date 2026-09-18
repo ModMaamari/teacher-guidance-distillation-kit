@@ -1,6 +1,7 @@
 # Experiments
 
-`HANDOFF.md` is the operational guide: repository state, setup, what changed since these
+Status of every experiment, and where its result lives: `REGISTRY.md` (generated from `registry.yaml`;
+rules in `docs/RESEARCH_WORKFLOW.md`). `HANDOFF.md` is the operational guide: repository state, setup, what changed since these
 folders were written, and the order to run them in. Read it first if you are new here.
 
 One folder per experiment. Each has a `README.md` saying what it answers and how to read

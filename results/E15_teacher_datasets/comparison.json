@@ -1,0 +1,764 @@
+{
+  "baseline": "self",
+  "shared_questions": 7999,
+  "datasets": [
+    "2wikimultihopqa",
+    "hotpotqa",
+    "musique",
+    "strategyqa"
+  ],
+  "arms": [
+    {
+      "name": "self",
+      "episodes_path": "data/episodes_self/episodes.jsonl.gz",
+      "verdicts_path": "runs/judge_self/verdicts.jsonl",
+      "episodes": 7999,
+      "students": [
+        "ibm-granite/granite-4.1-3b"
+      ],
+      "teachers": [
+        "ibm-granite/granite-4.1-3b"
+      ],
+      "config_hashes": [
+        "dfc43e9c5a8d8f4a"
+      ],
+      "self_teaching": true,
+      "judged": 7999
+    },
+    {
+      "name": "deepseek",
+      "episodes_path": "data/episodes/episodes.jsonl.gz",
+      "verdicts_path": "runs/judge_shipped/verdicts.jsonl",
+      "episodes": 7999,
+      "students": [
+        "ibm-granite/granite-4.1-3b"
+      ],
+      "teachers": [
+        "deepseek-ai/deepseek-v4-flash",
+        "deepseek-ai/deepseek-v4-flash-0731"
+      ],
+      "config_hashes": [
+        "1716bb7efcbd32d0"
+      ],
+      "self_teaching": false,
+      "judged": 7999
+    },
+    {
+      "name": "glm",
+      "episodes_path": "data/episodes_glm/episodes.jsonl.gz",
+      "verdicts_path": "runs/judge_glm/verdicts.jsonl",
+      "episodes": 7999,
+      "students": [
+        "ibm-granite/granite-4.2-3b"
+      ],
+      "teachers": [
+        "z-ai/glm-5.3-flash"
+      ],
+      "config_hashes": [
+        "dfc43e9c5a8d8f4a"
+      ],
+      "self_teaching": false,
+      "judged": 7999
+    }
+  ],
+  "warnings": [
+    "the arms have different students, so differences mix the teacher's effect with the student's",
+    "the arms were collected with different configs (config_hash), so settings other than the teacher differ too"
+  ],
+  "summary": {
+    "self": {
+      "ALL": {
+        "n": 7999,
+        "errors": 0,
+        "judged": 7999,
+        "judge_correct": 0.6146,
+        "cover": 0.5302,
+        "em": 0.0921,
+        "f1": 0.1954,
+        "doc_recall": 0.7609,
+        "grounded": 0.7601,
+        "steps": 2.9856,
+        "teacher_accept_rate": 0.0106,
+        "teacher_accept_precision": 0.5882,
+        "leak_redaction_rate": 0.1745,
+        "episodes_with_redaction": 0.5332,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.46,
+        "teacher_verdict_agreement": 0.3857,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 0.9996,
+        "sft_examples": 15915,
+        "sft_examples_per_episode": 1.9896,
+        "teacher_tokens_per_episode": 5449.1274,
+        "student_tokens_per_episode": 9074.2074,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "2wikimultihopqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.7275,
+        "cover": 0.706,
+        "em": 0.042,
+        "f1": 0.1957,
+        "doc_recall": 0.8466,
+        "grounded": 0.897,
+        "steps": 2.987,
+        "teacher_accept_rate": 0.008,
+        "teacher_accept_precision": 0.5,
+        "leak_redaction_rate": 0.1394,
+        "episodes_with_redaction": 0.478,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.3977,
+        "teacher_verdict_agreement": 0.273,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 0.9993,
+        "sft_examples": 5329,
+        "sft_examples_per_episode": 2.6645,
+        "teacher_tokens_per_episode": 5713.318,
+        "student_tokens_per_episode": 8807.652,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "hotpotqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.7055,
+        "cover": 0.665,
+        "em": 0.27,
+        "f1": 0.4031,
+        "doc_recall": 0.793,
+        "grounded": 0.928,
+        "steps": 2.977,
+        "teacher_accept_rate": 0.018,
+        "teacher_accept_precision": 0.75,
+        "leak_redaction_rate": 0.2347,
+        "episodes_with_redaction": 0.6155,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.4788,
+        "teacher_verdict_agreement": 0.2946,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 1.0,
+        "sft_examples": 5166,
+        "sft_examples_per_episode": 2.583,
+        "teacher_tokens_per_episode": 5541.2675,
+        "student_tokens_per_episode": 9483.0255,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "musique": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.375,
+        "cover": 0.2995,
+        "em": 0.056,
+        "f1": 0.1535,
+        "doc_recall": 0.6015,
+        "grounded": 0.7305,
+        "steps": 2.99,
+        "teacher_accept_rate": 0.0085,
+        "teacher_accept_precision": 0.2941,
+        "leak_redaction_rate": 0.169,
+        "episodes_with_redaction": 0.57,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.4686,
+        "teacher_verdict_agreement": 0.6255,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 0.9987,
+        "sft_examples": 2266,
+        "sft_examples_per_episode": 1.133,
+        "teacher_tokens_per_episode": 5227.0675,
+        "student_tokens_per_episode": 8988.696,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "strategyqa": {
+        "n": 1999,
+        "errors": 0,
+        "judged": 1999,
+        "judge_correct": 0.6503,
+        "cover": 0.4502,
+        "em": 0.0005,
+        "f1": 0.0291,
+        "doc_recall": 0.8023,
+        "grounded": 0.4847,
+        "steps": 2.9885,
+        "teacher_accept_rate": 0.008,
+        "teacher_accept_precision": 0.625,
+        "leak_redaction_rate": 0.155,
+        "episodes_with_redaction": 0.4692,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.495,
+        "teacher_verdict_agreement": 0.3497,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 1.0,
+        "sft_examples": 3154,
+        "sft_examples_per_episode": 1.5778,
+        "teacher_tokens_per_episode": 5314.7894,
+        "student_tokens_per_episode": 9017.4277,
+        "api_cost_usd_per_episode": 0.0
+      }
+    },
+    "deepseek": {
+      "ALL": {
+        "n": 7999,
+        "errors": 0,
+        "judged": 7999,
+        "judge_correct": 0.6226,
+        "cover": 0.5484,
+        "em": 0.2644,
+        "f1": 0.3642,
+        "doc_recall": 0.7904,
+        "grounded": 0.7577,
+        "steps": 2.925,
+        "teacher_accept_rate": 0.0689,
+        "teacher_accept_precision": 0.9946,
+        "leak_redaction_rate": 0.074,
+        "episodes_with_redaction": 0.2272,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0013,
+        "plan_changed_rate": 0.7433,
+        "teacher_verdict_agreement": 0.7837,
+        "teacher_false_approval": 0.0046,
+        "teacher_false_rejection": 0.3447,
+        "sft_examples": 16567,
+        "sft_examples_per_episode": 2.0711,
+        "teacher_tokens_per_episode": 5503.0486,
+        "student_tokens_per_episode": 11402.3878,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "2wikimultihopqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.7165,
+        "cover": 0.6925,
+        "em": 0.2445,
+        "f1": 0.3851,
+        "doc_recall": 0.8616,
+        "grounded": 0.8145,
+        "steps": 2.916,
+        "teacher_accept_rate": 0.0805,
+        "teacher_accept_precision": 1.0,
+        "leak_redaction_rate": 0.0391,
+        "episodes_with_redaction": 0.143,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.764,
+        "teacher_verdict_agreement": 0.8055,
+        "teacher_false_approval": 0.0088,
+        "teacher_false_rejection": 0.268,
+        "sft_examples": 5299,
+        "sft_examples_per_episode": 2.6495,
+        "teacher_tokens_per_episode": 5547.1935,
+        "student_tokens_per_episode": 11413.055,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "hotpotqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.708,
+        "cover": 0.648,
+        "em": 0.373,
+        "f1": 0.4983,
+        "doc_recall": 0.8073,
+        "grounded": 0.901,
+        "steps": 2.854,
+        "teacher_accept_rate": 0.1405,
+        "teacher_accept_precision": 0.9964,
+        "leak_redaction_rate": 0.1328,
+        "episodes_with_redaction": 0.3585,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.6939,
+        "teacher_verdict_agreement": 0.861,
+        "teacher_false_approval": 0.0068,
+        "teacher_false_rejection": 0.1935,
+        "sft_examples": 4851,
+        "sft_examples_per_episode": 2.4255,
+        "teacher_tokens_per_episode": 5330.739,
+        "student_tokens_per_episode": 10889.4175,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "musique": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.3625,
+        "cover": 0.2975,
+        "em": 0.135,
+        "f1": 0.2409,
+        "doc_recall": 0.676,
+        "grounded": 0.7455,
+        "steps": 2.972,
+        "teacher_accept_rate": 0.0175,
+        "teacher_accept_precision": 0.9429,
+        "leak_redaction_rate": 0.0682,
+        "episodes_with_redaction": 0.2115,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.6984,
+        "teacher_verdict_agreement": 0.8445,
+        "teacher_false_approval": 0.0039,
+        "teacher_false_rejection": 0.4221,
+        "sft_examples": 2299,
+        "sft_examples_per_episode": 1.1495,
+        "teacher_tokens_per_episode": 5382.2535,
+        "student_tokens_per_episode": 11131.978,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "strategyqa": {
+        "n": 1999,
+        "errors": 0,
+        "judged": 1999,
+        "judge_correct": 0.7034,
+        "cover": 0.5558,
+        "em": 0.3052,
+        "f1": 0.3322,
+        "doc_recall": 0.8169,
+        "grounded": 0.5698,
+        "steps": 2.958,
+        "teacher_accept_rate": 0.037,
+        "teacher_accept_precision": 1.0,
+        "leak_redaction_rate": 0.057,
+        "episodes_with_redaction": 0.1956,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0051,
+        "plan_changed_rate": 0.8168,
+        "teacher_verdict_agreement": 0.6229,
+        "teacher_false_approval": 0.0,
+        "teacher_false_rejection": 0.5361,
+        "sft_examples": 4118,
+        "sft_examples_per_episode": 2.06,
+        "teacher_tokens_per_episode": 5752.1331,
+        "student_tokens_per_episode": 12175.4872,
+        "api_cost_usd_per_episode": 0.0
+      }
+    },
+    "glm": {
+      "ALL": {
+        "n": 7999,
+        "errors": 0,
+        "judged": 7999,
+        "judge_correct": 0.6558,
+        "cover": 0.5818,
+        "em": 0.1045,
+        "f1": 0.2088,
+        "doc_recall": 0.8425,
+        "grounded": 0.7411,
+        "steps": 2.7437,
+        "teacher_accept_rate": 0.0931,
+        "teacher_accept_precision": 0.996,
+        "leak_redaction_rate": 0.182,
+        "episodes_with_redaction": 0.4464,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.0297,
+        "teacher_verdict_agreement": 0.9706,
+        "teacher_false_approval": 0.0178,
+        "teacher_false_rejection": 0.0355,
+        "sft_examples": 15490,
+        "sft_examples_per_episode": 1.9365,
+        "teacher_tokens_per_episode": 5337.9365,
+        "student_tokens_per_episode": 6353.8041,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "2wikimultihopqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.789,
+        "cover": 0.719,
+        "em": 0.0875,
+        "f1": 0.2216,
+        "doc_recall": 0.9166,
+        "grounded": 0.8345,
+        "steps": 2.8215,
+        "teacher_accept_rate": 0.079,
+        "teacher_accept_precision": 1.0,
+        "leak_redaction_rate": 0.1208,
+        "episodes_with_redaction": 0.358,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.0053,
+        "teacher_verdict_agreement": 0.9825,
+        "teacher_false_approval": 0.0071,
+        "teacher_false_rejection": 0.0203,
+        "sft_examples": 5031,
+        "sft_examples_per_episode": 2.5155,
+        "teacher_tokens_per_episode": 5538.721,
+        "student_tokens_per_episode": 6321.7615,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "hotpotqa": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.728,
+        "cover": 0.6955,
+        "em": 0.2585,
+        "f1": 0.3927,
+        "doc_recall": 0.8572,
+        "grounded": 0.906,
+        "steps": 2.7725,
+        "teacher_accept_rate": 0.124,
+        "teacher_accept_precision": 0.996,
+        "leak_redaction_rate": 0.1949,
+        "episodes_with_redaction": 0.4385,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.0132,
+        "teacher_verdict_agreement": 0.9735,
+        "teacher_false_approval": 0.0147,
+        "teacher_false_rejection": 0.0309,
+        "sft_examples": 4956,
+        "sft_examples_per_episode": 2.478,
+        "teacher_tokens_per_episode": 5324.4365,
+        "student_tokens_per_episode": 6400.79,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "musique": {
+        "n": 2000,
+        "errors": 0,
+        "judged": 2000,
+        "judge_correct": 0.4455,
+        "cover": 0.387,
+        "em": 0.0635,
+        "f1": 0.1737,
+        "doc_recall": 0.7565,
+        "grounded": 0.7015,
+        "steps": 2.7535,
+        "teacher_accept_rate": 0.013,
+        "teacher_accept_precision": 0.9231,
+        "leak_redaction_rate": 0.1362,
+        "episodes_with_redaction": 0.33,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.0726,
+        "teacher_verdict_agreement": 0.9545,
+        "teacher_false_approval": 0.0054,
+        "teacher_false_rejection": 0.0954,
+        "sft_examples": 2680,
+        "sft_examples_per_episode": 1.34,
+        "teacher_tokens_per_episode": 5426.1755,
+        "student_tokens_per_episode": 6750.704,
+        "api_cost_usd_per_episode": 0.0
+      },
+      "strategyqa": {
+        "n": 1999,
+        "errors": 0,
+        "judged": 1999,
+        "judge_correct": 0.6608,
+        "cover": 0.5258,
+        "em": 0.0085,
+        "f1": 0.0474,
+        "doc_recall": 0.8394,
+        "grounded": 0.5223,
+        "steps": 2.6273,
+        "teacher_accept_rate": 0.1566,
+        "teacher_accept_precision": 1.0,
+        "leak_redaction_rate": 0.2814,
+        "episodes_with_redaction": 0.6593,
+        "residual_leaks": 0,
+        "fallback_feedback_rate": 0.0,
+        "plan_changed_rate": 0.0314,
+        "teacher_verdict_agreement": 0.972,
+        "teacher_false_approval": 0.0472,
+        "teacher_false_rejection": 0.0182,
+        "sft_examples": 2823,
+        "sft_examples_per_episode": 1.4122,
+        "teacher_tokens_per_episode": 5062.2751,
+        "student_tokens_per_episode": 5941.7549,
+        "api_cost_usd_per_episode": 0.0
+      }
+    }
+  },
+  "paired": [
+    {
+      "arm": "deepseek",
+      "scope": "ALL",
+      "metric": "judge",
+      "n": 7999,
+      "diff": 0.008,
+      "ci95": [
+        -0.0023,
+        0.0183
+      ],
+      "arm_wins": 921,
+      "baseline_wins": 857,
+      "p": 0.135131
+    },
+    {
+      "arm": "deepseek",
+      "scope": "ALL",
+      "metric": "cover",
+      "n": 7999,
+      "diff": 0.0183,
+      "ci95": [
+        0.0079,
+        0.029
+      ],
+      "arm_wins": 1019,
+      "baseline_wins": 873,
+      "p": 0.000853
+    },
+    {
+      "arm": "deepseek",
+      "scope": "2wikimultihopqa",
+      "metric": "judge",
+      "n": 2000,
+      "diff": -0.011,
+      "ci95": [
+        -0.032,
+        0.01
+      ],
+      "arm_wins": 210,
+      "baseline_wins": 232,
+      "p": 0.317859
+    },
+    {
+      "arm": "deepseek",
+      "scope": "2wikimultihopqa",
+      "metric": "cover",
+      "n": 2000,
+      "diff": -0.0135,
+      "ci95": [
+        -0.0335,
+        0.007
+      ],
+      "arm_wins": 204,
+      "baseline_wins": 231,
+      "p": 0.212494
+    },
+    {
+      "arm": "deepseek",
+      "scope": "hotpotqa",
+      "metric": "judge",
+      "n": 2000,
+      "diff": 0.0025,
+      "ci95": [
+        -0.016,
+        0.0205
+      ],
+      "arm_wins": 183,
+      "baseline_wins": 178,
+      "p": 0.833293
+    },
+    {
+      "arm": "deepseek",
+      "scope": "hotpotqa",
+      "metric": "cover",
+      "n": 2000,
+      "diff": -0.017,
+      "ci95": [
+        -0.0365,
+        0.002
+      ],
+      "arm_wins": 178,
+      "baseline_wins": 212,
+      "p": 0.094591
+    },
+    {
+      "arm": "deepseek",
+      "scope": "musique",
+      "metric": "judge",
+      "n": 2000,
+      "diff": -0.0125,
+      "ci95": [
+        -0.035,
+        0.0105
+      ],
+      "arm_wins": 257,
+      "baseline_wins": 282,
+      "p": 0.301247
+    },
+    {
+      "arm": "deepseek",
+      "scope": "musique",
+      "metric": "cover",
+      "n": 2000,
+      "diff": -0.002,
+      "ci95": [
+        -0.0235,
+        0.0185
+      ],
+      "arm_wins": 237,
+      "baseline_wins": 241,
+      "p": 0.890878
+    },
+    {
+      "arm": "deepseek",
+      "scope": "strategyqa",
+      "metric": "judge",
+      "n": 1999,
+      "diff": 0.053,
+      "ci95": [
+        0.033,
+        0.073
+      ],
+      "arm_wins": 271,
+      "baseline_wins": 165,
+      "p": 0.0
+    },
+    {
+      "arm": "deepseek",
+      "scope": "strategyqa",
+      "metric": "cover",
+      "n": 1999,
+      "diff": 0.1056,
+      "ci95": [
+        0.0825,
+        0.1291
+      ],
+      "arm_wins": 400,
+      "baseline_wins": 189,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "ALL",
+      "metric": "judge",
+      "n": 7999,
+      "diff": 0.0413,
+      "ci95": [
+        0.031,
+        0.0518
+      ],
+      "arm_wins": 1070,
+      "baseline_wins": 740,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "ALL",
+      "metric": "cover",
+      "n": 7999,
+      "diff": 0.0516,
+      "ci95": [
+        0.0409,
+        0.0624
+      ],
+      "arm_wins": 1184,
+      "baseline_wins": 771,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "2wikimultihopqa",
+      "metric": "judge",
+      "n": 2000,
+      "diff": 0.0615,
+      "ci95": [
+        0.0415,
+        0.0815
+      ],
+      "arm_wins": 272,
+      "baseline_wins": 149,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "2wikimultihopqa",
+      "metric": "cover",
+      "n": 2000,
+      "diff": 0.013,
+      "ci95": [
+        -0.009,
+        0.035
+      ],
+      "arm_wins": 256,
+      "baseline_wins": 230,
+      "p": 0.256762
+    },
+    {
+      "arm": "glm",
+      "scope": "hotpotqa",
+      "metric": "judge",
+      "n": 2000,
+      "diff": 0.0225,
+      "ci95": [
+        0.003,
+        0.042
+      ],
+      "arm_wins": 217,
+      "baseline_wins": 172,
+      "p": 0.025562
+    },
+    {
+      "arm": "glm",
+      "scope": "hotpotqa",
+      "metric": "cover",
+      "n": 2000,
+      "diff": 0.0305,
+      "ci95": [
+        0.011,
+        0.0495
+      ],
+      "arm_wins": 225,
+      "baseline_wins": 164,
+      "p": 0.002307
+    },
+    {
+      "arm": "glm",
+      "scope": "musique",
+      "metric": "judge",
+      "n": 2000,
+      "diff": 0.0705,
+      "ci95": [
+        0.047,
+        0.0945
+      ],
+      "arm_wins": 363,
+      "baseline_wins": 222,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "musique",
+      "metric": "cover",
+      "n": 2000,
+      "diff": 0.0875,
+      "ci95": [
+        0.065,
+        0.11
+      ],
+      "arm_wins": 356,
+      "baseline_wins": 181,
+      "p": 0.0
+    },
+    {
+      "arm": "glm",
+      "scope": "strategyqa",
+      "metric": "judge",
+      "n": 1999,
+      "diff": 0.0105,
+      "ci95": [
+        -0.0095,
+        0.03
+      ],
+      "arm_wins": 218,
+      "baseline_wins": 197,
+      "p": 0.326221
+    },
+    {
+      "arm": "glm",
+      "scope": "strategyqa",
+      "metric": "cover",
+      "n": 1999,
+      "diff": 0.0755,
+      "ci95": [
+        0.053,
+        0.098
+      ],
+      "arm_wins": 347,
+      "baseline_wins": 196,
+      "p": 0.0
+    }
+  ],
+  "written_at_utc": "2026-09-15T07:33:49.991361+00:00"
+}

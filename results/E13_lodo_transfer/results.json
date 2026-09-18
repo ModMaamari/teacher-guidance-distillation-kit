@@ -1,0 +1,630 @@
+{
+ "eval": {
+  "base__unseen_musique": {
+   "n": 2000,
+   "em": 0.025,
+   "f1": 0.061,
+   "cover_match": 0.093,
+   "doc_recall": 0.5812,
+   "mean_steps": 2.99,
+   "tokens_per_episode": 4884.0624,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 1619,
+    "finish": 24,
+    "budget_forced_finish": 357
+   },
+   "voluntary_finish": 0.012,
+   "invalid_action_steps": 145,
+   "total_steps": 5976,
+   "invalid_rate": 0.0243,
+   "judge_n": 2000,
+   "judge_correct": 0.1375
+  },
+  "fold_hotpotqa__heldin_2wikimultihopqa": {
+   "n": 170,
+   "em": 0.3118,
+   "f1": 0.4624,
+   "cover_match": 0.7706,
+   "doc_recall": 0.8882,
+   "mean_steps": 2.9,
+   "tokens_per_episode": 5544.4,
+   "stop_reasons": {
+    "budget_forced_finish": 135,
+    "finish": 17,
+    "budget_forced_finish_no_finish": 18
+   },
+   "voluntary_finish": 0.1,
+   "invalid_action_steps": 39,
+   "total_steps": 493,
+   "invalid_rate": 0.0791,
+   "judge_n": 170,
+   "judge_correct": 0.7941
+  },
+  "fold_2wikimultihopqa__heldin_strategyqa": {
+   "n": 185,
+   "em": 0.5027,
+   "f1": 0.5203,
+   "cover_match": 0.6973,
+   "doc_recall": 0.8266,
+   "mean_steps": 2.88,
+   "tokens_per_episode": 5191.3,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 5,
+    "finish": 21,
+    "budget_forced_finish": 159
+   },
+   "voluntary_finish": 0.1135,
+   "invalid_action_steps": 4,
+   "total_steps": 533,
+   "invalid_rate": 0.0075,
+   "judge_n": 185,
+   "judge_correct": 0.7297
+  },
+  "fold_strategyqa__heldin_2wikimultihopqa": {
+   "n": 170,
+   "em": 0.3647,
+   "f1": 0.4964,
+   "cover_match": 0.7588,
+   "doc_recall": 0.8691,
+   "mean_steps": 2.91,
+   "tokens_per_episode": 5587.2,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 15,
+    "budget_forced_finish": 140,
+    "finish": 15
+   },
+   "voluntary_finish": 0.0882,
+   "invalid_action_steps": 42,
+   "total_steps": 495,
+   "invalid_rate": 0.0848,
+   "judge_n": 170,
+   "judge_correct": 0.7765
+  },
+  "fold_strategyqa__heldin_hotpotqa": {
+   "n": 189,
+   "em": 0.3386,
+   "f1": 0.4264,
+   "cover_match": 0.582,
+   "doc_recall": 0.7672,
+   "mean_steps": 2.81,
+   "tokens_per_episode": 5197.9,
+   "stop_reasons": {
+    "finish": 35,
+    "budget_forced_finish_no_finish": 5,
+    "budget_forced_finish": 149
+   },
+   "voluntary_finish": 0.1852,
+   "invalid_action_steps": 12,
+   "total_steps": 532,
+   "invalid_rate": 0.0226,
+   "judge_n": 189,
+   "judge_correct": 0.6349
+  },
+  "fold_hotpotqa__unseen_hotpotqa": {
+   "n": 2000,
+   "em": 0.3735,
+   "f1": 0.4971,
+   "cover_match": 0.636,
+   "doc_recall": 0.8122,
+   "mean_steps": 2.8633,
+   "tokens_per_episode": 5312.2269,
+   "stop_reasons": {
+    "finish": 271,
+    "budget_forced_finish": 1642,
+    "budget_forced_finish_no_finish": 87
+   },
+   "voluntary_finish": 0.1355,
+   "invalid_action_steps": 180,
+   "total_steps": 5728,
+   "invalid_rate": 0.0314,
+   "judge_n": 1999,
+   "judge_correct": 0.7059
+  },
+  "fold_musique__heldin_strategyqa": {
+   "n": 185,
+   "em": 0.4595,
+   "f1": 0.4855,
+   "cover_match": 0.7243,
+   "doc_recall": 0.818,
+   "mean_steps": 2.9,
+   "tokens_per_episode": 5202.0,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 4,
+    "budget_forced_finish": 164,
+    "finish": 17
+   },
+   "voluntary_finish": 0.0919,
+   "invalid_action_steps": 4,
+   "total_steps": 537,
+   "invalid_rate": 0.0074,
+   "judge_n": 185,
+   "judge_correct": 0.7297
+  },
+  "base__unseen_strategyqa": {
+   "n": 1999,
+   "em": 0.0,
+   "f1": 0.0122,
+   "cover_match": 0.0961,
+   "doc_recall": 0.8141,
+   "mean_steps": 2.9767,
+   "tokens_per_episode": 4836.9454,
+   "stop_reasons": {
+    "budget_forced_finish": 348,
+    "finish": 43,
+    "budget_forced_finish_no_finish": 1608
+   },
+   "voluntary_finish": 0.0215,
+   "invalid_action_steps": 159,
+   "total_steps": 5948,
+   "invalid_rate": 0.0267,
+   "judge_n": 1999,
+   "judge_correct": 0.1891
+  },
+  "base__heldin_hotpotqa": {
+   "n": 189,
+   "em": 0.1958,
+   "f1": 0.2533,
+   "cover_match": 0.3757,
+   "doc_recall": 0.7593,
+   "mean_steps": 2.94,
+   "tokens_per_episode": 5155.0,
+   "stop_reasons": {
+    "finish": 12,
+    "budget_forced_finish": 70,
+    "budget_forced_finish_no_finish": 107
+   },
+   "voluntary_finish": 0.0635,
+   "invalid_action_steps": 30,
+   "total_steps": 555,
+   "invalid_rate": 0.0541,
+   "judge_n": 189,
+   "judge_correct": 0.455
+  },
+  "fold_2wikimultihopqa__unseen_2wikimultihopqa": {
+   "n": 2000,
+   "em": 0.2695,
+   "f1": 0.416,
+   "cover_match": 0.6975,
+   "doc_recall": 0.8332,
+   "mean_steps": 2.93,
+   "tokens_per_episode": 5550.2313,
+   "stop_reasons": {
+    "finish": 143,
+    "budget_forced_finish_no_finish": 91,
+    "budget_forced_finish": 1766
+   },
+   "voluntary_finish": 0.0715,
+   "invalid_action_steps": 398,
+   "total_steps": 5857,
+   "invalid_rate": 0.068,
+   "judge_n": 2000,
+   "judge_correct": 0.738
+  },
+  "base__unseen_2wikimultihopqa": {
+   "n": 2000,
+   "em": 0.0195,
+   "f1": 0.1278,
+   "cover_match": 0.335,
+   "doc_recall": 0.8208,
+   "mean_steps": 2.9833,
+   "tokens_per_episode": 5191.1074,
+   "stop_reasons": {
+    "budget_forced_finish": 552,
+    "budget_forced_finish_no_finish": 1415,
+    "finish": 33
+   },
+   "voluntary_finish": 0.0165,
+   "invalid_action_steps": 320,
+   "total_steps": 5967,
+   "invalid_rate": 0.0536,
+   "judge_n": 2000,
+   "judge_correct": 0.4435
+  },
+  "fold_strategyqa__heldin_musique": {
+   "n": 203,
+   "em": 0.1675,
+   "f1": 0.2596,
+   "cover_match": 0.2857,
+   "doc_recall": 0.6474,
+   "mean_steps": 2.95,
+   "tokens_per_episode": 5195.3,
+   "stop_reasons": {
+    "finish": 10,
+    "budget_forced_finish": 184,
+    "budget_forced_finish_no_finish": 9
+   },
+   "voluntary_finish": 0.0493,
+   "invalid_action_steps": 2,
+   "total_steps": 599,
+   "invalid_rate": 0.0033,
+   "judge_n": 203,
+   "judge_correct": 0.3596
+  },
+  "fold_2wikimultihopqa__heldin_hotpotqa": {
+   "n": 189,
+   "em": 0.3651,
+   "f1": 0.4574,
+   "cover_match": 0.5979,
+   "doc_recall": 0.7804,
+   "mean_steps": 2.85,
+   "tokens_per_episode": 5344.6,
+   "stop_reasons": {
+    "budget_forced_finish": 150,
+    "budget_forced_finish_no_finish": 10,
+    "finish": 29
+   },
+   "voluntary_finish": 0.1534,
+   "invalid_action_steps": 21,
+   "total_steps": 538,
+   "invalid_rate": 0.039,
+   "judge_n": 189,
+   "judge_correct": 0.6614
+  },
+  "base__heldin_2wikimultihopqa": {
+   "n": 170,
+   "em": 0.0059,
+   "f1": 0.1123,
+   "cover_match": 0.2882,
+   "doc_recall": 0.8176,
+   "mean_steps": 2.98,
+   "tokens_per_episode": 5232.2,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 129,
+    "budget_forced_finish": 37,
+    "finish": 4
+   },
+   "voluntary_finish": 0.0235,
+   "invalid_action_steps": 30,
+   "total_steps": 506,
+   "invalid_rate": 0.0593,
+   "judge_n": 170,
+   "judge_correct": 0.4059
+  },
+  "fold_musique__heldin_hotpotqa": {
+   "n": 189,
+   "em": 0.3122,
+   "f1": 0.4049,
+   "cover_match": 0.5767,
+   "doc_recall": 0.7937,
+   "mean_steps": 2.82,
+   "tokens_per_episode": 5298.5,
+   "stop_reasons": {
+    "budget_forced_finish": 143,
+    "budget_forced_finish_no_finish": 12,
+    "finish": 34
+   },
+   "voluntary_finish": 0.1799,
+   "invalid_action_steps": 21,
+   "total_steps": 533,
+   "invalid_rate": 0.0394,
+   "judge_n": 189,
+   "judge_correct": 0.6402
+  },
+  "base__unseen_hotpotqa": {
+   "n": 2000,
+   "em": 0.1915,
+   "f1": 0.2859,
+   "cover_match": 0.4275,
+   "doc_recall": 0.7888,
+   "mean_steps": 2.9167,
+   "tokens_per_episode": 5098.6602,
+   "stop_reasons": {
+    "finish": 168,
+    "budget_forced_finish": 772,
+    "budget_forced_finish_no_finish": 1060
+   },
+   "voluntary_finish": 0.084,
+   "invalid_action_steps": 322,
+   "total_steps": 5832,
+   "invalid_rate": 0.0552,
+   "judge_n": 2000,
+   "judge_correct": 0.4925
+  },
+  "fold_2wikimultihopqa__heldin_musique": {
+   "n": 203,
+   "em": 0.1429,
+   "f1": 0.2542,
+   "cover_match": 0.3054,
+   "doc_recall": 0.6671,
+   "mean_steps": 2.96,
+   "tokens_per_episode": 5209.2,
+   "stop_reasons": {
+    "finish": 8,
+    "budget_forced_finish_no_finish": 11,
+    "budget_forced_finish": 184
+   },
+   "voluntary_finish": 0.0394,
+   "invalid_action_steps": 4,
+   "total_steps": 601,
+   "invalid_rate": 0.0067,
+   "judge_n": 203,
+   "judge_correct": 0.4039
+  },
+  "fold_musique__unseen_musique": {
+   "n": 2000,
+   "em": 0.133,
+   "f1": 0.2209,
+   "cover_match": 0.269,
+   "doc_recall": 0.6646,
+   "mean_steps": 2.96,
+   "tokens_per_episode": 5263.2497,
+   "stop_reasons": {
+    "budget_forced_finish": 1798,
+    "finish": 81,
+    "budget_forced_finish_no_finish": 121
+   },
+   "voluntary_finish": 0.0405,
+   "invalid_action_steps": 35,
+   "total_steps": 5918,
+   "invalid_rate": 0.0059,
+   "judge_n": 1999,
+   "judge_correct": 0.3677
+  },
+  "fold_musique__heldin_2wikimultihopqa": {
+   "n": 170,
+   "em": 0.2647,
+   "f1": 0.4368,
+   "cover_match": 0.7941,
+   "doc_recall": 0.8882,
+   "mean_steps": 2.91,
+   "tokens_per_episode": 5563.8,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 6,
+    "budget_forced_finish": 149,
+    "finish": 15
+   },
+   "voluntary_finish": 0.0882,
+   "invalid_action_steps": 28,
+   "total_steps": 495,
+   "invalid_rate": 0.0566,
+   "judge_n": 170,
+   "judge_correct": 0.8059
+  },
+  "fold_strategyqa__unseen_strategyqa": {
+   "n": 1999,
+   "em": 0.3356,
+   "f1": 0.3639,
+   "cover_match": 0.6083,
+   "doc_recall": 0.8011,
+   "mean_steps": 2.8867,
+   "tokens_per_episode": 5093.3103,
+   "stop_reasons": {
+    "budget_forced_finish": 1719,
+    "finish": 215,
+    "budget_forced_finish_no_finish": 65
+   },
+   "voluntary_finish": 0.1076,
+   "invalid_action_steps": 73,
+   "total_steps": 5774,
+   "invalid_rate": 0.0126,
+   "judge_n": 1999,
+   "judge_correct": 0.6688
+  },
+  "fold_hotpotqa__heldin_musique": {
+   "n": 203,
+   "em": 0.1626,
+   "f1": 0.2854,
+   "cover_match": 0.3448,
+   "doc_recall": 0.6724,
+   "mean_steps": 2.97,
+   "tokens_per_episode": 5212.2,
+   "stop_reasons": {
+    "finish": 5,
+    "budget_forced_finish_no_finish": 8,
+    "budget_forced_finish": 190
+   },
+   "voluntary_finish": 0.0246,
+   "invalid_action_steps": 1,
+   "total_steps": 603,
+   "invalid_rate": 0.0017,
+   "judge_n": 203,
+   "judge_correct": 0.4187
+  },
+  "fold_hotpotqa__heldin_strategyqa": {
+   "n": 185,
+   "em": 0.5297,
+   "f1": 0.5472,
+   "cover_match": 0.7189,
+   "doc_recall": 0.8293,
+   "mean_steps": 2.93,
+   "tokens_per_episode": 5302.5,
+   "stop_reasons": {
+    "finish": 13,
+    "budget_forced_finish": 172
+   },
+   "voluntary_finish": 0.0703,
+   "invalid_action_steps": 12,
+   "total_steps": 542,
+   "invalid_rate": 0.0221,
+   "judge_n": 185,
+   "judge_correct": 0.7189
+  },
+  "base__heldin_strategyqa": {
+   "n": 185,
+   "em": 0.0,
+   "f1": 0.0104,
+   "cover_match": 0.0919,
+   "doc_recall": 0.8141,
+   "mean_steps": 2.99,
+   "tokens_per_episode": 4815.0,
+   "stop_reasons": {
+    "finish": 2,
+    "budget_forced_finish": 28,
+    "budget_forced_finish_no_finish": 155
+   },
+   "voluntary_finish": 0.0108,
+   "invalid_action_steps": 12,
+   "total_steps": 553,
+   "invalid_rate": 0.0217,
+   "judge_n": 185,
+   "judge_correct": 0.1784
+  },
+  "base__heldin_musique": {
+   "n": 203,
+   "em": 0.0296,
+   "f1": 0.0896,
+   "cover_match": 0.1379,
+   "doc_recall": 0.6076,
+   "mean_steps": 3.0,
+   "tokens_per_episode": 4987.5,
+   "stop_reasons": {
+    "budget_forced_finish_no_finish": 164,
+    "budget_forced_finish": 39
+   },
+   "voluntary_finish": 0.0,
+   "invalid_action_steps": 20,
+   "total_steps": 609,
+   "invalid_rate": 0.0328,
+   "judge_n": 203,
+   "judge_correct": 0.1724
+  }
+ },
+ "teacher": {
+  "unseen_strategyqa": {
+   "n": 273,
+   "cover_match": 0.5348,
+   "em": 0.0147,
+   "f1": 0.0536,
+   "doc_recall": 0.8436,
+   "mean_steps": 2.762,
+   "judge_n": 273,
+   "judge_correct": 0.6667
+  },
+  "heldin_hotpotqa": {
+   "n": 189,
+   "cover_match": 0.7354,
+   "em": 0.455,
+   "f1": 0.5488,
+   "doc_recall": 0.8386,
+   "mean_steps": 2.672,
+   "judge_n": 189,
+   "judge_correct": 0.7937
+  },
+  "heldin_musique": {
+   "n": 203,
+   "cover_match": 0.4828,
+   "em": 0.2956,
+   "f1": 0.3916,
+   "doc_recall": 0.7726,
+   "mean_steps": 2.901,
+   "judge_n": 203,
+   "judge_correct": 0.5567
+  },
+  "unseen_2wikimultihopqa": {
+   "n": 252,
+   "cover_match": 0.7976,
+   "em": 0.1984,
+   "f1": 0.3446,
+   "doc_recall": 0.9266,
+   "mean_steps": 2.702,
+   "judge_n": 252,
+   "judge_correct": 0.8373
+  },
+  "unseen_hotpotqa": {
+   "n": 254,
+   "cover_match": 0.7913,
+   "em": 0.5157,
+   "f1": 0.6303,
+   "doc_recall": 0.8681,
+   "mean_steps": 2.61,
+   "judge_n": 254,
+   "judge_correct": 0.8346
+  },
+  "heldin_2wikimultihopqa": {
+   "n": 170,
+   "cover_match": 0.8412,
+   "em": 0.2235,
+   "f1": 0.3624,
+   "doc_recall": 0.9324,
+   "mean_steps": 2.694,
+   "judge_n": 170,
+   "judge_correct": 0.8471
+  },
+  "unseen_musique": {
+   "n": 229,
+   "cover_match": 0.4541,
+   "em": 0.2882,
+   "f1": 0.3765,
+   "doc_recall": 0.77,
+   "mean_steps": 2.926,
+   "judge_n": 229,
+   "judge_correct": 0.5328
+  },
+  "heldin_strategyqa": {
+   "n": 185,
+   "cover_match": 0.6,
+   "em": 0.0108,
+   "f1": 0.0484,
+   "doc_recall": 0.845,
+   "mean_steps": 2.746,
+   "judge_n": 185,
+   "judge_correct": 0.7189
+  }
+ },
+ "paired": {
+  "heldin_hotpotqa": {
+   "teacher_judge": 0.7937,
+   "teacher_cover": 0.7354,
+   "n_paired": 189,
+   "base": 0.455,
+   "fold_2wikimultihopqa": 0.6614,
+   "fold_musique": 0.6402,
+   "fold_strategyqa": 0.6349
+  },
+  "unseen_hotpotqa": {
+   "teacher_judge": 0.8346,
+   "teacher_cover": 0.7913,
+   "n_paired": 254,
+   "base": 0.4606,
+   "fold_hotpotqa": 0.689
+  },
+  "heldin_2wikimultihopqa": {
+   "teacher_judge": 0.8471,
+   "teacher_cover": 0.8412,
+   "n_paired": 170,
+   "base": 0.4059,
+   "fold_hotpotqa": 0.7941,
+   "fold_musique": 0.8059,
+   "fold_strategyqa": 0.7765
+  },
+  "unseen_2wikimultihopqa": {
+   "teacher_judge": 0.8373,
+   "teacher_cover": 0.7976,
+   "n_paired": 252,
+   "base": 0.4603,
+   "fold_2wikimultihopqa": 0.7143
+  },
+  "heldin_musique": {
+   "teacher_judge": 0.5567,
+   "teacher_cover": 0.4828,
+   "n_paired": 203,
+   "base": 0.1724,
+   "fold_hotpotqa": 0.4187,
+   "fold_2wikimultihopqa": 0.4039,
+   "fold_strategyqa": 0.3596
+  },
+  "unseen_musique": {
+   "teacher_judge": 0.5328,
+   "teacher_cover": 0.4541,
+   "n_paired": 229,
+   "base": 0.1048,
+   "fold_musique": 0.3202
+  },
+  "heldin_strategyqa": {
+   "teacher_judge": 0.7189,
+   "teacher_cover": 0.6,
+   "n_paired": 185,
+   "base": 0.1784,
+   "fold_hotpotqa": 0.7189,
+   "fold_2wikimultihopqa": 0.7297,
+   "fold_musique": 0.7297
+  },
+  "unseen_strategyqa": {
+   "teacher_judge": 0.6667,
+   "teacher_cover": 0.5348,
+   "n_paired": 273,
+   "base": 0.1795,
+   "fold_strategyqa": 0.6264
+  }
+ }
+}

@@ -1,0 +1,114 @@
+{
+ "all4_nll": {
+  "greedy": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.59,
+   "samples": [
+    "C",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.3": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.7": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.56,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=1.0": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.7 top_p=0.8": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.57,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.7 top_k=5": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.56,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=1.0 top_k=5": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.7 min_p=0.1": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.56,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=1.0 min_p=0.1": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=1.0 min_p=0.05": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "D",
+    "C",
+    "C"
+   ]
+  },
+  "T=0.2 (sharpened)": {
+   "n": 100,
+   "format_ok": 1.0,
+   "accuracy": 0.58,
+   "samples": [
+    "C",
+    "C",
+    "C"
+   ]
+  }
+ }
+}
