@@ -46,6 +46,10 @@ prep_e17	0	8	0.2	1	-
 judge_sup_selftaught	0	1	0.3	1	done:eval_sup_selftaught
 judge_selfdist_full	0	1	0.3	1	done:eval_selfdist_full
 results_E17	0	1	0.2	1	done:judge_base,done:judge_sup_selfdist,done:judge_sup_selftaught,done:judge_sup_guided,done:judge_sup_teachdist,done:judge_selfdist_full,done:judge_selftaught,done:judge_seed13
+judge_e18_strict	0	1	1	1	done:eval_sup_selftaught,done:eval_selfdist_full
+judge_e18_kimi	0	1	1	1	done:eval_sup_selftaught,done:eval_selfdist_full
+judge_e18_qwen	0	1	2	1	done:eval_sup_selftaught,done:eval_selfdist_full
+e18_report	0	1	0.1	1	done:judge_e18_strict,done:judge_e18_kimi,done:judge_e18_qwen,done:judge_sup_selftaught,done:judge_selfdist_full
 import_research	0	1	0.1	1	-
 judge_e00	0	1	0.5	1	done:import_research
 e03_sample	0	1	0.1	1	done:judge_e00

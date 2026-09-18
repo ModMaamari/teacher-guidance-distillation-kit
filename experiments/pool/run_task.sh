@@ -17,6 +17,7 @@ set -a; . experiments/pool/local.env; set +a
 : "${JUDGE:?}" "${TEACHER:?}" "${STUDENT_MODEL:?}"
 HELDOUT="heldout_hotpotqa heldout_2wikimultihopqa heldout_musique heldout_strategyqa"
 E05_STUDENT=${E05_STUDENT:-openbmb/MiniCPM5-2B}   # E05's second student (a different family, 2B)
+E18_ARMS="base seed13 glmtaught selftaught sup_selfdist sup_guided sup_teachdist sup_selftaught selfdist_full"
 TOOLS="$PY_BASE experiments/pool/tools.py"
 echo "== task $TASK  $(date -u +%FT%TZ)"
 
@@ -120,6 +121,31 @@ case "$TASK" in
         --swap runs/judge_swap/kimi/verdicts.jsonl runs/judge_swap/qwen/verdicts.jsonl \
         --human runs/e03/human_labels.csv | tee runs/e03/agreement.txt &&
       $TOOLS publish runs/e03 results/E03_judge_validity/agreement --only agreement.txt human_labels.csv human_labels.key.json ;;
+
+  # ---------- E18: does answer form move the ranking? other judges and a strict rubric ----------
+  judge_e18_*)
+    which=${TASK#judge_e18_}; globs=""
+    for a in $E18_ARMS; do globs="$globs runs/eval/$a/heldout_*/episodes.jsonl"; done
+    case $which in
+      strict) chain=$JUDGE; extra=(--prompt-file experiments/exp18_answer_form/strict_judge_prompt.txt) ;;
+      kimi)   chain=$JUDGE_SWAP_A; extra=() ;;
+      qwen)   chain=$JUDGE_SWAP_B; extra=(--max-tokens 4000) ;;
+      *) echo "!! unknown judge $which"; exit 2 ;;
+    esac
+    # shellcheck disable=SC2086
+    $PY_BASE scripts/judge.py --judge "$chain" --episodes $globs --out "runs/judge_e18/$which" \
+        --concurrency "${JUDGE_CONCURRENCY:-8}" "${extra[@]}"
+    # shellcheck disable=SC2086
+    $TOOLS judged --episodes $globs --verdicts "runs/judge_e18/$which/verdicts.jsonl" ;;
+  e18_report)
+    mkdir -p runs/results/E18
+    # shellcheck disable=SC2086
+    $PY_BASE experiments/exp18_answer_form/report.py --arms $E18_ARMS --judge primary=runs/judge \
+        --judge strict=runs/judge_e18/strict --judge kimi=runs/judge_e18/kimi --judge qwen=runs/judge_e18/qwen \
+        --pair seed13:selftaught --pair seed13:glmtaught --pair sup_guided:sup_selfdist \
+        --pair sup_selfdist:sup_selftaught --pair sup_guided:sup_selftaught --pair sup_selftaught:sup_teachdist \
+        --pair selfdist_full:selftaught --pair seed13:selfdist_full > runs/results/E18/report.md &&
+      cat runs/results/E18/report.md && $TOOLS publish runs/results/E18 results/E18_answer_form/kit --only report.md ;;
 
   # ---------- data preparation ----------
   prep_sizes)       # nested cuts: one seeded order per dataset, so adding a size never changes the others

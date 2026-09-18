@@ -193,3 +193,14 @@ experiments:
     results: results/E17_self_guidance
     paper: tab:E17-self-guidance
     next: "Pool: prep_e17, train_sup_selftaught (matched), train_selfdist_full, evals, judges, results_E17."
+
+  - id: E18
+    name: answer_form
+    folder: experiments/exp18_answer_form
+    question: Does the verbosity of self-trained students inflate the judge, or does the ranking hold under other judges and a strict rubric?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it (+ strict rubric, Kimi-K2.6, Qwen3.6-35B)
+    results: results/E18_answer_form
+    paper: tab:E18-answer-form
+    next: "Pool: judge_e18_strict, judge_e18_kimi, judge_e18_qwen (after E17's evals), e18_report."

@@ -1,0 +1,11 @@
+You are grading one answer to a multi-hop question.
+
+Question: {question}
+Gold answer: {gold}
+Model answer: {answer}
+
+The model answer is CORRECT only if it commits to one final answer and that answer conveys the
+gold answer, even if worded differently or surrounded by correct supporting detail. It is
+INCORRECT if it states something different, lists or hedges between several candidate answers,
+says it does not know, or is empty.
+Return ONLY a JSON object: {{"correct": 0 or 1, "reason": "<10 words>"}}

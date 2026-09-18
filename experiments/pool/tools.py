@@ -44,7 +44,7 @@ FORBIDDEN = re.compile("|".join(_forbid), re.I)
 
 
 def judged(a) -> int:
-    files = sorted(glob.glob(a.episodes))
+    files = sorted({f for g in a.episodes for f in glob.glob(g)})
     want = set()
     for f in files:
         for line in open(f, encoding="utf-8"):
@@ -186,7 +186,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("judged")
-    p.add_argument("--episodes", required=True)
+    p.add_argument("--episodes", nargs="+", required=True)
     p.add_argument("--verdicts", required=True)
     p.add_argument("--tolerance", type=float, default=0.001, help="fraction of episodes allowed to stay unjudged")
     p = sub.add_parser("view")
