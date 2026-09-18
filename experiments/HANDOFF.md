@@ -5,7 +5,7 @@ before submitting anything, what has changed since the experiment folders were w
 which order to run them. Each experiment's own `README.md` is still the authority on *why* it
 exists and how to read its result; this page is the operational layer around them.
 
-Written 2026-09-18 against commit `6ae1340`.
+Written 2026-09-18 against commit `6ae1340`; section 5 updated for the experiment pool the same day.
 
 ## 1. State of the repository
 
@@ -114,6 +114,19 @@ Three rules that cost real results when broken:
   reply (`ad1ff62`), and the circuit breaker is per endpoint (`2396c65`).
 
 ## 5. Suggested order
+
+**The quick way (since 2026-09-18): `experiments/pool/`.** One task table covers every
+experiment below. A keeper job on a CPU partition submits worker jobs, which train, evaluate,
+judge and publish into `results/` unattended, resuming after walltime or a transient failure:
+
+```bash
+cp experiments/pool/local.env.example experiments/pool/local.env    # judge, teacher, research checkout
+sbatch -p <cpu-partition> experiments/pool/keeper.sbatch            # from the kit root
+bash experiments/pool/status.sh                                     # progress
+```
+
+`experiments/pool/README.md` explains the task table, the priorities and how to stop or re-run a
+task. The steps below are the manual route and explain what each task does.
 
 **Step 0 — the reference results.** They exist (`results/E00_reference`). Run the headline
 pipeline only to reproduce them in this checkout (`docs/REPRODUCE.md` §2):

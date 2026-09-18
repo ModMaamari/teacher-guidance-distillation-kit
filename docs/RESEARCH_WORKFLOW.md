@@ -12,6 +12,9 @@ folder. Kept short on purpose.
 | `results/ENN_<name>/` | what we cite: final numbers, tables and figures, plus a provenance `README.md` | yes |
 | `experiments/registry.yaml` | the status of every experiment; `experiments/REGISTRY.md` is generated from it | yes |
 
+Running them: `experiments/pool/` executes every experiment's tasks as Slurm jobs and publishes
+into `results/` through a scrubber. Each experiment's scripts still work by hand.
+
 ## IDs
 
 Every experiment has one ID, `E00`–`E16` today. The ID names its folder
