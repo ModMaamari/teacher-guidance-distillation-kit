@@ -141,11 +141,11 @@ experiments:
     folder: experiments/exp13_lodo_transfer
     question: Does guidance learned on three datasets transfer to an unseen fourth?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E13_lodo_transfer
     paper: tab:E13-lodo
-    next: "Pool: judge_e13 (19,982 episodes), results_e13."
+    next: "none (re-judged 2026-09-18; the Kimi-K2.6 numbers are kept as history)"
 
   - id: E14
     name: decoding_stability
