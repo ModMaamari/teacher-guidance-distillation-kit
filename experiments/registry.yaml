@@ -124,10 +124,11 @@ experiments:
     folder: experiments/exp11_training_knobs
     question: Is LoRA capacity or the training recipe the ceiling?
     tier: 3
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E11_training_knobs
     paper: tab:E11-knobs
-    next: "Queued in the pool at lowest priority: rank 8/16/64 against seed 13 (rank 32)."
+    next: "none (learning rate, epochs and a full fine-tune not run)"
 
   - id: E12
     name: multiple_comparisons

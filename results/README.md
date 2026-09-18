@@ -18,6 +18,7 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E07 | [`E07_external_testset`](E07_external_testset/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E09 | [`E09_forgetting`](E09_forgetting/README.md) | ✅ done | — | `kit/` |
 | E10 | [`E10_stopping_behavior`](E10_stopping_behavior/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E11 | [`E11_training_knobs`](E11_training_knobs/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E13 | [`E13_lodo_transfer`](E13_lodo_transfer/README.md) | ✅ done | Gemma-4-31B-it | `gemma/`, `results.json` |
 | E14 | [`E14_decoding_stability`](E14_decoding_stability/README.md) | ✅ done | — | `distribution_stats.json`, `hf_sampling_check.json`, `train_final_metrics.json` |
 | E15 | [`E15_teacher_datasets`](E15_teacher_datasets/README.md) | ✅ done | Gemma-4-31B-it | `REPORT.md`, `comparison.json`, `per_question.jsonl` |
