@@ -1495,3 +1495,29 @@ def test_no_teacher_collection_skips_the_teacher(tmp_path, monkeypatch):
     import pytest
     with pytest.raises(SystemExit):
         ce.main()
+
+
+def test_append_jsonl_survives_a_storage_stall(tmp_path, monkeypatch):
+    """CephFS once returned EAGAIN on a plain write and killed a judge run mid-way. The
+    unwritten bytes stay in the buffer, so append_jsonl flushes again after a pause."""
+    import builtins
+    from tgd import io as tio
+    real_open, stalls = builtins.open, [2]
+
+    class Stalling:
+        def __init__(self, fh): self.fh = fh
+        def __enter__(self): return self
+        def __exit__(self, *a): self.fh.close()
+        def write(self, s): return self.fh.write(s)
+        def flush(self):
+            if stalls[0]:
+                stalls[0] -= 1
+                raise BlockingIOError(11, "write could not complete without blocking")
+            self.fh.flush()
+
+    monkeypatch.setattr(tio.time, "sleep", lambda s: None)
+    monkeypatch.setattr(builtins, "open", lambda *a, **k: Stalling(real_open(*a, **k)))
+    tio.append_jsonl(tmp_path / "v.jsonl", {"qid": "q1"})
+    monkeypatch.setattr(builtins, "open", real_open)
+    assert (tmp_path / "v.jsonl").read_text(encoding="utf-8") == '{"qid": "q1"}\n'
+    assert stalls == [0]

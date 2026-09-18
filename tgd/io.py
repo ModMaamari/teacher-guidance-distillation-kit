@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, Iterator, List
 
@@ -48,7 +49,14 @@ def append_jsonl(path: str | Path, row: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
-        fh.flush()
+        for attempt in range(8):
+            try:
+                fh.flush()
+                break
+            except BlockingIOError:  # a network filesystem (seen on CephFS) can return EAGAIN mid-stall;
+                if attempt == 7:     # the unwritten bytes stay buffered, so flushing again is safe
+                    raise
+                time.sleep(0.25 * 2 ** attempt)
 
 
 def read_json(path: str | Path) -> Any:
