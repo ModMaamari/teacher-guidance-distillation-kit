@@ -38,7 +38,7 @@ def main() -> int:
             r = json.loads(line)
             v = (r.get("verdict") or {}).get("correct")
             if v is not None:
-                verdict[(r["source"], r["qid"])] = int(v)
+                verdict[(str(pathlib.Path(r["source"]).resolve()), r["qid"])] = int(v)   # match the lookup below
 
     reasons: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
     steps: dict[str, list[int]] = collections.defaultdict(list)
@@ -56,7 +56,11 @@ def main() -> int:
             r = str(e.get("stop_reason") or "?")
             reasons[arm][r] += 1
             fm = e.get("final_metrics") or {}
-            steps[arm].append(int(e.get("steps") or fm.get("steps") or 0))
+            # eval.py records the step count as used_steps; "steps" is the list of step records
+            n_steps = e.get("used_steps")
+            if n_steps is None:
+                n_steps = len(e["steps"]) if isinstance(e.get("steps"), list) else fm.get("steps", 0)
+            steps[arm].append(int(n_steps or 0))
             key = (str(p.resolve()), e["qid"])
             c = verdict.get(key)
             if c is None:
@@ -64,6 +68,10 @@ def main() -> int:
             by_reason_correct[arm][r].append(c)
 
     src = "judge" if verdict else "cover-match (no verdicts found)"
+    n_cover = sum(1 for f in files for line in open(f, encoding="utf-8") if line.strip()
+                  and (str(pathlib.Path(f).resolve()), json.loads(line)["qid"]) not in verdict)
+    if verdict and n_cover:
+        src += f" ({n_cover} episodes without a verdict fall back to cover-match)"
     print(f"accuracy source: {src}\n")
     for arm in sorted(reasons):
         tot = sum(reasons[arm].values())
@@ -73,8 +81,8 @@ def main() -> int:
             xs = by_reason_correct[arm][r]
             acc = 100.0 * sum(xs) / len(xs) if xs else float("nan")
             print(f"   {r:<22} {c:>5} ({100.0 * c / tot:5.1f}%)   accuracy {acc:5.1f}%")
-        vol = [r for r in reasons[arm] if "answer" in r.lower() or "finish" in r.lower()
-               or "stop" in r.lower()]
+        # voluntary = the agent (or, guided, its teacher) ended the episode before the budget did
+        vol = [r for r in reasons[arm] if "budget" not in r.lower() and "error" not in r.lower() and r != "?"]
         nvol = sum(reasons[arm][r] for r in vol)
         if vol:
             print(f"   voluntary finish: {100.0 * nvol / tot:.1f}%  (reasons: {', '.join(sorted(vol))})")
