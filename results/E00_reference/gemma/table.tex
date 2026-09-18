@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Four arms on the 747 held-out questions. Judge-correct (\%) per dataset and overall; $\Delta$ is the paired difference to the base student with bootstrap 95\% CI and exact McNemar $p$.}
+\label{tab:E00-main}
+\begin{tabular}{lrrrrrrl}
+\toprule
+Arm & HotpotQA & 2Wiki & MuSiQue & StrategyQA & All & $\Delta$ vs base [95\% CI] & $p$ \\
+\midrule
+Base student & 42.9 & 37.1 & 14.8 & 15.7 & 27.2 & -- & -- \\
+Guided student (live teacher) & 60.3 & 57.1 & 37.0 & 72.4 & 56.2 & +29.0 [+25.3, +32.8] & $<$0.001 \\
+Trained student & 64.0 & 82.3 & 37.4 & 73.5 & 63.3 & +36.1 [+32.3, +39.9] & $<$0.001 \\
+Teacher alone & 78.3 & 84.1 & 53.7 & 70.8 & 71.1 & +43.9 [+40.2, +47.5] & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -74,7 +74,8 @@ results() {  # results <view-name> <results-dir> <arm=runs/eval-dir> ...: table 
   $TOOLS view --name "$name" "$@" || return 1
   $PY_BASE scripts/collect_results.py --runs "runs/views/$name" --judge "runs/views/$name/verdicts.jsonl" \
       --out "runs/results/$name" || return 1
-  $TOOLS publish "runs/results/$name" "$dest"
+  $TOOLS publish "runs/results/$name" "$dest" || return 1
+  $PY_BASE experiments/paper_tables.py "$name" || true    # table.tex next to the numbers, when the table has one
 }
 
 split_of() {  # split_of <episodes-dir> <split-root>: build a training split from consolidated episodes

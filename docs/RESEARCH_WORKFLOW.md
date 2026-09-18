@@ -65,6 +65,8 @@ add the registry entry as `planned`, and dry-run before submitting (`DRY_RUN=1`,
 
 ## Writing the paper
 
-Tables and figures come only from `results/`. The paper's appendix lists the experiments by ID —
+Tables and figures come only from `results/`. `python experiments/paper_tables.py` writes each
+experiment's LaTeX table (`table.tex`, labelled with the registry's `paper` key) next to its numbers;
+figure data is published as CSV for pgfplots (`figure_*.csv`). The paper's appendix lists the experiments by ID —
 `experiments/REGISTRY.md` is that list — so a reviewer's question about any number maps to one
 folder.
