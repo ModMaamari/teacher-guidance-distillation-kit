@@ -58,10 +58,10 @@ experiments:
     folder: experiments/exp05_student_family
     question: Does the method work for other small students?
     tier: 2
-    status: planned
+    status: running
     results: results/E05_student_family
     paper: tab:E05-students
-    next: Probe the candidates; train and evaluate each on one split.
+    next: "Pool: train_e05 and eval_e05 with openbmb/MiniCPM5-2B (a second family, 2B) on the uniform split; results_E05. One extra student only."
 
   - id: E06
     name: teacher_strength

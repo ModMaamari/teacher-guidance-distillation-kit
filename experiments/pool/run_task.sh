@@ -16,6 +16,7 @@ ROOT=$KIT . "$KIT/slurm/common.sh"       # cd kit, caches, .env, PY_BASE/PY_TRAI
 set -a; . experiments/pool/local.env; set +a
 : "${JUDGE:?}" "${TEACHER:?}" "${STUDENT_MODEL:?}"
 HELDOUT="heldout_hotpotqa heldout_2wikimultihopqa heldout_musique heldout_strategyqa"
+E05_STUDENT=${E05_STUDENT:-openbmb/MiniCPM5-2B}   # E05's second student (a different family, 2B)
 TOOLS="$PY_BASE experiments/pool/tools.py"
 echo "== task $TASK  $(date -u +%FT%TZ)"
 
@@ -32,7 +33,7 @@ train() {   # train <run-name> <split-dir> [train_sft.py args]
   local dev=$split/dev.jsonl   # size cuts (make_size_splits.py) keep the full split's dev set
   [ -s "$dev" ] || dev=$($PY_BASE -c 'import json,sys; print(json.load(open(sys.argv[1]))["dev_file"])' "$split/manifest.json" 2>/dev/null)
   for f in "$split/train.jsonl" "$dev"; do [ -s "$f" ] || { echo "!! missing ${f:-dev set of $split}"; return 1; }; done
-  $PY_TRAIN scripts/train_sft.py --model "$STUDENT_MODEL" --train-file "$split/train.jsonl" \
+  $PY_TRAIN scripts/train_sft.py --model "${TRAIN_MODEL:-$STUDENT_MODEL}" --train-file "$split/train.jsonl" \
       --dev-file "$dev" --out "runs/train/$name" "$@" || return 1
   [ -f "runs/train/$name/adapter/.done" ]
 }
@@ -49,8 +50,9 @@ evals() {   # evals "<arm=served[:adapter]> ..." "<test ...>" [eval.py args]
   local specs=$1 tests=$2 arms="" s; shift 2
   for s in $specs; do arms="$arms ${s%%=*}"; done
   all_done "$arms" "$tests" >/dev/null && { echo "all evaluated:$arms"; return 0; }
-  PORT=$(free_port) GPU_MEM=${EVAL_GPU_MEM:-$(gpu_frac 24)} MODEL=$STUDENT_MODEL \
-    bash slurm/eval_student.sbatch "$specs" "$tests" --model "$STUDENT_MODEL" "$@"
+  local model=${EVAL_MODEL:-$STUDENT_MODEL}
+  PORT=$(free_port) GPU_MEM=${EVAL_GPU_MEM:-$(gpu_frac 24)} MODEL=$model \
+    bash slurm/eval_student.sbatch "$specs" "$tests" --model "$model" "$@"
   all_done "$arms" "$tests"
 }
 
@@ -151,9 +153,12 @@ case "$TASK" in
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
   train_sup_*)      arm=${TASK#train_sup_}; train "sup_$arm" "data/splits_sup_$arm/matched" ;;
   train_r*)         r=${TASK#train_r}; train "r$r" data/splits/uniform --lora-r "$r" --lora-alpha $((2 * r)) ;;
+  train_e05)        TRAIN_MODEL=$E05_STUDENT train stu_e05 data/splits/uniform --health-every 200 ;;  # E05: another student
 
   # ---------- evaluation on the 747 held-out questions (vLLM on this GPU) ----------
   eval_base)        evals "base=student" "$HELDOUT" ;;
+  eval_e05)         # E05: the other student's base and trained arms share one server, so its lift is like-for-like
+                    EVAL_MODEL=$E05_STUDENT evals "base_e05=student stu_e05=stu_e05:runs/train/stu_e05/adapter" "$HELDOUT" ;;
   eval_budget*)     b=${TASK#eval_budget}   # E08: base and seed-13 student at another step budget
                     evals "base_b$b=student seed13_b$b=seed13:runs/train/seed13/adapter" "$HELDOUT" --budget "$b" ;;
   eval_*)           arm=${TASK#eval_}; evals "$arm=$arm:runs/train/$arm/adapter" "$HELDOUT" ;;
@@ -163,6 +168,7 @@ case "$TASK" in
       $TOOLS publish runs/forgetting/report results/E09_forgetting/kit ;;
 
   # ---------- judging (primary judge) ----------
+  judge_e05)        judge runs/judge/e05 "runs/eval/*_e05/*/episodes.jsonl" "$JUDGE" ;;
   judge_budget*)    b=${TASK#judge_budget}; judge "runs/judge/budget$b" "runs/eval/*_b$b/*/episodes.jsonl" "$JUDGE" ;;
   judge_*)          arm=${TASK#judge_}; judge "runs/judge/$arm" "runs/eval/$arm/*/episodes.jsonl" "$JUDGE" ;;
 
@@ -189,6 +195,9 @@ case "$TASK" in
         teacher_b3=runs/eval/teacher_b3 &&
       $PY_BASE experiments/exp08_step_budget/summarize_budget.py --results runs/results/E08/results.json \
         | tee runs/results/E08/budget.txt && $TOOLS publish runs/results/E08 results/E08_step_budget/kit --only budget.txt ;;
+  results_E05)
+    results E05 results/E05_student_family/kit granite_base=runs/eval/base granite_trained=runs/eval/seed13 \
+        minicpm_base=runs/eval/base_e05 minicpm_trained=runs/eval/stu_e05 ;;
   results_E11)
     results E11 results/E11_training_knobs/kit base=runs/eval/base r8=runs/eval/r8 r16=runs/eval/r16 \
         r32=runs/eval/seed13 r64=runs/eval/r64 ;;

@@ -81,6 +81,7 @@ results/<EID>_*/{kit,gemma}/                         published tables (committed
 | E02 seed variance | `train_seed{13,17,23}`, `eval_seed*`, `eval_base`, `judge_*`, `results_E02` |
 | E03 judge validity | `judge_e00_kimi`, `judge_e00_qwen`, `e03_sample`, `e03_agreement` (waits for the human labels) |
 | E04 data scaling | `prep_sizes`, `train_ep{1000,2000,4000}`, `eval_ep*`, `results_E04` |
+| E05 student family | `train_e05`, `eval_e05` (openbmb/MiniCPM5-2B, set by `E05_STUDENT`), `judge_e05`, `results_E05` |
 | E06 teacher strength | `prep_self`, `prep_glm`, `train_selftaught`, `train_glmtaught`, `results_E06` |
 | E07 contamination | `e07_contamination` |
 | E08 step budget | `eval_budget{1,5,8}`, `teacher_b{1,3,5,8}`, `results_E08` |
