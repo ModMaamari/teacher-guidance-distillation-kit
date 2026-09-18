@@ -188,11 +188,11 @@ experiments:
     folder: experiments/exp17_self_guidance
     question: Does self-guidance (the student as its own privileged teacher) beat unguided self-rollouts?
     tier: 1
-    status: running
+    status: partial
     judge: Gemma-4-31B-it
     results: results/E17_self_guidance
     paper: tab:E17-self-guidance
-    next: "Pool: prep_e17, train_sup_selftaught (matched), train_selfdist_full, evals, judges, results_E17."
+    next: "Matched done (+3.2 over unguided, p 0.03); full-size unguided arm (selfdist_full) running."
 
   - id: E18
     name: answer_form

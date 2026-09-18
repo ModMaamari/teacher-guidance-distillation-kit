@@ -24,4 +24,6 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E14 | [`E14_decoding_stability`](E14_decoding_stability/README.md) | ✅ done | — | `distribution_stats.json`, `hf_sampling_check.json`, `train_final_metrics.json` |
 | E15 | [`E15_teacher_datasets`](E15_teacher_datasets/README.md) | ✅ done | Gemma-4-31B-it | `REPORT.md`, `comparison.json`, `per_question.jsonl` |
 | E16 | [`E16_judge_selection`](E16_judge_selection/README.md) | ✅ done | — | `calls.jsonl`, `easy.json`, `hard.json`, `score.py`, `scores.json` |
+| E17 | [`E17_self_guidance`](E17_self_guidance/README.md) | 🟡 partial | Gemma-4-31B-it | `kit/` |
+| E19 | [`E19_self_guided_robustness`](E19_self_guided_robustness/README.md) | 🔵 running | Gemma-4-31B-it | `forgetting/` |
 <!-- index:end -->
