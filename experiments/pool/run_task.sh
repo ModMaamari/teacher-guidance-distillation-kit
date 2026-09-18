@@ -111,10 +111,11 @@ case "$TASK" in
       $TOOLS publish runs/e03 results/E03_judge_validity/agreement --only agreement.txt human_labels.csv human_labels.key.json ;;
 
   # ---------- data preparation ----------
-  prep_sizes)
-    for n in 1000 2000 4000; do [ -s "data/splits/uniform_ep$n/train.jsonl" ] || need=1; done
-    [ -z "${need:-}" ] && { echo "have size splits"; exit 0; }
-    $PY_BASE scripts/make_size_splits.py --sizes 1000 2000 4000 ;;
+  prep_sizes)       # nested cuts: one seeded order per dataset, so adding a size never changes the others
+    missing=""; for n in 500 1000 2000 4000; do [ -s "data/splits/uniform_ep$n/train.jsonl" ] || missing="$missing $n"; done
+    [ -z "$missing" ] && { echo "have size splits"; exit 0; }
+    # shellcheck disable=SC2086
+    $PY_BASE scripts/make_size_splits.py --sizes $missing ;;
   prep_self)       split_of data/episodes_self data/splits_self ;;
   prep_glm)        split_of data/episodes_glm data/splits_glm ;;
   prep_selfdist|prep_teachdist)
@@ -182,7 +183,7 @@ case "$TASK" in
       $PY_BASE experiments/exp02_seed_variance/summarize_seeds.py --results runs/results/E02/results.json \
         | tee runs/results/E02/seeds.txt && $TOOLS publish runs/results/E02 results/E02_seed_variance/kit --only seeds.txt ;;
   results_E04)
-    results E04 results/E04_data_scaling/kit base=runs/eval/base ep1000=runs/eval/ep1000 ep2000=runs/eval/ep2000 \
+    results E04 results/E04_data_scaling/kit base=runs/eval/base ep500=runs/eval/ep500 ep1000=runs/eval/ep1000 ep2000=runs/eval/ep2000 \
         ep4000=runs/eval/ep4000 full=runs/eval/seed13 ;;
   results_E06)
     results E06 results/E06_teacher_strength/kit base=runs/eval/base deepseek_taught=runs/eval/seed13 \

@@ -11,6 +11,7 @@ eval_selftaught	25	16	0.5	1	done:train_selftaught
 eval_ep4000	25	16	0.5	1	done:train_ep4000
 eval_ep2000	25	16	0.5	1	done:train_ep2000
 eval_ep1000	25	16	0.5	1	done:train_ep1000
+eval_ep500	25	16	0.5	1	done:train_ep500
 eval_budget1	25	16	0.6	1	done:train_seed13
 eval_budget5	25	16	0.6	1	done:train_seed13
 eval_budget8	25	16	0.6	1	done:train_seed13
@@ -31,6 +32,7 @@ train_selftaught	30	32	6	1	done:prep_self
 train_ep4000	30	32	3.08	1	done:prep_sizes
 train_ep2000	30	32	1.54	1	done:prep_sizes
 train_ep1000	30	32	0.77	1	done:prep_sizes
+train_ep500	30	32	0.4	1	done:prep_sizes
 train_glmtaught	30	32	6	1	done:prep_glm
 train_e05	30	32	6	1	-
 train_r8	30	32	6	1	-
@@ -58,6 +60,7 @@ judge_selftaught	0	1	0.3	1	done:eval_selftaught
 judge_ep4000	0	1	0.3	1	done:eval_ep4000
 judge_ep2000	0	1	0.3	1	done:eval_ep2000
 judge_ep1000	0	1	0.3	1	done:eval_ep1000
+judge_ep500	0	1	0.3	1	done:eval_ep500
 judge_glmtaught	0	1	0.3	1	done:eval_glmtaught
 judge_r8	0	1	0.3	1	done:eval_r8
 judge_r16	0	1	0.3	1	done:eval_r16
@@ -72,7 +75,7 @@ judge_teacher_b8	0	1	0.3	1	done:teacher_b8
 judge_teacher_b3	0	1	0.3	1	done:teacher_b3
 results_E02	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_seed17,done:judge_seed23
 results_E06	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_selftaught,done:judge_glmtaught
-results_E04	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_ep1000,done:judge_ep2000,done:judge_ep4000
+results_E04	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_ep500,done:judge_ep1000,done:judge_ep2000,done:judge_ep4000
 results_E08	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_budget1,done:judge_budget5,done:judge_budget8,done:judge_teacher_b1,done:judge_teacher_b3,done:judge_teacher_b5,done:judge_teacher_b8
 results_E01	0	1	0.2	1	done:judge_base,done:judge_sup_guided,done:judge_sup_selfdist,done:judge_sup_teachdist
 results_E11	0	1	0.2	1	done:judge_base,done:judge_seed13,done:judge_r8,done:judge_r16,done:judge_r64
