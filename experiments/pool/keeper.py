@@ -5,7 +5,7 @@ Submits workers only for work that can start now, so no GPU is held while its ta
 something else:
 
   * GPU workers (`tgd-gpu`, GPU_PARTITION, 12 h) up to min(GPU_WORKERS, GPU tasks that are
-    runnable or running);
+    runnable or running); these limits are re-read from local.env on every pass;
   * one `tgd-short` worker (SHORT_PARTITION, 1 h, evaluations only) whenever a GPU task
     estimated at <= 1 h is runnable, because that partition starts at once;
   * one CPU worker (`tgd-cpu`, CPU_PARTITION, 24 h) while any CPU/API task is pending.
@@ -27,6 +27,21 @@ POOL = Path(__file__).resolve().parent
 sys.path.insert(0, str(POOL))
 import worker as W  # noqa: E402  (shares the task table, queue layout and dependency check)
 
+
+def _local_env() -> dict:
+    """KEY=VALUE lines of local.env, so limits can change without resubmitting the keeper."""
+    out = {}
+    f = POOL / "local.env"
+    if f.exists():
+        for line in f.read_text(encoding="utf-8").splitlines():
+            k, sep, v = line.partition("=")
+            if sep and not line.lstrip().startswith("#"):
+                out[k.strip()] = v.strip().strip("'\"")
+    return out
+
+
+os.environ.update({k: v for k, v in _local_env().items()
+                   if k in ("GPU_PARTITION", "SHORT_PARTITION", "SHORT_GRES", "CPU_PARTITION", "GPU_WORKERS")})
 GPU_PARTITION = os.environ.get("GPU_PARTITION", "gpu")
 SHORT_PARTITION = os.environ.get("SHORT_PARTITION", "short")
 SHORT_GRES = os.environ.get("SHORT_GRES", "gpu:l40s:1")
