@@ -1,0 +1,7 @@
+metric: judge_correct   arms: 3
+  13        62.12
+  17        61.58
+  23        61.98
+
+  mean 61.89   sd 0.28   range 61.58-62.12
+  report as: 61.9 +/- 0.3 (n=3)

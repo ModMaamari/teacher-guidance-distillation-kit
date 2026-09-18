@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\caption{Seed variance: the trained student with three training seeds.}
+\label{tab:E02-seeds}
+\begin{tabular}{lrrrrrrl}
+\toprule
+Arm & HotpotQA & 2Wiki & MuSiQue & StrategyQA & All & $\Delta$ vs base [95\% CI] & $p$ \\
+\midrule
+Base student & 42.9 & 35.3 & 17.2 & 15.1 & 27.3 & -- & -- \\
+Trained, seed 13 & 63.5 & 76.5 & 38.9 & 73.0 & 62.1 & +34.8 [+30.8, +38.7] & $<$0.001 \\
+Trained, seed 17 & 63.0 & 78.2 & 37.0 & 71.9 & 61.6 & +34.3 [+30.4, +38.1] & $<$0.001 \\
+Trained, seed 23 & 63.0 & 76.5 & 37.0 & 75.1 & 62.0 & +34.7 [+30.8, +38.6] & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
