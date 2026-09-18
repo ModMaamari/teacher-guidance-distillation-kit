@@ -24,3 +24,9 @@ data/splits/lodo/*/train.jsonl
 data/splits/lodo/*/dev.jsonl
 # training-set-size ablation splits, rebuilt by scripts/make_size_splits.py
 data/splits/uniform_ep*/
+
+# experiment pool: site settings, and the training splits and episode sets it derives
+experiments/pool/local.env
+data/splits_*/
+data/episodes_selfdist/
+data/episodes_teachdist/
