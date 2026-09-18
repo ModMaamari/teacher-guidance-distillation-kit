@@ -86,8 +86,8 @@ prep_teachdist	0	8	0.3	1	done:collect_teachdist
 prep_e01_match	0	8	0.3	1	done:prep_selfdist,done:prep_teachdist
 teacher_b1	0	2	3	1	done:collect_teachdist
 teacher_b5	0	2	3	1	done:collect_teachdist
-teacher_b8	0	2	3	1	done:teacher_b1
-teacher_b3	0	2	3	1	done:teacher_b5
+teacher_b8	0	2	3	1	done:collect_teachdist
+teacher_b3	0	2	3	1	done:collect_teachdist
 judge_e13	0	1	1	1	done:import_research
 results_e13	0	1	0.3	1	done:judge_e13
 e03_swaps	0	1	0.1	1	done:judge_e00,done:judge_e00_kimi,done:judge_e00_qwen
