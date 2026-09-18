@@ -37,11 +37,11 @@ experiments:
     folder: experiments/exp03_judge_validity
     question: Does a human agree with the judge, and does the ranking survive another judge?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E03_judge_validity
     paper: tab:E03-judge
-    next: "Label the 200 blind answers in the E03 Grading Desk; swap judges (Kimi, Qwen3.6) are running in the pool."
+    next: "none (a second annotator would tighten the human kappa)"
 
   - id: E04
     name: data_scaling

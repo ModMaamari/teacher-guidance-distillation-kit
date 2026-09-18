@@ -1,0 +1,33 @@
+primary judge: 2988 verdicts, 4 arms
+
+== arm ranking, primary judge
+   teacher           71.08%  (n=747)
+   trained           63.32%  (n=747)
+   guided            56.22%  (n=747)
+   base              27.18%  (n=747)
+
+== swap: kimi   n=2988
+   agreement 96.9%   kappa 0.937
+   teacher           72.96%  (n=747)
+   trained           65.19%  (n=747)
+   guided            60.91%  (n=747)
+   base              30.12%  (n=747)
+   ranking UNCHANGED
+
+== swap: qwen   n=2987
+   agreement 98.4%   kappa 0.968
+   teacher           71.35%  (n=747)
+   trained           64.12%  (n=747)
+   guided            56.84%  (n=746)
+   base              27.31%  (n=747)
+   ranking UNCHANGED
+
+== human vs primary judge   n=196
+   agreement 94.9%   kappa 0.898   (+/-0.14 rough 95% band)
+   defensible (>0.6)
+
+== answer-length confound (primary judge)
+   judged wrong  : mean   10.0 words  (n=1361)
+   judged correct: mean   12.9 words  (n=1627)
+   correct answers are +2.9 words longer on average
+   large gaps mean the judge may be rewarding verbosity; report it either way

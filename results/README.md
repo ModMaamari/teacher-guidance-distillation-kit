@@ -10,7 +10,7 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | ID | Results folder | Status | Judge | Contents |
 |---|---|---|---|---|
 | E00 | [`E00_reference`](E00_reference/README.md) | ✅ done | Gemma-4-31B-it | `gemma/`, `report.md`, `results.json` |
-| E03 | [`E03_judge_validity`](E03_judge_validity/README.md) | 🔵 running | Gemma-4-31B-it | — |
+| E03 | [`E03_judge_validity`](E03_judge_validity/README.md) | ✅ done | Gemma-4-31B-it | `agreement/`, `kit/` |
 | E06 | [`E06_teacher_strength`](E06_teacher_strength/README.md) | 🔵 running | Gemma-4-31B-it | — |
 | E07 | [`E07_external_testset`](E07_external_testset/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E09 | [`E09_forgetting`](E09_forgetting/README.md) | 🔵 running | — | — |
