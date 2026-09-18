@@ -16,7 +16,10 @@ reviewer will want, in order of how badly their absence hurts:
 # 1. draw a blind, stratified sample for a human to label
 python 01_sample_for_human.py --verdicts runs/judge/verdicts.jsonl --n 200 \
        --out runs/judge/human_sample.csv
-#    fill in the 'human_correct' column by hand: 1, 0, or leave blank to skip
+#    label it in label_app.html (open the file in a browser, choose the CSV; keys 1 / 0 / S),
+#    or fill in the 'human_correct' column by hand: 1, 0, or leave blank to skip.
+#    The app saves labels in the browser and exports human_labels.csv; a published copy keeps
+#    them in its shared database, and labels_to_csv.py turns an export of that into the CSV.
 
 # 2. re-judge everything with two other judges
 export PARTITION=<partition>

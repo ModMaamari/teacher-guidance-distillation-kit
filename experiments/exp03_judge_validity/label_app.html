@@ -1,0 +1,433 @@
+<title>E03 Grading Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root {
+  --ground: #f4f6f9;
+  --surface: #ffffff;
+  --sunk: #eef1f5;
+  --ink: #1b2230;
+  --muted: #5b6576;
+  --rule: #d9dee6;
+  --accent: #3a5ba0;
+  --accent-soft: #e3e9f6;
+  --ok: #2e7d4f;
+  --ok-soft: #e1f1e7;
+  --bad: #b23a3a;
+  --bad-soft: #f7e3e3;
+  --skip: #946b16;
+  --skip-soft: #f5ecd8;
+  --focus: #3a5ba0;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #11141a; --surface: #181d25; --sunk: #1f2530; --ink: #e5e9f0; --muted: #9aa3b2;
+    --rule: #2c3441; --accent: #93aee6; --accent-soft: #232d42; --ok: #62c28a; --ok-soft: #1b3326;
+    --bad: #e58383; --bad-soft: #3a2224; --skip: #d8ae5a; --skip-soft: #342b19; --focus: #93aee6;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #11141a; --surface: #181d25; --sunk: #1f2530; --ink: #e5e9f0; --muted: #9aa3b2;
+  --rule: #2c3441; --accent: #93aee6; --accent-soft: #232d42; --ok: #62c28a; --ok-soft: #1b3326;
+  --bad: #e58383; --bad-soft: #3a2224; --skip: #d8ae5a; --skip-soft: #342b19; --focus: #93aee6;
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 0 48px; }
+header.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ground);
+  border-bottom: 1px solid var(--rule); padding-block: 14px 12px; margin-bottom: 22px;
+}
+.bar-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; justify-content: space-between; }
+h1 { font: 600 17px/1.2 var(--sans); margin: 0; letter-spacing: .01em; }
+h1 small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+.counts { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.counts b { color: var(--ink); font-weight: 500; }
+.counts .c-ok b { color: var(--ok); } .counts .c-bad b { color: var(--bad); } .counts .c-skip b { color: var(--skip); }
+.meter { height: 4px; background: var(--sunk); border-radius: 2px; margin-top: 10px; overflow: hidden; display: flex; }
+.meter i { display: block; height: 100%; }
+.meter .m-ok { background: var(--ok); } .meter .m-bad { background: var(--bad); } .meter .m-skip { background: var(--skip); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.item { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 22px 24px 20px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sid { font: 500 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.state { font: 500 12px var(--sans); letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--sunk); color: var(--muted); }
+.state[data-s="1"] { background: var(--ok-soft); color: var(--ok); }
+.state[data-s="0"] { background: var(--bad-soft); color: var(--bad); }
+.state[data-s="skip"] { background: var(--skip-soft); color: var(--skip); }
+.label { font: 600 11px var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.question { font: 400 21px/1.45 var(--serif); margin: 0 0 20px; text-wrap: pretty; max-width: 68ch; }
+.answers { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; }
+@media (max-width: 620px) { .answers { grid-template-columns: minmax(0, 1fr); } }
+.ans { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; background: var(--sunk); min-height: 64px; }
+.ans.gold { background: var(--accent-soft); border-color: transparent; }
+.ans p { margin: 0; font: 400 16px/1.5 var(--serif); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 16em; overflow-y: auto; }
+.ans p.empty { color: var(--muted); font-style: italic; }
+
+.decide { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+@media (max-width: 460px) { .decide { grid-template-columns: minmax(0, 1fr); } }
+.choice {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
+  font: 500 15px var(--sans); color: var(--ink); background: var(--surface);
+  border: 1.5px solid var(--rule); border-radius: 8px; padding: 12px 14px; transition: background .12s, border-color .12s;
+}
+.choice kbd { font: 500 12px var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; background: var(--sunk); }
+.choice:hover { border-color: var(--muted); }
+.choice[data-v="1"][aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.choice[data-v="0"][aria-pressed="true"] { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.choice[data-v="skip"][aria-pressed="true"] { background: var(--skip-soft); border-color: var(--skip); color: var(--skip); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, .cell:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.note { margin-top: 14px; }
+.note textarea {
+  width: 100%; min-height: 40px; resize: vertical; font: 14px/1.45 var(--sans); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px;
+}
+.nav { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; }
+.nav .group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  font: 500 13px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 7px 12px; cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.saved { font: 12px var(--mono); color: var(--muted); min-height: 1.4em; }
+
+aside { display: grid; gap: 18px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 16px 14px; }
+.panel h2 { font: 600 11px var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.rubric p { margin: 0 0 8px; font-size: 14px; }
+.rubric ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink); display: grid; gap: 4px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 13px; color: var(--muted); }
+.keys kbd { font: 500 12px var(--mono); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: 0 6px; background: var(--sunk); justify-self: start; }
+.grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.cell {
+  aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 3px; background: var(--sunk); cursor: pointer; padding: 0;
+  font: 9px var(--mono); color: transparent;
+}
+.cell[data-s="1"] { background: var(--ok); } .cell[data-s="0"] { background: var(--bad); } .cell[data-s="skip"] { background: var(--skip); }
+.cell[aria-current="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+.loader { background: var(--surface); border: 1px dashed var(--rule); border-radius: 10px; padding: 28px 24px; max-width: 640px; }
+.loader h2 { font: 600 18px var(--sans); margin: 0 0 8px; }
+.loader p { color: var(--muted); margin: 0 0 14px; max-width: 60ch; }
+.msg { font-size: 13px; color: var(--bad); margin-top: 10px; }
+.done-banner { background: var(--ok-soft); color: var(--ok); border-radius: 8px; padding: 10px 14px; font-weight: 500; margin-bottom: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="bar-row">
+      <h1>E03 Grading Desk <small id="mode">connecting…</small></h1>
+      <div class="counts" id="counts">
+        <span><b id="n-done">0</b> / <span id="n-all">0</span> labelled</span>
+        <span class="c-ok"><b id="n-ok">0</b> correct</span>
+        <span class="c-bad"><b id="n-bad">0</b> incorrect</span>
+        <span class="c-skip"><b id="n-skip">0</b> can't tell</span>
+      </div>
+    </div>
+    <div class="meter" aria-hidden="true"><i class="m-ok" id="m-ok"></i><i class="m-bad" id="m-bad"></i><i class="m-skip" id="m-skip"></i></div>
+  </header>
+
+  <section class="loader" id="loader" hidden>
+    <h2>Open the sample to label</h2>
+    <p>Choose <code>runs/e03/human_sample.csv</code>, written by <code>01_sample_for_human.py</code>. Labels are kept in this
+      browser as you go; <b>Save labelled CSV</b> writes the file that <code>03_agreement.py --human</code> reads.</p>
+    <input type="file" id="file" accept=".csv,text/csv">
+    <div class="msg" id="load-msg"></div>
+  </section>
+
+  <div class="layout" id="app" hidden>
+    <main>
+      <div class="done-banner" id="done-banner" hidden>All samples are labelled. Thank you — changes still save if you revise one.</div>
+      <article class="item" aria-live="polite">
+        <div class="item-head">
+          <span class="sid" id="sid">#000</span>
+          <span class="state" id="state">unlabelled</span>
+        </div>
+        <p class="label">Question</p>
+        <p class="question" id="q"></p>
+        <div class="answers">
+          <div class="ans gold"><p class="label">Gold answer</p><p id="gold"></p></div>
+          <div class="ans"><p class="label">Model answer</p><p id="answer"></p></div>
+        </div>
+        <div class="decide" role="group" aria-label="Your verdict">
+          <button class="choice" id="c-ok" data-v="1" aria-pressed="false">Correct <kbd>1</kbd></button>
+          <button class="choice" id="c-bad" data-v="0" aria-pressed="false">Incorrect <kbd>0</kbd></button>
+          <button class="choice" id="c-skip" data-v="skip" aria-pressed="false">Can't tell <kbd>S</kbd></button>
+        </div>
+        <div class="note">
+          <label class="label" for="note">Note (optional)</label>
+          <textarea id="note" placeholder="Why, if the call was hard"></textarea>
+        </div>
+        <div class="nav">
+          <div class="group">
+            <button class="btn" id="prev">← Previous</button>
+            <button class="btn" id="next">Next →</button>
+            <button class="btn primary" id="jump">Next unlabelled</button>
+          </div>
+          <label class="toggle"><input type="checkbox" id="auto" checked> Advance after a verdict</label>
+        </div>
+        <div class="saved" id="saved"></div>
+      </article>
+    </main>
+    <aside>
+      <section class="panel rubric">
+        <h2>Rubric (same as the judge's)</h2>
+        <p><b>Correct</b> if the model answer conveys the gold answer, even if worded differently, more verbose, or with extra correct detail.</p>
+        <p><b>Incorrect</b> if it states something different, says it does not know, or is empty.</p>
+        <ul>
+          <li>Judge the final answer only; you cannot see which system wrote it, by design.</li>
+          <li>Several candidates offered, only one right: incorrect.</li>
+          <li>Use <b>Can't tell</b> when the gold answer itself looks wrong or ambiguous. Those rows are left out of the agreement.</li>
+        </ul>
+      </section>
+      <section class="panel">
+        <h2>Keys</h2>
+        <div class="keys">
+          <kbd>1</kbd><span>correct</span>
+          <kbd>0</kbd><span>incorrect</span>
+          <kbd>S</kbd><span>can't tell</span>
+          <kbd>← →</kbd><span>previous / next</span>
+          <kbd>N</kbd><span>next unlabelled</span>
+          <kbd>Del</kbd><span>clear this label</span>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>All samples</h2>
+        <div class="grid" id="grid" role="list"></div>
+        <div class="legend">
+          <span><i style="background:var(--ok)"></i>correct</span>
+          <span><i style="background:var(--bad)"></i>incorrect</span>
+          <span><i style="background:var(--skip)"></i>can't tell</span>
+          <span><i style="background:var(--sunk);outline:1px solid var(--rule)"></i>open</span>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Export</h2>
+        <div class="nav" style="margin-top:0">
+          <div class="group">
+            <button class="btn" id="copy">Copy CSV</button>
+            <button class="btn" id="save" hidden>Save labelled CSV</button>
+          </div>
+        </div>
+        <div class="saved" id="export-msg"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const S = { samples: [], labels: {}, i: 0, mode: null, db: null, key: null, queue: {} };
+
+  // ---------- storage backends: the artifact's shared db, or this browser (local file mode)
+  const local = {
+    load(key) { try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; } },
+    save(key, labels) { try { localStorage.setItem(key, JSON.stringify(labels)); return true; } catch { return false; } },
+  };
+
+  async function writeLabel(id, body) {
+    if (body) S.labels[id] = body; else delete S.labels[id];
+    render();
+    if (S.mode === "db") {
+      // one write at a time per document, in order
+      const prev = S.queue[id] || Promise.resolve();
+      const job = prev.then(async () => {
+        const ref = S.db.doc("labels/" + id);
+        try {
+          if (body) await ref.set(body); else await ref.delete();
+          flash("saved " + new Date().toLocaleTimeString());
+        } catch (e) {
+          if (e && e.code === "unavailable") {
+            await new Promise((r) => setTimeout(r, 400 + Math.random() * 600));
+            try { if (body) await ref.set(body); else await ref.delete(); flash("saved"); return; } catch (e2) { e = e2; }
+          }
+          flash("not saved: " + ((e && e.message) || "error") + " — reload and try again", true);
+        }
+      });
+      S.queue[id] = job;
+      return job;
+    }
+    const ok = local.save(S.key, S.labels);
+    flash(ok ? "saved in this browser" : "could not save in this browser — export now", !ok);
+  }
+
+  function flash(t, bad) { const el = $("saved"); el.textContent = t; el.style.color = bad ? "var(--bad)" : ""; }
+
+  // ---------- rendering
+  function counts() {
+    let ok = 0, bad = 0, skip = 0;
+    for (const s of S.samples) {
+      const l = S.labels[s.id]; if (!l) continue;
+      if (l.label === "1") ok++; else if (l.label === "0") bad++; else if (l.label === "skip") skip++;
+    }
+    return { ok, bad, skip, done: ok + bad + skip, all: S.samples.length };
+  }
+
+  function render() {
+    const c = counts();
+    $("n-done").textContent = c.done; $("n-all").textContent = c.all;
+    $("n-ok").textContent = c.ok; $("n-bad").textContent = c.bad; $("n-skip").textContent = c.skip;
+    const pct = (n) => (c.all ? (100 * n / c.all) : 0) + "%";
+    $("m-ok").style.width = pct(c.ok); $("m-bad").style.width = pct(c.bad); $("m-skip").style.width = pct(c.skip);
+    $("done-banner").hidden = !(c.all && c.done === c.all);
+    const s = S.samples[S.i]; if (!s) return;
+    const l = S.labels[s.id];
+    $("sid").textContent = "#" + String(s.n).padStart(3, "0") + " · " + (S.i + 1) + " of " + c.all;
+    const st = $("state"); st.dataset.s = l ? l.label : "";
+    st.textContent = !l ? "open" : l.label === "1" ? "correct" : l.label === "0" ? "incorrect" : "can't tell";
+    $("q").textContent = s.question;
+    $("gold").textContent = s.gold;
+    const a = $("answer"); a.textContent = s.answer || "(empty answer)"; a.classList.toggle("empty", !s.answer);
+    for (const b of document.querySelectorAll(".choice")) b.setAttribute("aria-pressed", String(!!l && l.label === b.dataset.v));
+    const note = $("note"); if (document.activeElement !== note) note.value = (l && l.note) || "";
+    const grid = $("grid");
+    if (grid.children.length !== S.samples.length) {
+      grid.textContent = "";
+      S.samples.forEach((x, k) => {
+        const b = document.createElement("button");
+        b.className = "cell"; b.setAttribute("role", "listitem"); b.title = "#" + String(x.n).padStart(3, "0");
+        b.setAttribute("aria-label", "sample " + x.n); b.addEventListener("click", () => go(k));
+        grid.appendChild(b);
+      });
+    }
+    S.samples.forEach((x, k) => {
+      const cell = grid.children[k]; const lab = S.labels[x.id];
+      cell.dataset.s = lab ? lab.label : ""; cell.setAttribute("aria-current", String(k === S.i));
+    });
+  }
+
+  function go(k) { if (k < 0 || k >= S.samples.length) return; S.i = k; render(); }
+  function nextOpen(from) {
+    const n = S.samples.length;
+    for (let d = 1; d <= n; d++) { const k = (from + d) % n; if (!S.labels[S.samples[k].id]) return k; }
+    return -1;
+  }
+  function decide(v) {
+    const s = S.samples[S.i]; if (!s) return;
+    const note = $("note").value.trim();
+    writeLabel(s.id, { label: v, note, n: s.n, at: new Date().toISOString() });
+    if ($("auto").checked) { const k = nextOpen(S.i); if (k >= 0) go(k); }
+  }
+  function clearLabel() { const s = S.samples[S.i]; if (s && S.labels[s.id]) writeLabel(s.id, null); }
+
+  let noteTimer = null;
+  $("note").addEventListener("input", () => {
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => {
+      const s = S.samples[S.i]; const l = s && S.labels[s.id];
+      const v = $("note").value.trim();
+      if (l && (l.note || "") !== v) writeLabel(s.id, { ...l, note: v });
+    }, 700);
+  });
+  for (const b of document.querySelectorAll(".choice")) b.addEventListener("click", () => decide(b.dataset.v));
+  $("prev").addEventListener("click", () => go(S.i - 1));
+  $("next").addEventListener("click", () => go(S.i + 1));
+  $("jump").addEventListener("click", () => { const k = nextOpen(S.i); if (k >= 0) go(k); });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("textarea, input")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === "1") decide("1"); else if (k === "0") decide("0"); else if (k === "s") decide("skip");
+    else if (k === "arrowleft") go(S.i - 1); else if (k === "arrowright") go(S.i + 1);
+    else if (k === "n") { const j = nextOpen(S.i); if (j >= 0) go(j); }
+    else if (k === "delete" || k === "backspace") clearLabel();
+    else return;
+    e.preventDefault();
+  });
+
+  // ---------- export: the CSV 03_agreement.py reads (human_correct = 1, 0 or blank)
+  function csvCell(v) { v = String(v ?? ""); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function toCSV() {
+    const rows = [["sample_id", "question", "gold_answer", "model_answer", "human_correct", "note"]];
+    for (const s of S.samples) {
+      const l = S.labels[s.id];
+      rows.push([s.n, s.question, s.gold, s.answer, l && (l.label === "1" || l.label === "0") ? l.label : "", (l && l.note) || ""]);
+    }
+    return rows.map((r) => r.map(csvCell).join(",")).join("\n") + "\n";
+  }
+  $("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(toCSV()); $("export-msg").textContent = "Copied " + S.samples.length + " rows."; }
+    catch { $("export-msg").textContent = "The clipboard is blocked here; use Save labelled CSV in the local copy."; }
+  });
+  $("save").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([toCSV()], { type: "text/csv" }));
+    a.download = "human_labels.csv"; document.body.appendChild(a); a.click(); a.remove();
+    $("export-msg").textContent = "Saved human_labels.csv; put it at runs/e03/human_labels.csv.";
+  });
+
+  // ---------- local file mode: parse the sampler's CSV
+  function parseCSV(text) {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === ",") { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(cell); cell = ""; if (row.length > 1 || row[0] !== "") rows.push(row); row = [];
+      } else cell += ch;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  $("file").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const rows = parseCSV(await f.text()); const head = rows.shift() || [];
+    const col = (name) => head.indexOf(name);
+    const need = ["sample_id", "question", "gold_answer", "model_answer"];
+    if (need.some((n) => col(n) < 0)) { $("load-msg").textContent = "This is not the sampler's CSV (needs " + need.join(", ") + ")."; return; }
+    S.samples = rows.map((r) => ({ id: "s" + String(r[col("sample_id")]).padStart(3, "0"), n: +r[col("sample_id")],
+      question: r[col("question")], gold: r[col("gold_answer")], answer: r[col("model_answer")] }));
+    S.key = "e03-labels:" + f.name + ":" + S.samples.length;
+    S.labels = local.load(S.key);
+    const hc = col("human_correct");   // resume from a partly filled file too
+    if (hc >= 0) rows.forEach((r, k) => { const v = (r[hc] || "").trim(); const id = S.samples[k].id;
+      if ((v === "0" || v === "1") && !S.labels[id]) S.labels[id] = { label: v, note: "", n: S.samples[k].n }; });
+    start("local file · saved in this browser");
+    $("save").hidden = false;
+  });
+
+  function start(modeText) {
+    $("mode").textContent = modeText;
+    $("loader").hidden = true; $("app").hidden = false;
+    const k = nextOpen(-1); S.i = k >= 0 ? k : 0; render();
+  }
+
+  // ---------- boot: the shared db when this page runs as the published artifact
+  async function boot() {
+    let db = null;
+    try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
+    if (!db) { $("mode").textContent = "local"; $("loader").hidden = false; return; }
+    S.mode = "db"; S.db = db;
+    try {
+      const snap = await db.collection("samples").orderBy("n").limit(1000).get();
+      S.samples = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch (e) { $("mode").textContent = "could not read the samples (" + ((e && e.code) || "error") + ")"; return; }
+    if (!S.samples.length) { $("mode").textContent = "no samples loaded yet"; $("loader").hidden = false; return; }
+    start("shared · every verdict saves as you click");
+    db.collection("labels").onSnapshot((snap) => {
+      const next = {};
+      for (const d of snap.docs) next[d.id] = d.data();
+      S.labels = next; render();
+    }, (e) => flash("live updates stopped (" + ((e && e.code) || "error") + "); reload the page", true));
+  }
+  boot();
+})();
+</script>
