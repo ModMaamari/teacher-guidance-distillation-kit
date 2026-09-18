@@ -43,6 +43,8 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=8, help="n-gram length")
     ap.add_argument("--max-df", type=int, default=3,
                     help="ignore n-grams appearing in more than this many training rows")
+    ap.add_argument("--flagged-out", default="",
+                    help="write the flagged test questions (id, test set, overlap) as JSON, for exclude_flagged.py")
     a = ap.parse_args()
 
     train = pathlib.Path(a.split) / "train.jsonl"
@@ -71,6 +73,7 @@ def main() -> int:
         print(f"!! nothing matched {a.test}", file=sys.stderr)
         return 1
     worst: list[tuple[float, str, str]] = []
+    flagged: list[dict] = []
     for f in files:
         p = pathlib.Path(f)
         hits = tot = 0
@@ -81,10 +84,14 @@ def main() -> int:
             if g & rare:
                 hits += 1
                 worst.append((len(g & rare) / max(len(g), 1), p.stem, text[:70]))
+                flagged.append({"id": q.get("id") or q.get("qid"), "test_set": p.stem.replace("_questions", ""),
+                                "overlap": round(len(g & rare) / max(len(g), 1), 4)})
         pct = 100.0 * hits / max(tot, 1)
         flag = "  <-- look at these" if pct > 5 else ""
         print(f"  {p.stem:<34} {hits:>4}/{tot:<5} ({pct:5.2f}%){flag}")
 
+    if a.flagged_out:
+        pathlib.Path(a.flagged_out).write_text(json.dumps(flagged, indent=1), encoding="utf-8")
     worst.sort(reverse=True)
     if worst:
         print("\nhighest-overlap test questions:")

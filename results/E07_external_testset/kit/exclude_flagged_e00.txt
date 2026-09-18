@@ -1,0 +1,11 @@
+flagged questions: 14
+
+arm                     all    without flagged   flagged only
+base          27.2% (n=747)      27.0% (n=733)   35.7% (n=14)
+guided        56.2% (n=747)      55.9% (n=733)   71.4% (n=14)
+teacher       71.1% (n=747)      70.8% (n=733)   85.7% (n=14)
+trained       63.3% (n=747)      63.2% (n=733)   71.4% (n=14)
+
+base -> trained, all: +36.1 points on 747 paired questions
+
+base -> trained, without flagged: +36.2 points on 733 paired questions

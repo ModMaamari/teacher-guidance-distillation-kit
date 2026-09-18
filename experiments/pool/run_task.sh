@@ -196,8 +196,11 @@ case "$TASK" in
   # ---------- CPU analyses ----------
   e07_contamination)
     mkdir -p runs/results/E07
-    $PY_BASE experiments/exp07_external_testset/contamination_check.py | tee runs/results/E07/contamination.txt &&
-      $TOOLS publish runs/results/E07 results/E07_external_testset/kit --only contamination.txt ;;
+    $PY_BASE experiments/exp07_external_testset/contamination_check.py --flagged-out runs/results/E07/flagged.json \
+        | tee runs/results/E07/contamination.txt &&
+      $PY_BASE experiments/exp07_external_testset/exclude_flagged.py --runs runs/e00/eval \
+        --verdicts runs/judge/e00/verdicts.jsonl --flagged runs/results/E07/flagged.json | tee runs/results/E07/exclude_flagged_e00.txt &&
+      $TOOLS publish runs/results/E07 results/E07_external_testset/kit --only contamination.txt exclude_flagged_e00.txt flagged.json ;;
   e10_stopping)
     mkdir -p runs/results/E10
     $PY_BASE experiments/exp10_stopping_behavior/analyze_stopping.py --runs runs/e00/eval \

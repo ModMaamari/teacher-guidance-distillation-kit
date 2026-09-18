@@ -1,0 +1,72 @@
+[
+ {
+  "id": "44fc69be0bda11eba7f7acde48001122",
+  "test_set": "heldout_2wikimultihopqa",
+  "overlap": 0.4286
+ },
+ {
+  "id": "5a75db5c5542992db94736ff",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.3103
+ },
+ {
+  "id": "5a7e09e95542997cc2c47504",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.0139
+ },
+ {
+  "id": "5adc2ead55429944faac244c",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.0714
+ },
+ {
+  "id": "5ae00768554299025d62a3ac",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.0606
+ },
+ {
+  "id": "5ac492a85542996feb3fe8d9",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.14
+ },
+ {
+  "id": "5ae23bdd5542992decbdcc99",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.1346
+ },
+ {
+  "id": "5a8b591f5542995d1e6f1379",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.3125
+ },
+ {
+  "id": "5ade64875542997c77adee18",
+  "test_set": "heldout_hotpotqa",
+  "overlap": 0.102
+ },
+ {
+  "id": "2hop__108242_37364",
+  "test_set": "heldout_musique",
+  "overlap": 0.1429
+ },
+ {
+  "id": "4hop1__366739_106790_158589_157932",
+  "test_set": "heldout_musique",
+  "overlap": 0.2
+ },
+ {
+  "id": "2hop__84294_47878",
+  "test_set": "heldout_musique",
+  "overlap": 0.2
+ },
+ {
+  "id": "2hop__295854_135710",
+  "test_set": "heldout_musique",
+  "overlap": 0.0833
+ },
+ {
+  "id": "c69a3eeea9743e782831",
+  "test_set": "heldout_strategyqa",
+  "overlap": 0.1111
+ }
+]

@@ -1,0 +1,19 @@
+training rows 14458   distinct 8-grams 2521420   rare (df<=3) 1998652
+
+  heldout_2wikimultihopqa_questions     1/170   ( 0.59%)
+  heldout_hotpotqa_questions            8/189   ( 4.23%)
+  heldout_musique_questions             4/203   ( 1.97%)
+  heldout_strategyqa_questions          1/185   ( 0.54%)
+
+highest-overlap test questions:
+  42.9%  heldout_2wikimultihopqa_questions Where was the place of death of the performer of song Adore (Prince So
+  31.2%  heldout_hotpotqa_questions   Billie Catherine Lourd (born July 17, 1992) is an American actress bes
+  31.0%  heldout_hotpotqa_questions   Which film, directed by Jim Sheridan, centers on the life of a boxer a
+  20.0%  heldout_musique_questions    When did East Germany unite with the country Boney M. came from?
+  20.0%  heldout_musique_questions    What is something inconsistent between the Jewish populations in one o
+  14.3%  heldout_musique_questions    The creator of The Merciful Knight is noted for creating mosaics in wh
+  14.0%  heldout_hotpotqa_questions   Caladenia flindersica is a plant in the orchid family Orchidaceae and 
+  13.5%  heldout_hotpotqa_questions   The Texas–Arlington Mavericks women's basketball team is an NCAA Divis
+
+A small non-zero number is normal and worth reporting. A large one on a single
+dataset usually means shared source documents, not a broken split.

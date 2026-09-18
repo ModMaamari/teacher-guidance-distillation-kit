@@ -79,10 +79,11 @@ experiments:
     folder: experiments/exp07_external_testset
     question: Is the result driven by benchmark contamination?
     tier: 2
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E07_external_testset
     paper: tab:E07-external
-    next: "Pool: e07_contamination (CPU). An external test set only if one is chosen."
+    next: "none (an external test set only if one is chosen)"
 
   - id: E08
     name: step_budget
