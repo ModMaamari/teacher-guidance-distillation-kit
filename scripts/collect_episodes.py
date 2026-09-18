@@ -19,6 +19,8 @@ Usage::
         --student vllm/student --teacher oai-teacher/deepseek-v4-flash --shards 6 \
         --out runs/collect
     python scripts/collect_episodes.py --datasets hotpotqa --num-samples 3 --smoke ...   # 3 questions
+    # control sets with no teacher in the loop (exp01): the student acts alone
+    python scripts/collect_episodes.py --no-teacher --student vllm/student --tag selfdist --out runs/collect_selfdist
 """
 from __future__ import annotations
 
@@ -45,9 +47,10 @@ def build_template(*, template_id: str, student: str, teacher: str, questions_pa
                    corpus_path: str, output_dir: str, num_samples: int, budget: int,
                    disclose_budget: bool, planning_steps: int, max_plan_steps: int,
                    teacher_max_tokens: int, teacher_temperature: float, student_temperature: float,
-                   student_max_tokens: int) -> dict:
+                   student_max_tokens: int, skip_teacher: bool = False) -> dict:
     """One simulation template = one worker's configuration (mirrors the harness's
-    ``standard`` mode with plan review and guidance level 3, diagnostic feedback)."""
+    ``standard`` mode with plan review and guidance level 3, diagnostic feedback).
+    ``skip_teacher`` runs the same protocol with no teacher: no plan review, no step review."""
     mode_config = {
         "budget": budget,
         "student_model": student,
@@ -59,7 +62,7 @@ def build_template(*, template_id: str, student: str, teacher: str, questions_pa
         "wiki_mode": "tools",
         "corpus_path": corpus_path,
         "retrieval_backend": "hotpot_local",
-        "skip_teacher": False,
+        "skip_teacher": skip_teacher,
         # A reasoning student spends this budget on prose before the JSON action; at the
         # 1200 default granite-4.2-3b was truncated mid-object on every middle step and
         # the harness recorded those as invalid actions.
@@ -85,7 +88,8 @@ def build_template(*, template_id: str, student: str, teacher: str, questions_pa
     }
     return {
         "id": template_id,
-        "name": f"teacher-guided collection ({student} student, {teacher} teacher, b={budget})",
+        "name": (f"unguided collection ({student} alone, b={budget})" if skip_teacher else
+                 f"teacher-guided collection ({student} student, {teacher} teacher, b={budget})"),
         "mode": "standard",
         "teacher_models": [{"name": "student", "model_id": student, "role": "teacher",
                             "temperature": student_temperature}],
@@ -118,7 +122,9 @@ def main() -> int:
     ap.add_argument("--questions", default="data/questions")
     ap.add_argument("--num-samples", type=int, default=2000, help="questions per dataset (from the top of the file)")
     ap.add_argument("--student", required=True, help="student model id, e.g. vllm/student")
-    ap.add_argument("--teacher", required=True, help="teacher model id, e.g. oai-teacher/<model>")
+    ap.add_argument("--teacher", help="teacher model id, e.g. oai-teacher/<model>")
+    ap.add_argument("--no-teacher", action="store_true",
+                    help="no teacher in the loop: the student plans and acts alone (exp01 control sets)")
     ap.add_argument("--shards", type=int, default=6, help="concurrent workers per dataset")
     ap.add_argument("--budget", type=int, default=3, choices=[1, 2, 3, 4, 5, 9, 10, 12, 20, 30])
     ap.add_argument("--disclose-budget", action="store_true", help="tell the student its budget (default: hidden)")
@@ -134,6 +140,10 @@ def main() -> int:
     ap.add_argument("--smoke", action="store_true", help="1 shard, num-samples questions, separate tag")
     ap.add_argument("--plan-only", action="store_true", help="write templates, run nothing")
     args = ap.parse_args()
+    if args.no_teacher:
+        args.teacher = args.teacher or args.student   # the harness wants an id; it is never called
+    elif not args.teacher:
+        ap.error("--teacher is required unless --no-teacher")
 
     workflow = ROOT / "templates" / "workflows" / f"hotpot_teacher_guided_b{args.budget}_plan_review.yaml"
     if not workflow.exists():
@@ -160,7 +170,7 @@ def main() -> int:
                 disclose_budget=args.disclose_budget, planning_steps=args.planning_steps,
                 max_plan_steps=args.max_plan_steps, teacher_max_tokens=args.teacher_max_tokens,
                 teacher_temperature=args.teacher_temperature, student_temperature=args.student_temperature,
-                student_max_tokens=args.student_max_tokens)
+                student_max_tokens=args.student_max_tokens, skip_teacher=args.no_teacher)
             (TEMPLATE_DIR / f"{tid}.yaml").write_text(yaml.safe_dump(tpl, sort_keys=False), encoding="utf-8")
             plans.append({"dataset": ds, "template": tid, "questions": len(shard_rows), "out_dir": out_dir})
     total = sum(p["questions"] for p in plans)

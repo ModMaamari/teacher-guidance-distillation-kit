@@ -1468,3 +1468,30 @@ def test_router_breaker_is_per_endpoint_so_a_hung_endpoint_keeps_its_fallback(mo
     # the hung endpoint is now skipped, but the fallback of the same provider type still serves
     assert asyncio.run(client.get_completion_with_fallback(chain, prompt="p"))[1] == "oai-backup/judge-model"
     assert calls == ["oai-backup/judge-model"]
+
+
+def test_no_teacher_collection_skips_the_teacher(tmp_path, monkeypatch):
+    """exp01's control sets run the guided protocol with no teacher in the loop. The flag
+    must reach the harness as skip_teacher, which drops plan review and step review; a
+    guided run must keep it off."""
+    import importlib.util
+    import yaml
+    spec = importlib.util.spec_from_file_location("collect_episodes", "scripts/collect_episodes.py")
+    ce = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ce)
+    monkeypatch.setattr(ce, "TEMPLATE_DIR", tmp_path / "tpl")
+    common = ["--datasets", "hotpotqa", "--num-samples", "2", "--shards", "1", "--plan-only",
+              "--student", "vllm/student", "--out", str(tmp_path / "out")]
+    monkeypatch.setattr(sys, "argv", ["x", *common, "--no-teacher", "--tag", "solo"])
+    assert ce.main() == 0
+    tpl = yaml.safe_load((tmp_path / "tpl" / "solo_hotpotqa_s0.yaml").read_text(encoding="utf-8"))
+    assert tpl["mode_config"]["skip_teacher"] is True
+    assert tpl["mode_config"]["teacher_router"] == ["vllm/student"], "never called, but must be a valid id"
+    monkeypatch.setattr(sys, "argv", ["x", *common, "--teacher", "oai-teacher/t", "--tag", "guided"])
+    assert ce.main() == 0
+    tpl = yaml.safe_load((tmp_path / "tpl" / "guided_hotpotqa_s0.yaml").read_text(encoding="utf-8"))
+    assert tpl["mode_config"]["skip_teacher"] is False
+    monkeypatch.setattr(sys, "argv", ["x", *common, "--tag", "broken"])
+    import pytest
+    with pytest.raises(SystemExit):
+        ce.main()
