@@ -10,10 +10,13 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | ID | Results folder | Status | Judge | Contents |
 |---|---|---|---|---|
 | E00 | [`E00_reference`](E00_reference/README.md) | ✅ done | Gemma-4-31B-it | `gemma/`, `report.md`, `results.json` |
+| E02 | [`E02_seed_variance`](E02_seed_variance/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E03 | [`E03_judge_validity`](E03_judge_validity/README.md) | ✅ done | Gemma-4-31B-it | `agreement/`, `kit/` |
-| E06 | [`E06_teacher_strength`](E06_teacher_strength/README.md) | 🔵 running | Gemma-4-31B-it | — |
+| E04 | [`E04_data_scaling`](E04_data_scaling/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E05 | [`E05_student_family`](E05_student_family/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E06 | [`E06_teacher_strength`](E06_teacher_strength/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E07 | [`E07_external_testset`](E07_external_testset/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
-| E09 | [`E09_forgetting`](E09_forgetting/README.md) | 🔵 running | — | — |
+| E09 | [`E09_forgetting`](E09_forgetting/README.md) | ✅ done | — | `kit/` |
 | E10 | [`E10_stopping_behavior`](E10_stopping_behavior/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E13 | [`E13_lodo_transfer`](E13_lodo_transfer/README.md) | ✅ done | Gemma-4-31B-it | `gemma/`, `results.json` |
 | E14 | [`E14_decoding_stability`](E14_decoding_stability/README.md) | ✅ done | — | `distribution_stats.json`, `hf_sampling_check.json`, `train_final_metrics.json` |

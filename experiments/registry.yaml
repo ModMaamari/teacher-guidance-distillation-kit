@@ -27,10 +27,11 @@ experiments:
     folder: experiments/exp02_seed_variance
     question: Do the small effects survive other training seeds?
     tier: 1
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E02_seed_variance
     paper: tab:E02-seeds
-    next: "Pool: train_seed{13,17,23}, eval, judge, results_E02."
+    next: "none"
 
   - id: E03
     name: judge_validity
@@ -48,31 +49,33 @@ experiments:
     folder: experiments/exp04_data_scaling
     question: How much guided data is needed?
     tier: 2
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E04_data_scaling
     paper: fig:E04-scaling
-    next: "Pool: train_ep{1000,2000,4000}, eval, judge, results_E04 (the full split is E02's seed 13)."
+    next: "none (one seed per size)"
 
   - id: E05
     name: student_family
     folder: experiments/exp05_student_family
     question: Does the method work for other small students?
     tier: 2
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E05_student_family
     paper: tab:E05-students
-    next: "Pool: train_e05 and eval_e05 with openbmb/MiniCPM5-2B (a second family, 2B) on the uniform split; results_E05. One extra student only."
+    next: "none (one extra student by scope)"
 
   - id: E06
     name: teacher_strength
     folder: experiments/exp06_teacher_strength
     question: Is the effect specific to one teacher? Does a weaker teacher still help?
     tier: 2
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E06_teacher_strength
     paper: tab:E06-teachers
-    next: "Pool: train_selftaught and train_glmtaught, eval, judge, results_E06."
+    next: "none (Mistral-family teachers not run)"
 
   - id: E07
     name: external_testset
@@ -100,10 +103,10 @@ experiments:
     folder: experiments/exp09_forgetting
     question: What did training cost in general ability (MMLU, GSM8K, HellaSwag)?
     tier: 2
-    status: running
+    status: done
     results: results/E09_forgetting
     paper: tab:E09-forgetting
-    next: "Pool: forget_seed13 once seed 13 is trained."
+    next: "none"
 
   - id: E10
     name: stopping_behavior
@@ -121,7 +124,7 @@ experiments:
     folder: experiments/exp11_training_knobs
     question: Is LoRA capacity or the training recipe the ceiling?
     tier: 3
-    status: planned
+    status: running
     results: results/E11_training_knobs
     paper: tab:E11-knobs
     next: "Queued in the pool at lowest priority: rank 8/16/64 against seed 13 (rank 32)."
