@@ -71,8 +71,9 @@ resubmitting after a time-limit kill continues where it stopped.
 ## 3. Pick the judge deliberately
 
 `experiments/_common.sh` still defaults `JUDGE` to Kimi-K2.6, which is what `docs/RESULTS.md`
-used. A later benchmark of 14 candidate judges on 145 hand-labelled question–answer pairs (86
-correct, 59 incorrect) ranked Gemma-4-31B-it first:
+used. A later benchmark of 14 candidate judges on 145 labelled question–answer pairs (86
+correct, 59 incorrect; labels assigned by the AI assistant, not a human — see E16) ranked
+Gemma-4-31B-it first:
 
 | Judge | Accuracy | Cohen's κ | Incorrect answers accepted |
 |---|---|---|---|

@@ -116,9 +116,10 @@ All three datasets were judged by the same model with the same prompt, using `sc
 * **Verdict:** the last JSON object in the reply that carries a `correct` key (a reply that corrects
   itself ends with its final verdict).
 
-**Why this judge.** Before judging, 14 candidate judge models were compared on 145 hand-labelled
+**Why this judge.** Before judging, 14 candidate judge models were compared on 145 labelled
 question–answer pairs (86 correct, 59 incorrect answers; 15 further items were ambiguous and
-excluded). Gemma-4-31B-it had 98.6 % accuracy, Cohen's κ 0.97, accepted 3.4 % of the incorrect
+excluded). The labels were assigned by the AI assistant that built the benchmark, not by a human
+(`results/E16_judge_selection`). Gemma-4-31B-it had 98.6 % accuracy, Cohen's κ 0.97, accepted 3.4 % of the incorrect
 answers, rejected none of the correct ones, and rejected all 15 control items in which a wrong
 answer was graded against a deliberately altered gold answer. Kimi-K2.6, the judge behind
 `docs/RESULTS.md`, scored 94.5 % and accepted 11.9 % of incorrect answers on the same items, so
