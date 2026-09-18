@@ -1,6 +1,6 @@
 import json, sys, statistics as st, collections
 SP = sys.argv[1]
-rows = [json.loads(l) for l in open(f"{SP}/results.jsonl")]
+rows = [json.loads(l) for l in open(f"{SP}/results.jsonl", encoding="utf-8")]
 by = collections.defaultdict(list)
 for r in rows: by[(r["gateway"], r["model"])].append(r)
 def kappa(pairs):
@@ -34,4 +34,4 @@ for d in out:
     ck = f"{d['cost_k']:.3f}" if d["cost_k"] is not None else "-"
     print(f"{d['model']:<50}{d['gw']:<8}{d['n']:>4}{100*d['parsed']:>6.0f}%{100*d['strict']:>5.1f}{100*d['easy']:>6.1f}{100*d['hard']:>6.1f}{d['kappa']:>6.2f}"
           f"{100*d['far']:>7.1f}%{100*d['frr']:>7.1f}%{100*d['flip']:>5.0f}%{d['lat']:>6.1f}{d['tok']:>6.0f}{ck:>8}  {dict(d['errs']) or ''}")
-json.dump(out, open(f"{SP}/scores.json", "w"), indent=1, default=str)
+json.dump(out, open(f"{SP}/scores.json", "w", encoding="utf-8"), indent=1, default=str)
