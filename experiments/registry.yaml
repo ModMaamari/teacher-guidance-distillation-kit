@@ -204,3 +204,14 @@ experiments:
     results: results/E18_answer_form
     paper: tab:E18-answer-form
     next: "Pool: judge_e18_strict, judge_e18_kimi, judge_e18_qwen (after E17's evals), e18_report."
+
+  - id: E19
+    name: self_guided_robustness
+    folder: experiments/exp19_self_guided_robustness
+    question: Do the seed, transfer and forgetting results hold for the self-guided student?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E19_self_guided_robustness
+    paper: tab:E19-self-robustness
+    next: "Pool: 2 seeds, 4 LODO folds, base on the full sets, forgetting; results_E19."

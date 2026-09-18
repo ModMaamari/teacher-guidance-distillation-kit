@@ -207,6 +207,8 @@ case "$TASK" in
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
   train_sup_*)      arm=${TASK#train_sup_}; train "sup_$arm" "data/splits_sup_$arm/matched" ;;
   train_selfdist_full) train selfdist_full data/splits_selfdist/uniform ;;   # E17: unguided self-rollouts, all of them
+  train_selftaught_s*) s=${TASK#train_selftaught_s}; train "selftaught_s$s" data/splits_self/uniform --seed "$s" ;;   # E19
+  train_selflodo_*)   d=${TASK#train_selflodo_}; train "selflodo_$d" "data/splits_self/lodo/fold_$d" ;;             # E19
   train_r*)         r=${TASK#train_r}; train "r$r" data/splits/uniform --lora-r "$r" --lora-alpha $((2 * r)) ;;
   train_e05)        TRAIN_MODEL=$E05_STUDENT train stu_e05 data/splits/uniform --health-every 200 ;;  # E05: another student
 
@@ -214,6 +216,13 @@ case "$TASK" in
   eval_base)        evals "base=student" "$HELDOUT" ;;
   eval_e05)         # E05: the other student's base and trained arms share one server, so its lift is like-for-like
                     EVAL_MODEL=$E05_STUDENT evals "base_e05=student stu_e05=stu_e05:runs/train/stu_e05/adapter" "$HELDOUT" ;;
+  eval_selflodo_*)   d=${TASK#eval_selflodo_}; evals "selflodo_$d=selflodo_$d:runs/train/selflodo_$d/adapter" "full_$d" ;;  # E19
+  eval_basefull_*)   d=${TASK#eval_basefull_}; evals "basefull=student" "full_$d" ;;   # E19: base on the whole unseen set
+  forget_selftaught) # E19: forgetting for the self-guided student (base arm already done, skipped)
+    PORT=$(free_port) GPU_MEM=$(gpu_frac 24) bash slurm/eval_forgetting.sbatch runs/train/selftaught/adapter selftaught &&
+      $PY_BASE scripts/forgetting_report.py --runs runs/forgetting --out runs/forgetting/report_selftaught \
+          --base-arm base --trained-arm selftaught &&
+      $TOOLS publish runs/forgetting/report_selftaught results/E19_self_guided_robustness/forgetting ;;
   eval_budget*)     b=${TASK#eval_budget}   # E08: base and seed-13 student at another step budget
                     evals "base_b$b=student seed13_b$b=seed13:runs/train/seed13/adapter" "$HELDOUT" --budget "$b" ;;
   eval_*)           arm=${TASK#eval_}; evals "$arm=$arm:runs/train/$arm/adapter" "$HELDOUT" ;;
@@ -224,6 +233,7 @@ case "$TASK" in
 
   # ---------- judging (primary judge) ----------
   judge_e05)        judge runs/judge/e05 "runs/eval/*_e05/*/episodes.jsonl" "$JUDGE" ;;
+  judge_basefull)   judge runs/judge/basefull "runs/eval/basefull/*/episodes.jsonl" "$JUDGE" ;;
   judge_budget*)    b=${TASK#judge_budget}; judge "runs/judge/budget$b" "runs/eval/*_b$b/*/episodes.jsonl" "$JUDGE" ;;
   judge_*)          arm=${TASK#judge_}; judge "runs/judge/$arm" "runs/eval/$arm/*/episodes.jsonl" "$JUDGE" ;;
 
@@ -263,6 +273,15 @@ case "$TASK" in
     results E17 results/E17_self_guidance/kit base=runs/eval/base selfdist=runs/eval/sup_selfdist \
         selfguided=runs/eval/sup_selftaught guided=runs/eval/sup_guided teachdist=runs/eval/sup_teachdist \
         selfdist_full=runs/eval/selfdist_full selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
+  results_E19)
+    results E19 results/E19_self_guided_robustness/kit base=runs/eval/base self13=runs/eval/selftaught \
+        self17=runs/eval/selftaught_s17 self23=runs/eval/selftaught_s23 &&
+      $PY_BASE experiments/exp02_seed_variance/summarize_seeds.py --results runs/results/E19/results.json \
+        --arm-pattern '^self(\d+)$' | tee runs/results/E19/seeds.txt &&
+      $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seeds.txt &&
+      results E19lodo results/E19_self_guided_robustness/lodo basefull=runs/eval/basefull \
+        fold_hotpotqa=runs/eval/selflodo_hotpotqa fold_2wikimultihopqa=runs/eval/selflodo_2wikimultihopqa \
+        fold_musique=runs/eval/selflodo_musique fold_strategyqa=runs/eval/selflodo_strategyqa ;;
   results_E11)
     results E11 results/E11_training_knobs/kit base=runs/eval/base r8=runs/eval/r8 r16=runs/eval/r16 \
         r32=runs/eval/seed13 r64=runs/eval/r64 ;;
