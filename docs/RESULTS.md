@@ -20,7 +20,9 @@ Student `ibm-granite/granite-4.1-3b`; teacher `DeepSeek-V4-Flash` (served throug
 | base student | 747 | 5.9 % | 0.117 | 22.1 % | **29.8 %** | 0.745 | 2.98 | 2.4 % | 4,442 | $0.00000 |
 | guided student | 747 | 26.0 % | 0.348 | 49.7 % | **60.5 %** | 0.746 | 2.95 | 4.5 % | 10,972 | $0.00022 |
 | trained student | 747 | 34.3 % | 0.430 | 60.9 % | **65.5 %** | 0.787 | 2.89 | 11.0 % | 4,672 | $0.00000 |
-| teacher alone | 747 | 24.9 % | 0.340 | 65.7 % | **72.3 %** | 0.844 | 2.76 | 100.0 % | 3,889 | $0.00015 |
+| teacher alone | 747 | 24.9 % | 0.340 | 65.7 % | **72.3 %** | 0.844 | 2.76 | 24.0 %¹ | 3,889 | $0.00015 |
+
+¹ An earlier version said 100 %. The kit's definition (`finish` or `teacher_accept`) on the same episodes gives 24.0 % (`results/E10_stopping_behavior`). Judge accuracies here are Kimi-K2.6's; the Gemma-4-31B-it re-judge is in `results/E00_reference/README.md`.
 
 Tokens are step-phase tokens for the guided arm (its plan-phase calls were not recorded in that run; the kit's `eval.py` now records them). The trained student's training cost was 4.0 GPU-hours once.
 

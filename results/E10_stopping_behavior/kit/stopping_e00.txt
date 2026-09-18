@@ -1,0 +1,26 @@
+accuracy source: judge
+
+== base   n=747   mean steps 2.98
+   budget_forced_finish_no_finish   555 ( 74.3%)   accuracy  10.6%
+   budget_forced_finish     174 ( 23.3%)   accuracy  74.1%
+   finish                    18 (  2.4%)   accuracy  83.3%
+   voluntary finish: 2.4%  (reasons: finish)
+
+== guided   n=747   mean steps 2.95
+   budget_forced_finish     713 ( 95.4%)   accuracy  54.1%
+   teacher_accept            34 (  4.6%)   accuracy 100.0%
+   voluntary finish: 4.6%  (reasons: teacher_accept)
+
+== teacher   n=747   mean steps 2.76
+   budget_forced_finish     568 ( 76.0%)   accuracy  63.7%
+   teacher_accept           179 ( 24.0%)   accuracy  94.4%
+   voluntary finish: 24.0%  (reasons: teacher_accept)
+
+== trained   n=747   mean steps 2.89
+   budget_forced_finish     630 ( 84.3%)   accuracy  62.4%
+   finish                    82 ( 11.0%)   accuracy  81.7%
+   budget_forced_finish_no_finish    35 (  4.7%)   accuracy  37.1%
+   voluntary finish: 11.0%  (reasons: finish)
+
+If voluntary-stop accuracy is far above budget-exhausted accuracy, the stopping
+gap is worth points, and exp10 step 2 estimates how many before you spend a GPU.

@@ -7,7 +7,7 @@ reviewer will want, in order of how badly their absence hurts:
 2. **Judge swap.** Does the *ranking of arms* survive a different judge? Accuracy may move;
    the ordering must not.
 3. **Length confound.** Judges reward longer, hedged answers. Your arms differ in verbosity
-   (the base student rarely finishes voluntarily, the teacher always does), so this is a
+   (the base student rarely finishes voluntarily, the teacher in a quarter of its episodes), so this is a
    live risk, not a formality.
 
 ## Run

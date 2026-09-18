@@ -2,7 +2,7 @@
 
 **Tier 2.** Every reported number uses budget 3, hidden. That is one arbitrary point, and
 it interacts directly with the paper's own diagnosis: the students' remaining gap to the
-teacher is *stopping behaviour*, not retrieval (2-11 % voluntary finishes against 100 %,
+teacher is *stopping behaviour*, not retrieval (2-11 % voluntary finishes against 24 %,
 doc recall 0.79 against 0.84). Budget is exactly the knob that governs stopping, so a
 reviewer will ask what happens when you move it.
 

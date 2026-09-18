@@ -2,8 +2,8 @@
 
 **Tier 3, but the highest-value one here.** `docs/RESULTS.md` already contains the
 diagnosis: the students' remaining gap to the teacher is *when they stop*, not what they
-retrieve. Voluntary finishes are 2.4 % (base) and 11.0 % (trained) against 100 % for the
-teacher, while doc recall is 0.79 against 0.84.
+retrieve. Voluntary finishes are 2.4 % (base) and 11.0 % (trained) against 24.0 % for the
+teacher (measured: `results/E10_stopping_behavior`; an earlier count said 100 %), while doc recall is 0.79 against 0.84.
 
 That is a limitation section today. Measured properly and then fixed, it is a contribution.
 
