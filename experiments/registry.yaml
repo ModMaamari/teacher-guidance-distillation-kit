@@ -182,3 +182,14 @@ experiments:
     results: results/E16_judge_selection
     paper: tab:E16-judges
     next: "none (labels were assigned by the assistant; E03 adds human labels)"
+
+  - id: E17
+    name: self_guidance
+    folder: experiments/exp17_self_guidance
+    question: Does self-guidance (the student as its own privileged teacher) beat unguided self-rollouts?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E17_self_guidance
+    paper: tab:E17-self-guidance
+    next: "Pool: prep_e17, train_sup_selftaught (matched), train_selfdist_full, evals, judges, results_E17."

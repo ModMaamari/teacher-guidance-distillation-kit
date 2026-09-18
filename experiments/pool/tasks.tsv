@@ -1,5 +1,7 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
+eval_sup_selftaught	25	16	0.5	1	done:train_sup_selftaught
+eval_selfdist_full	25	16	0.5	1	done:train_selfdist_full
 eval_base	25	16	0.5	1	-
 eval_seed13	25	16	0.5	1	done:train_seed13
 eval_seed17	25	16	0.5	1	done:train_seed17
@@ -21,6 +23,8 @@ eval_e05	25	16	0.5	1	done:train_e05
 eval_r8	25	16	0.5	1	done:train_r8
 eval_r16	25	16	0.5	1	done:train_r16
 eval_r64	25	16	0.5	1	done:train_r64
+train_sup_selftaught	30	32	2	1	done:prep_e17
+train_selfdist_full	30	32	4	1	-
 train_seed13	30	32	6	1	-
 collect_selfdist	31	48	2	1	-
 train_seed17	30	32	6	1	-
@@ -38,6 +42,10 @@ train_e05	30	32	6	1	-
 train_r8	30	32	6	1	-
 train_r16	30	32	6	1	-
 train_r64	30	32	6	1	-
+prep_e17	0	8	0.2	1	-
+judge_sup_selftaught	0	1	0.3	1	done:eval_sup_selftaught
+judge_selfdist_full	0	1	0.3	1	done:eval_selfdist_full
+results_E17	0	1	0.2	1	done:judge_base,done:judge_sup_selfdist,done:judge_sup_selftaught,done:judge_sup_guided,done:judge_sup_teachdist,done:judge_selfdist_full,done:judge_selftaught,done:judge_seed13
 import_research	0	1	0.1	1	-
 judge_e00	0	1	0.5	1	done:import_research
 e03_sample	0	1	0.1	1	done:judge_e00

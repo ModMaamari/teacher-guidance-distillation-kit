@@ -154,6 +154,16 @@ case "$TASK" in
       fi
     done <<< "$plan" ;;
 
+  prep_e17)         # E17: the self-taught (self-guided) episodes cut to E01's matched usable count
+    t=${E01_TARGET:-1412}
+    n=$($PY_BASE experiments/exp01_supervision_ablation/match_sizes.py --root selftaught=data/splits_self \
+          --target "$t" | awk '$1 == "selftaught" {print $2}') || exit 1
+    [ -n "$n" ] || exit 1
+    [ -s "data/splits_sup_selftaught/uniform_ep$n/train.jsonl" ] ||
+      $PY_BASE scripts/make_size_splits.py --index data/episodes_self/index.jsonl --split data/splits_self/uniform \
+          --out-root data/splits_sup_selftaught --sizes "$n" || exit 1
+    ln -sfn "uniform_ep$n" data/splits_sup_selftaught/matched ;;
+
   # ---------- E01: control collections (no teacher in the loop) ----------
   collect_selfdist)   # the student alone, served on this GPU
     MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist TAG=selfdist SHARDS=${SELFDIST_SHARDS:-8} N=2000 \
@@ -170,6 +180,7 @@ case "$TASK" in
   train_selftaught) train selftaught data/splits_self/uniform ;;
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
   train_sup_*)      arm=${TASK#train_sup_}; train "sup_$arm" "data/splits_sup_$arm/matched" ;;
+  train_selfdist_full) train selfdist_full data/splits_selfdist/uniform ;;   # E17: unguided self-rollouts, all of them
   train_r*)         r=${TASK#train_r}; train "r$r" data/splits/uniform --lora-r "$r" --lora-alpha $((2 * r)) ;;
   train_e05)        TRAIN_MODEL=$E05_STUDENT train stu_e05 data/splits/uniform --health-every 200 ;;  # E05: another student
 
@@ -222,6 +233,10 @@ case "$TASK" in
   results_E05)
     results E05 results/E05_student_family/kit granite_base=runs/eval/base granite_trained=runs/eval/seed13 \
         minicpm_base=runs/eval/base_e05 minicpm_trained=runs/eval/stu_e05 ;;
+  results_E17)
+    results E17 results/E17_self_guidance/kit base=runs/eval/base selfdist=runs/eval/sup_selfdist \
+        selfguided=runs/eval/sup_selftaught guided=runs/eval/sup_guided teachdist=runs/eval/sup_teachdist \
+        selfdist_full=runs/eval/selfdist_full selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
   results_E11)
     results E11 results/E11_training_knobs/kit base=runs/eval/base r8=runs/eval/r8 r16=runs/eval/r16 \
         r32=runs/eval/seed13 r64=runs/eval/r64 ;;
