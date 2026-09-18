@@ -269,10 +269,12 @@ case "$TASK" in
   results_E05)
     results E05 results/E05_student_family/kit granite_base=runs/eval/base granite_trained=runs/eval/seed13 \
         minicpm_base=runs/eval/base_e05 minicpm_trained=runs/eval/stu_e05 ;;
-  results_E17)
+  results_E17)       # matched size (E01's ~1,400 usable episodes): publishes as soon as the self-guided arm is judged
     results E17 results/E17_self_guidance/kit base=runs/eval/base selfdist=runs/eval/sup_selfdist \
-        selfguided=runs/eval/sup_selftaught guided=runs/eval/sup_guided teachdist=runs/eval/sup_teachdist \
-        selfdist_full=runs/eval/selfdist_full selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
+        selfguided=runs/eval/sup_selftaught guided=runs/eval/sup_guided teachdist=runs/eval/sup_teachdist ;;
+  results_E17full)   # all available episodes of each source
+    results E17full results/E17_self_guidance/full base=runs/eval/base selfdist_full=runs/eval/selfdist_full \
+        selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
   results_E19)
     results E19 results/E19_self_guided_robustness/kit base=runs/eval/base self13=runs/eval/selftaught \
         self17=runs/eval/selftaught_s17 self23=runs/eval/selftaught_s23 &&
