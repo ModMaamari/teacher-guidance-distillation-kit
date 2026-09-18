@@ -57,6 +57,11 @@ evals() {   # evals "<arm=served[:adapter]> ..." "<test ...>" [eval.py args]
 }
 
 teacher_eval() {  # teacher_eval <arm> <budget>: the teacher alone is the agent (API)
+  local i   # an endpoint outage waits here (5-minute probes, up to 12 h) instead of burning retries
+  for i in $(seq 1 144); do
+    $TOOLS probe --model "$TEACHER" && break
+    echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
+  done
   CONCURRENCY=${TEACHER_CONCURRENCY:-6} bash slurm/eval_teacher.sbatch "$1" "$TEACHER" "$HELDOUT" \
     --budget "$2" --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}"
   all_done "$1" "$HELDOUT"
@@ -140,7 +145,13 @@ case "$TASK" in
       [ -s "data/splits_sup_$arm/uniform_ep$n/train.jsonl" ] ||
         $PY_BASE scripts/make_size_splits.py --index "$ep/index.jsonl" --split "$root/uniform" \
             --out-root "data/splits_sup_$arm" --sizes "$n" || exit 1
-      ln -sfn "uniform_ep$n" "data/splits_sup_$arm/matched"
+      mkdir -p "data/splits_sup_$arm"
+      if [ -s "data/splits_sup_$arm/uniform_ep$n/train.jsonl" ]; then
+        ln -sfn "uniform_ep$n" "data/splits_sup_$arm/matched"
+      else  # the limiting arm asks for its whole pool, which the cutter (dev excluded) refuses: use it all
+        ln -sfn "../splits_$arm/uniform" "data/splits_sup_$arm/matched"
+        [ "$arm" = guided ] && ln -sfn "../splits/uniform" "data/splits_sup_$arm/matched"
+      fi
     done <<< "$plan" ;;
 
   # ---------- E01: control collections (no teacher in the loop) ----------

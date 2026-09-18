@@ -5,6 +5,7 @@
     tools.py view    --name E02 base=runs/eval/base seed13=runs/eval/seed13 ...
     tools.py publish <src-dir> <results-dir> [--only f1 f2]  # copy tables into results/, scrubbed
     tools.py pvalues --out results/E12_multiple_comparisons/kit
+    tools.py probe   --model <provider-prefixed id>          # exit 0 iff the model answers now
     tools.py figdata --results runs/results/E04/results.json --out runs/results/E04/figure.csv \
                      --point ep500:x=500 --point ep1000:x=1000 ...     # CSV for a pgfplots figure
 
@@ -129,6 +130,25 @@ def pvalues(a) -> int:
     return 0 if found else 1
 
 
+def probe(a) -> int:
+    """One tiny request through the kit's own client, so provider routing and keys are the real ones."""
+    import asyncio
+    sys.path.insert(0, str(KIT))
+    from agentsim.clients.llm_client import LLMClient
+
+    async def ask():
+        res, _ = await asyncio.wait_for(LLMClient().get_completion_with_fallback(
+            [a.model], prompt="Reply with the single word OK.", temperature=0.0, max_tokens=a.max_tokens), a.timeout)
+        return res.get("text", "") if isinstance(res, dict) else str(res or "")
+    try:
+        text = asyncio.run(ask())
+    except Exception as exc:  # noqa: BLE001 -- any failure means "not usable now"
+        print(f"probe {a.model}: DOWN ({type(exc).__name__}: {str(exc)[:160]})")
+        return 1
+    print(f"probe {a.model}: {'UP' if text.strip() else 'EMPTY'} ({text.strip()[:40]!r})")
+    return 0 if text.strip() else 1
+
+
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     if not n:
         return float("nan"), float("nan")
@@ -178,12 +198,17 @@ def main() -> int:
     p.add_argument("--only", nargs="+")
     p = sub.add_parser("pvalues")
     p.add_argument("--out", required=True)
+    p = sub.add_parser("probe")
+    p.add_argument("--model", required=True)
+    p.add_argument("--max-tokens", type=int, default=800)
+    p.add_argument("--timeout", type=float, default=240)
     p = sub.add_parser("figdata")
     p.add_argument("--results", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--point", action="append", required=True, metavar="ARM:series=S,x=X")
     a = ap.parse_args()
-    return {"judged": judged, "view": view, "publish": publish, "pvalues": pvalues, "figdata": figdata}[a.cmd](a)
+    return {"judged": judged, "view": view, "publish": publish, "pvalues": pvalues, "figdata": figdata,
+            "probe": probe}[a.cmd](a)
 
 
 if __name__ == "__main__":
