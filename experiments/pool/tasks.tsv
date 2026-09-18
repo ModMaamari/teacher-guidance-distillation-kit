@@ -90,5 +90,6 @@ teacher_b8	0	2	3	1	done:teacher_b1
 teacher_b3	0	2	3	1	done:teacher_b5
 judge_e13	0	1	1	1	done:import_research
 results_e13	0	1	0.3	1	done:judge_e13
+e03_swaps	0	1	0.1	1	done:judge_e00,done:judge_e00_kimi,done:judge_e00_qwen
 e03_agreement	0	1	0.1	1	done:judge_e00,done:judge_e00_kimi,done:judge_e00_qwen,file:runs/e03/human_labels.csv
 e12_pvalues	0	1	0.2	1	done:results_e00,done:results_e13,done:results_E01,done:results_E02,done:results_E04,done:results_E06,done:results_E08

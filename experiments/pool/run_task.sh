@@ -102,6 +102,11 @@ case "$TASK" in
     [ -s runs/e03/human_sample.csv ] && { echo "have runs/e03/human_sample.csv"; exit 0; }
     $PY_BASE experiments/exp03_judge_validity/01_sample_for_human.py --verdicts runs/judge/e00/verdicts.jsonl \
         --out runs/e03/human_sample.csv --n 200 --seed 7 ;;
+  e03_swaps)        # judge-swap agreement and ranking stability; needs no human labels
+    mkdir -p runs/e03
+    $PY_BASE experiments/exp03_judge_validity/03_agreement.py --primary runs/judge/e00/verdicts.jsonl \
+        --swap runs/judge_swap/kimi/verdicts.jsonl runs/judge_swap/qwen/verdicts.jsonl | tee runs/e03/swaps.txt &&
+      $TOOLS publish runs/e03 results/E03_judge_validity/kit --only swaps.txt ;;
   e03_agreement)
     mkdir -p results/E03_judge_validity
     cp -n runs/e03/human_sample.key.json runs/e03/human_labels.key.json   # 03_agreement pairs <csv> with <csv stem>.key.json
