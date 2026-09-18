@@ -60,6 +60,12 @@ def judged(a) -> int:
     if not files:
         print("!! no episode files match", a.episodes)
         return 1
+    # a judge can fail on a handful of answers for good (a reasoning model that never emits a
+    # verdict); accept up to --tolerance of them, named here, rather than retrying forever
+    if missing and len(missing) <= int(a.tolerance * len(want)):
+        print(f"accepting {len(missing)} unresolved (tolerance {a.tolerance:.2%}):",
+              ", ".join(f"{Path(f).parent.parent.name}/{Path(f).parent.name}:{q}" for f, q in sorted(missing)))
+        return 0
     return 1 if missing else 0
 
 
@@ -162,6 +168,7 @@ def main() -> int:
     p = sub.add_parser("judged")
     p.add_argument("--episodes", required=True)
     p.add_argument("--verdicts", required=True)
+    p.add_argument("--tolerance", type=float, default=0.001, help="fraction of episodes allowed to stay unjudged")
     p = sub.add_parser("view")
     p.add_argument("--name", required=True)
     p.add_argument("arms", nargs="+", metavar="ARM=DIR")
