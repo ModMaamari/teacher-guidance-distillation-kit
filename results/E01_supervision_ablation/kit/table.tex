@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\small
+\caption{What causes the gain: students trained on the same number of usable episodes from three sources.}
+\label{tab:E01-ablation}
+\begin{tabular}{lrrrrrrl}
+\toprule
+Arm & HotpotQA & 2Wiki & MuSiQue & StrategyQA & All & $\Delta$ vs base [95\% CI] & $p$ \\
+\midrule
+Base student & 42.9 & 35.3 & 17.2 & 15.1 & 27.3 & -- & -- \\
+Student's own rollouts & 64.5 & 75.9 & 39.9 & 68.7 & 61.5 & +34.1 [+30.4, +38.0] & $<$0.001 \\
+Teacher's own rollouts & 68.2 & 85.9 & 49.8 & 70.3 & 67.7 & +40.4 [+36.4, +44.3] & $<$0.001 \\
+Teacher-guided rollouts & 64.0 & 78.8 & 39.9 & 69.7 & 62.3 & +34.9 [+31.1, +38.8] & $<$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}

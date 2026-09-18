@@ -17,10 +17,11 @@ experiments:
     folder: experiments/exp01_supervision_ablation
     question: Is guidance the active ingredient, or the correctness filter or plain distillation?
     tier: 1
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E01_supervision_ablation
     paper: tab:E01-ablation
-    next: "Pool: collect_selfdist (GPU) and collect_teachdist (API), then matched splits, 3 trainings, evals, results_E01."
+    next: "none (one seed; guided = self-rollouts, teacher rollouts +5.5)"
 
   - id: E02
     name: seed_variance

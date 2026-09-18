@@ -10,6 +10,7 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | ID | Results folder | Status | Judge | Contents |
 |---|---|---|---|---|
 | E00 | [`E00_reference`](E00_reference/README.md) | ✅ done | Gemma-4-31B-it | `gemma/`, `report.md`, `results.json` |
+| E01 | [`E01_supervision_ablation`](E01_supervision_ablation/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E02 | [`E02_seed_variance`](E02_seed_variance/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E03 | [`E03_judge_validity`](E03_judge_validity/README.md) | ✅ done | Gemma-4-31B-it | `agreement/`, `kit/` |
 | E04 | [`E04_data_scaling`](E04_data_scaling/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
