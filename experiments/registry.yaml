@@ -94,10 +94,10 @@ experiments:
     folder: experiments/exp08_step_budget
     question: Does the conclusion depend on the 3-step budget?
     tier: 2
-    status: running
+    status: partial
     results: results/E08_step_budget
     paper: fig:E08-budget
-    next: "Pool: eval_budget{1,5,8} (base and seed 13), teacher_b{1,3,5,8}, results_E08."
+    next: "Teacher-alone arms b3, b5, b8 (revived after endpoint outages), then results_E08."
 
   - id: E09
     name: forgetting
@@ -188,30 +188,30 @@ experiments:
     folder: experiments/exp17_self_guidance
     question: Does self-guidance (the student as its own privileged teacher) beat unguided self-rollouts?
     tier: 1
-    status: partial
+    status: done
     judge: Gemma-4-31B-it
     results: results/E17_self_guidance
     paper: tab:E17-self-guidance
-    next: "Matched done (+3.2 over unguided, p 0.03); full-size unguided arm (selfdist_full) running."
+    next: "none (one seed; matched +3.2 significant only under the primary judge, full +4.4 under all four)"
 
   - id: E18
     name: answer_form
     folder: experiments/exp18_answer_form
     question: Does the verbosity of self-trained students inflate the judge, or does the ranking hold under other judges and a strict rubric?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it (+ strict rubric, Kimi-K2.6, Qwen3.6-35B)
     results: results/E18_answer_form
     paper: tab:E18-answer-form
-    next: "Pool: judge_e18_strict, judge_e18_kimi, judge_e18_qwen (after E17's evals), e18_report."
+    next: "none"
 
   - id: E19
     name: self_guided_robustness
     folder: experiments/exp19_self_guided_robustness
     question: Do the seed, transfer and forgetting results hold for the self-guided student?
     tier: 1
-    status: running
+    status: partial
     judge: Gemma-4-31B-it
     results: results/E19_self_guided_robustness
     paper: tab:E19-self-robustness
-    next: "Pool: 2 seeds, 4 LODO folds, base on the full sets, forgetting; results_E19."
+    next: "Transfer folds: the 2WikiMultihopQA fold's evaluation, then results_E19lodo."

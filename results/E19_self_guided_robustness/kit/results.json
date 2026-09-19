@@ -1,0 +1,2107 @@
+{
+  "rows": {
+    "base/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.0176,
+      "f1": 0.1199,
+      "cover_match": 0.3059,
+      "doc_recall": 0.8103,
+      "mean_steps": 2.976,
+      "voluntary_finish": 0.0235,
+      "stop_reasons": {
+        "budget_forced_finish": 42,
+        "budget_forced_finish_no_finish": 124,
+        "finish": 4
+      },
+      "invalid_action_steps": 25,
+      "total_steps": 506,
+      "student_tokens_per_ep": 4591.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 590.4,
+      "total_tokens_per_ep": 5182.3,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 25.48,
+      "judge_n": 170,
+      "judge_correct": 0.3529,
+      "complete": true
+    },
+    "base/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.1693,
+      "f1": 0.2396,
+      "cover_match": 0.381,
+      "doc_recall": 0.7593,
+      "mean_steps": 2.91,
+      "voluntary_finish": 0.0899,
+      "stop_reasons": {
+        "finish": 17,
+        "budget_forced_finish": 64,
+        "budget_forced_finish_no_finish": 108
+      },
+      "invalid_action_steps": 29,
+      "total_steps": 550,
+      "student_tokens_per_ep": 4509.7,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 609.8,
+      "total_tokens_per_ep": 5119.5,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 20.06,
+      "judge_n": 189,
+      "judge_correct": 0.4286,
+      "complete": true
+    },
+    "base/heldout_musique": {
+      "n": 203,
+      "em": 0.0197,
+      "f1": 0.0842,
+      "cover_match": 0.1527,
+      "doc_recall": 0.5969,
+      "mean_steps": 3,
+      "voluntary_finish": 0.0,
+      "stop_reasons": {
+        "budget_forced_finish_no_finish": 166,
+        "budget_forced_finish": 37
+      },
+      "invalid_action_steps": 19,
+      "total_steps": 609,
+      "student_tokens_per_ep": 4447.8,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 603.8,
+      "total_tokens_per_ep": 5051.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 17.49,
+      "judge_n": 203,
+      "judge_correct": 0.1724,
+      "complete": true
+    },
+    "base/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.0,
+      "f1": 0.0105,
+      "cover_match": 0.0973,
+      "doc_recall": 0.8148,
+      "mean_steps": 2.984,
+      "voluntary_finish": 0.0162,
+      "stop_reasons": {
+        "budget_forced_finish_no_finish": 152,
+        "budget_forced_finish": 30,
+        "finish": 3
+      },
+      "invalid_action_steps": 17,
+      "total_steps": 552,
+      "student_tokens_per_ep": 4336.6,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 586.7,
+      "total_tokens_per_ep": 4923.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 16.99,
+      "judge_n": 185,
+      "judge_correct": 0.1514,
+      "complete": true
+    },
+    "self13/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.0529,
+      "f1": 0.2069,
+      "cover_match": 0.7824,
+      "doc_recall": 0.8603,
+      "mean_steps": 2.929,
+      "voluntary_finish": 0.0706,
+      "stop_reasons": {
+        "finish": 12,
+        "budget_forced_finish": 157,
+        "budget_forced_finish_no_finish": 1
+      },
+      "invalid_action_steps": 23,
+      "total_steps": 498,
+      "student_tokens_per_ep": 4707.6,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 608.9,
+      "total_tokens_per_ep": 5316.4,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 18.36,
+      "judge_n": 170,
+      "judge_correct": 0.7882,
+      "complete": true
+    },
+    "self13/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.2698,
+      "f1": 0.3733,
+      "cover_match": 0.6614,
+      "doc_recall": 0.7831,
+      "mean_steps": 2.783,
+      "voluntary_finish": 0.2169,
+      "stop_reasons": {
+        "finish": 41,
+        "budget_forced_finish": 148
+      },
+      "invalid_action_steps": 11,
+      "total_steps": 526,
+      "student_tokens_per_ep": 4321.5,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 614.6,
+      "total_tokens_per_ep": 4936.1,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 17.85,
+      "judge_n": 189,
+      "judge_correct": 0.6878,
+      "complete": true
+    },
+    "self13/heldout_musique": {
+      "n": 203,
+      "em": 0.069,
+      "f1": 0.2064,
+      "cover_match": 0.4286,
+      "doc_recall": 0.6786,
+      "mean_steps": 2.931,
+      "voluntary_finish": 0.069,
+      "stop_reasons": {
+        "finish": 14,
+        "budget_forced_finish": 189
+      },
+      "invalid_action_steps": 3,
+      "total_steps": 595,
+      "student_tokens_per_ep": 4580.0,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 653.2,
+      "total_tokens_per_ep": 5233.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 18.61,
+      "judge_n": 203,
+      "judge_correct": 0.4926,
+      "complete": true
+    },
+    "self13/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.0,
+      "f1": 0.0338,
+      "cover_match": 0.6865,
+      "doc_recall": 0.8344,
+      "mean_steps": 2.951,
+      "voluntary_finish": 0.0486,
+      "stop_reasons": {
+        "finish": 9,
+        "budget_forced_finish": 176
+      },
+      "invalid_action_steps": 2,
+      "total_steps": 546,
+      "student_tokens_per_ep": 4526.8,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 634.1,
+      "total_tokens_per_ep": 5160.9,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 19.85,
+      "judge_n": 185,
+      "judge_correct": 0.7243,
+      "complete": true
+    },
+    "self17/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.0529,
+      "f1": 0.2034,
+      "cover_match": 0.7588,
+      "doc_recall": 0.8412,
+      "mean_steps": 2.953,
+      "voluntary_finish": 0.0471,
+      "stop_reasons": {
+        "finish": 8,
+        "budget_forced_finish": 160,
+        "budget_forced_finish_no_finish": 2
+      },
+      "invalid_action_steps": 21,
+      "total_steps": 502,
+      "student_tokens_per_ep": 4793.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 608.3,
+      "total_tokens_per_ep": 5402.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.02,
+      "judge_n": 170,
+      "judge_correct": 0.7765,
+      "complete": true
+    },
+    "self17/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.2963,
+      "f1": 0.381,
+      "cover_match": 0.6561,
+      "doc_recall": 0.7593,
+      "mean_steps": 2.788,
+      "voluntary_finish": 0.2116,
+      "stop_reasons": {
+        "finish": 40,
+        "budget_forced_finish": 148,
+        "budget_forced_finish_no_finish": 1
+      },
+      "invalid_action_steps": 13,
+      "total_steps": 527,
+      "student_tokens_per_ep": 4421.0,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 632.6,
+      "total_tokens_per_ep": 5053.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 21.96,
+      "judge_n": 189,
+      "judge_correct": 0.6667,
+      "complete": true
+    },
+    "self17/heldout_musique": {
+      "n": 203,
+      "em": 0.0493,
+      "f1": 0.183,
+      "cover_match": 0.399,
+      "doc_recall": 0.6597,
+      "mean_steps": 2.931,
+      "voluntary_finish": 0.064,
+      "stop_reasons": {
+        "finish": 13,
+        "budget_forced_finish": 190
+      },
+      "invalid_action_steps": 10,
+      "total_steps": 595,
+      "student_tokens_per_ep": 4634.0,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 659.2,
+      "total_tokens_per_ep": 5293.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 22.96,
+      "judge_n": 203,
+      "judge_correct": 0.4532,
+      "complete": true
+    },
+    "self17/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.0,
+      "f1": 0.0357,
+      "cover_match": 0.6811,
+      "doc_recall": 0.8332,
+      "mean_steps": 2.908,
+      "voluntary_finish": 0.0919,
+      "stop_reasons": {
+        "budget_forced_finish": 168,
+        "finish": 17
+      },
+      "invalid_action_steps": 2,
+      "total_steps": 538,
+      "student_tokens_per_ep": 4465.6,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 647.0,
+      "total_tokens_per_ep": 5112.7,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 24.7,
+      "judge_n": 185,
+      "judge_correct": 0.7297,
+      "complete": true
+    },
+    "self23/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.0529,
+      "f1": 0.2068,
+      "cover_match": 0.7471,
+      "doc_recall": 0.8456,
+      "mean_steps": 2.935,
+      "voluntary_finish": 0.0647,
+      "stop_reasons": {
+        "budget_forced_finish": 159,
+        "finish": 11
+      },
+      "invalid_action_steps": 21,
+      "total_steps": 499,
+      "student_tokens_per_ep": 4685.2,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 615.0,
+      "total_tokens_per_ep": 5300.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 22.71,
+      "judge_n": 170,
+      "judge_correct": 0.7353,
+      "complete": true
+    },
+    "self23/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.2487,
+      "f1": 0.3452,
+      "cover_match": 0.6402,
+      "doc_recall": 0.7672,
+      "mean_steps": 2.746,
+      "voluntary_finish": 0.254,
+      "stop_reasons": {
+        "finish": 48,
+        "budget_forced_finish": 141
+      },
+      "invalid_action_steps": 15,
+      "total_steps": 519,
+      "student_tokens_per_ep": 4351.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 625.9,
+      "total_tokens_per_ep": 4977.8,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 21.82,
+      "judge_n": 189,
+      "judge_correct": 0.6667,
+      "complete": true
+    },
+    "self23/heldout_musique": {
+      "n": 203,
+      "em": 0.0493,
+      "f1": 0.1857,
+      "cover_match": 0.399,
+      "doc_recall": 0.6634,
+      "mean_steps": 2.926,
+      "voluntary_finish": 0.0739,
+      "stop_reasons": {
+        "finish": 15,
+        "budget_forced_finish": 187,
+        "budget_forced_finish_no_finish": 1
+      },
+      "invalid_action_steps": 6,
+      "total_steps": 594,
+      "student_tokens_per_ep": 4628.8,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 663.3,
+      "total_tokens_per_ep": 5292.2,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.82,
+      "judge_n": 203,
+      "judge_correct": 0.4483,
+      "complete": true
+    },
+    "self23/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.0,
+      "f1": 0.0339,
+      "cover_match": 0.6703,
+      "doc_recall": 0.8181,
+      "mean_steps": 2.892,
+      "voluntary_finish": 0.1081,
+      "stop_reasons": {
+        "finish": 20,
+        "budget_forced_finish": 165
+      },
+      "invalid_action_steps": 4,
+      "total_steps": 535,
+      "student_tokens_per_ep": 4416.1,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 634.2,
+      "total_tokens_per_ep": 5050.4,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 24.45,
+      "judge_n": 185,
+      "judge_correct": 0.7027,
+      "complete": true
+    },
+    "tg13/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.4294,
+      "f1": 0.5428,
+      "cover_match": 0.7647,
+      "doc_recall": 0.8544,
+      "mean_steps": 2.929,
+      "voluntary_finish": 0.0706,
+      "stop_reasons": {
+        "finish": 12,
+        "budget_forced_finish": 154,
+        "budget_forced_finish_no_finish": 4
+      },
+      "invalid_action_steps": 47,
+      "total_steps": 498,
+      "student_tokens_per_ep": 5001.4,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 654.0,
+      "total_tokens_per_ep": 5655.4,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 24.28,
+      "judge_n": 170,
+      "judge_correct": 0.7647,
+      "complete": true
+    },
+    "tg13/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.3386,
+      "f1": 0.4251,
+      "cover_match": 0.5873,
+      "doc_recall": 0.7857,
+      "mean_steps": 2.831,
+      "voluntary_finish": 0.1693,
+      "stop_reasons": {
+        "finish": 32,
+        "budget_forced_finish": 151,
+        "budget_forced_finish_no_finish": 6
+      },
+      "invalid_action_steps": 14,
+      "total_steps": 535,
+      "student_tokens_per_ep": 4573.7,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 675.0,
+      "total_tokens_per_ep": 5248.8,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 22.6,
+      "judge_n": 189,
+      "judge_correct": 0.6349,
+      "complete": true
+    },
+    "tg13/heldout_musique": {
+      "n": 203,
+      "em": 0.1626,
+      "f1": 0.2868,
+      "cover_match": 0.3498,
+      "doc_recall": 0.6634,
+      "mean_steps": 2.99,
+      "voluntary_finish": 0.0099,
+      "stop_reasons": {
+        "finish": 2,
+        "budget_forced_finish": 196,
+        "budget_forced_finish_no_finish": 5
+      },
+      "invalid_action_steps": 3,
+      "total_steps": 607,
+      "student_tokens_per_ep": 4596.6,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 656.1,
+      "total_tokens_per_ep": 5252.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 20.78,
+      "judge_n": 203,
+      "judge_correct": 0.3892,
+      "complete": true
+    },
+    "tg13/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.5081,
+      "f1": 0.5292,
+      "cover_match": 0.7243,
+      "doc_recall": 0.826,
+      "mean_steps": 2.919,
+      "voluntary_finish": 0.0811,
+      "stop_reasons": {
+        "budget_forced_finish": 168,
+        "finish": 15,
+        "budget_forced_finish_no_finish": 2
+      },
+      "invalid_action_steps": 10,
+      "total_steps": 540,
+      "student_tokens_per_ep": 4529.1,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 684.8,
+      "total_tokens_per_ep": 5213.8,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.21,
+      "judge_n": 185,
+      "judge_correct": 0.7297,
+      "complete": true
+    },
+    "tg17/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.3,
+      "f1": 0.4444,
+      "cover_match": 0.7765,
+      "doc_recall": 0.8706,
+      "mean_steps": 2.929,
+      "voluntary_finish": 0.0706,
+      "stop_reasons": {
+        "finish": 12,
+        "budget_forced_finish": 148,
+        "budget_forced_finish_no_finish": 10
+      },
+      "invalid_action_steps": 48,
+      "total_steps": 498,
+      "student_tokens_per_ep": 5025.8,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 654.2,
+      "total_tokens_per_ep": 5680.0,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 26.38,
+      "judge_n": 170,
+      "judge_correct": 0.7824,
+      "complete": true
+    },
+    "tg17/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.3704,
+      "f1": 0.462,
+      "cover_match": 0.5767,
+      "doc_recall": 0.7804,
+      "mean_steps": 2.894,
+      "voluntary_finish": 0.1058,
+      "stop_reasons": {
+        "finish": 20,
+        "budget_forced_finish": 162,
+        "budget_forced_finish_no_finish": 7
+      },
+      "invalid_action_steps": 24,
+      "total_steps": 547,
+      "student_tokens_per_ep": 4785.6,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 670.3,
+      "total_tokens_per_ep": 5456.0,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 25.21,
+      "judge_n": 189,
+      "judge_correct": 0.6296,
+      "complete": true
+    },
+    "tg17/heldout_musique": {
+      "n": 203,
+      "em": 0.1724,
+      "f1": 0.2711,
+      "cover_match": 0.3448,
+      "doc_recall": 0.688,
+      "mean_steps": 2.956,
+      "voluntary_finish": 0.0394,
+      "stop_reasons": {
+        "finish": 8,
+        "budget_forced_finish": 184,
+        "budget_forced_finish_no_finish": 11
+      },
+      "invalid_action_steps": 4,
+      "total_steps": 600,
+      "student_tokens_per_ep": 4587.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 658.7,
+      "total_tokens_per_ep": 5246.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 24.16,
+      "judge_n": 203,
+      "judge_correct": 0.3695,
+      "complete": true
+    },
+    "tg17/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.4541,
+      "f1": 0.4804,
+      "cover_match": 0.7135,
+      "doc_recall": 0.8165,
+      "mean_steps": 2.903,
+      "voluntary_finish": 0.0919,
+      "stop_reasons": {
+        "finish": 17,
+        "budget_forced_finish": 165,
+        "budget_forced_finish_no_finish": 3
+      },
+      "invalid_action_steps": 6,
+      "total_steps": 537,
+      "student_tokens_per_ep": 4497.5,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 681.9,
+      "total_tokens_per_ep": 5179.4,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 24.77,
+      "judge_n": 185,
+      "judge_correct": 0.7189,
+      "complete": true
+    },
+    "tg23/heldout_2wikimultihopqa": {
+      "n": 170,
+      "em": 0.3588,
+      "f1": 0.4856,
+      "cover_match": 0.7412,
+      "doc_recall": 0.8397,
+      "mean_steps": 2.924,
+      "voluntary_finish": 0.0765,
+      "stop_reasons": {
+        "finish": 13,
+        "budget_forced_finish": 151,
+        "budget_forced_finish_no_finish": 6
+      },
+      "invalid_action_steps": 53,
+      "total_steps": 497,
+      "student_tokens_per_ep": 5058.3,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 658.0,
+      "total_tokens_per_ep": 5716.3,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 25.75,
+      "judge_n": 170,
+      "judge_correct": 0.7647,
+      "complete": true
+    },
+    "tg23/heldout_hotpotqa": {
+      "n": 189,
+      "em": 0.3492,
+      "f1": 0.4282,
+      "cover_match": 0.5714,
+      "doc_recall": 0.7566,
+      "mean_steps": 2.794,
+      "voluntary_finish": 0.2063,
+      "stop_reasons": {
+        "finish": 39,
+        "budget_forced_finish": 146,
+        "budget_forced_finish_no_finish": 4
+      },
+      "invalid_action_steps": 12,
+      "total_steps": 528,
+      "student_tokens_per_ep": 4500.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 676.7,
+      "total_tokens_per_ep": 5177.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.54,
+      "judge_n": 189,
+      "judge_correct": 0.6296,
+      "complete": true
+    },
+    "tg23/heldout_musique": {
+      "n": 203,
+      "em": 0.1724,
+      "f1": 0.2731,
+      "cover_match": 0.3153,
+      "doc_recall": 0.6798,
+      "mean_steps": 2.956,
+      "voluntary_finish": 0.0443,
+      "stop_reasons": {
+        "finish": 9,
+        "budget_forced_finish": 189,
+        "budget_forced_finish_no_finish": 5
+      },
+      "invalid_action_steps": 3,
+      "total_steps": 600,
+      "student_tokens_per_ep": 4548.7,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 657.3,
+      "total_tokens_per_ep": 5206.0,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 22.36,
+      "judge_n": 203,
+      "judge_correct": 0.3695,
+      "complete": true
+    },
+    "tg23/heldout_strategyqa": {
+      "n": 185,
+      "em": 0.5081,
+      "f1": 0.5294,
+      "cover_match": 0.7297,
+      "doc_recall": 0.8278,
+      "mean_steps": 2.859,
+      "voluntary_finish": 0.1351,
+      "stop_reasons": {
+        "finish": 25,
+        "budget_forced_finish": 157,
+        "budget_forced_finish_no_finish": 3
+      },
+      "invalid_action_steps": 7,
+      "total_steps": 529,
+      "student_tokens_per_ep": 4424.7,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 683.8,
+      "total_tokens_per_ep": 5108.5,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.12,
+      "judge_n": 185,
+      "judge_correct": 0.7514,
+      "complete": true
+    }
+  },
+  "pooled": {
+    "base": {
+      "n": 747,
+      "em": 0.0522,
+      "f1": 0.1134,
+      "cover_match": 0.2316,
+      "doc_recall": 0.7405,
+      "mean_steps": 2.968,
+      "voluntary_finish": 0.0321,
+      "stop_reasons": {
+        "budget_forced_finish": 173,
+        "budget_forced_finish_no_finish": 550,
+        "finish": 24
+      },
+      "invalid_action_steps": 90,
+      "total_steps": 2217,
+      "student_tokens_per_ep": 4468.7,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 598.0,
+      "total_tokens_per_ep": 5066.7,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 19.84,
+      "judge_n": 747,
+      "judge_correct": 0.2731,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "self13": {
+      "n": 747,
+      "em": 0.0991,
+      "f1": 0.206,
+      "cover_match": 0.6319,
+      "doc_recall": 0.785,
+      "mean_steps": 2.898,
+      "voluntary_finish": 0.1017,
+      "stop_reasons": {
+        "finish": 76,
+        "budget_forced_finish": 670,
+        "budget_forced_finish_no_finish": 1
+      },
+      "invalid_action_steps": 39,
+      "total_steps": 2165,
+      "student_tokens_per_ep": 4530.5,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 628.6,
+      "total_tokens_per_ep": 5159.1,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 18.67,
+      "judge_n": 747,
+      "judge_correct": 0.6667,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "self17": {
+      "n": 747,
+      "em": 0.1004,
+      "f1": 0.2013,
+      "cover_match": 0.6158,
+      "doc_recall": 0.7692,
+      "mean_steps": 2.894,
+      "voluntary_finish": 0.1044,
+      "stop_reasons": {
+        "finish": 78,
+        "budget_forced_finish": 666,
+        "budget_forced_finish_no_finish": 3
+      },
+      "invalid_action_steps": 46,
+      "total_steps": 2162,
+      "student_tokens_per_ep": 4574.8,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 637.9,
+      "total_tokens_per_ep": 5212.7,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.15,
+      "judge_n": 747,
+      "judge_correct": 0.6493,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "self23": {
+      "n": 747,
+      "em": 0.0884,
+      "f1": 0.1933,
+      "cover_match": 0.6064,
+      "doc_recall": 0.7694,
+      "mean_steps": 2.874,
+      "voluntary_finish": 0.1258,
+      "stop_reasons": {
+        "budget_forced_finish": 652,
+        "finish": 94,
+        "budget_forced_finish_no_finish": 1
+      },
+      "invalid_action_steps": 46,
+      "total_steps": 2147,
+      "student_tokens_per_ep": 4518.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 635.7,
+      "total_tokens_per_ep": 5154.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.22,
+      "judge_n": 747,
+      "judge_correct": 0.6319,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "tg13": {
+      "n": 747,
+      "em": 0.3534,
+      "f1": 0.4401,
+      "cover_match": 0.5971,
+      "doc_recall": 0.7781,
+      "mean_steps": 2.918,
+      "voluntary_finish": 0.0817,
+      "stop_reasons": {
+        "finish": 61,
+        "budget_forced_finish": 669,
+        "budget_forced_finish_no_finish": 17
+      },
+      "invalid_action_steps": 74,
+      "total_steps": 2180,
+      "student_tokens_per_ep": 4666.2,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 667.5,
+      "total_tokens_per_ep": 5333.7,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 22.64,
+      "judge_n": 747,
+      "judge_correct": 0.6212,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "tg17": {
+      "n": 747,
+      "em": 0.3213,
+      "f1": 0.4107,
+      "cover_match": 0.593,
+      "doc_recall": 0.7848,
+      "mean_steps": 2.921,
+      "voluntary_finish": 0.0763,
+      "stop_reasons": {
+        "finish": 57,
+        "budget_forced_finish": 659,
+        "budget_forced_finish_no_finish": 31
+      },
+      "invalid_action_steps": 82,
+      "total_steps": 2182,
+      "student_tokens_per_ep": 4715.2,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 666.4,
+      "total_tokens_per_ep": 5381.6,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 25.08,
+      "judge_n": 747,
+      "judge_correct": 0.6158,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    },
+    "tg23": {
+      "n": 747,
+      "em": 0.3427,
+      "f1": 0.4242,
+      "cover_match": 0.5797,
+      "doc_recall": 0.7723,
+      "mean_steps": 2.884,
+      "voluntary_finish": 0.1151,
+      "stop_reasons": {
+        "finish": 86,
+        "budget_forced_finish": 643,
+        "budget_forced_finish_no_finish": 18
+      },
+      "invalid_action_steps": 75,
+      "total_steps": 2154,
+      "student_tokens_per_ep": 4621.9,
+      "teacher_tokens_per_ep": 0.0,
+      "plan_tokens_per_ep": 668.9,
+      "total_tokens_per_ep": 5290.8,
+      "api_cost_usd": 0.0,
+      "latency_s_per_ep": 23.62,
+      "judge_n": 747,
+      "judge_correct": 0.6198,
+      "test_sets": [
+        "heldout_2wikimultihopqa",
+        "heldout_hotpotqa",
+        "heldout_musique",
+        "heldout_strategyqa"
+      ]
+    }
+  },
+  "paired": {
+    "base -> self13": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.4353,
+        "ci95": [
+          0.3529,
+          0.5176
+        ],
+        "n": 170,
+        "b_wins": 79,
+        "a_wins": 5,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2593,
+        "ci95": [
+          0.1852,
+          0.3333
+        ],
+        "n": 189,
+        "b_wins": 57,
+        "a_wins": 8,
+        "p": 0.0
+      },
+      "heldout_musique": {
+        "diff": 0.3202,
+        "ci95": [
+          0.2463,
+          0.399
+        ],
+        "n": 203,
+        "b_wins": 74,
+        "a_wins": 9,
+        "p": 0.0
+      },
+      "heldout_strategyqa": {
+        "diff": 0.573,
+        "ci95": [
+          0.4973,
+          0.6432
+        ],
+        "n": 185,
+        "b_wins": 108,
+        "a_wins": 2,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3936,
+        "ci95": [
+          0.3548,
+          0.4337
+        ],
+        "n": 747,
+        "b_wins": 318,
+        "a_wins": 24,
+        "p": 0.0
+      }
+    },
+    "base -> self17": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.4235,
+        "ci95": [
+          0.3412,
+          0.5059
+        ],
+        "n": 170,
+        "b_wins": 76,
+        "a_wins": 4,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2381,
+        "ci95": [
+          0.164,
+          0.3122
+        ],
+        "n": 189,
+        "b_wins": 53,
+        "a_wins": 8,
+        "p": 0.0
+      },
+      "heldout_musique": {
+        "diff": 0.2808,
+        "ci95": [
+          0.202,
+          0.3596
+        ],
+        "n": 203,
+        "b_wins": 69,
+        "a_wins": 12,
+        "p": 0.0
+      },
+      "heldout_strategyqa": {
+        "diff": 0.5784,
+        "ci95": [
+          0.5081,
+          0.6541
+        ],
+        "n": 185,
+        "b_wins": 108,
+        "a_wins": 1,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3762,
+        "ci95": [
+          0.336,
+          0.4163
+        ],
+        "n": 747,
+        "b_wins": 306,
+        "a_wins": 25,
+        "p": 0.0
+      }
+    },
+    "base -> self23": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.3824,
+        "ci95": [
+          0.3,
+          0.4647
+        ],
+        "n": 170,
+        "b_wins": 71,
+        "a_wins": 6,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2381,
+        "ci95": [
+          0.164,
+          0.3122
+        ],
+        "n": 189,
+        "b_wins": 54,
+        "a_wins": 9,
+        "p": 0.0
+      },
+      "heldout_musique": {
+        "diff": 0.2759,
+        "ci95": [
+          0.202,
+          0.3498
+        ],
+        "n": 203,
+        "b_wins": 65,
+        "a_wins": 9,
+        "p": 0.0
+      },
+      "heldout_strategyqa": {
+        "diff": 0.5514,
+        "ci95": [
+          0.4757,
+          0.627
+        ],
+        "n": 185,
+        "b_wins": 103,
+        "a_wins": 1,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3588,
+        "ci95": [
+          0.3199,
+          0.3976
+        ],
+        "n": 747,
+        "b_wins": 293,
+        "a_wins": 25,
+        "p": 0.0
+      }
+    },
+    "base -> tg13": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.4118,
+        "ci95": [
+          0.3294,
+          0.4882
+        ],
+        "n": 170,
+        "b_wins": 73,
+        "a_wins": 3,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2063,
+        "ci95": [
+          0.1323,
+          0.2804
+        ],
+        "n": 189,
+        "b_wins": 51,
+        "a_wins": 12,
+        "p": 1e-06
+      },
+      "heldout_musique": {
+        "diff": 0.2167,
+        "ci95": [
+          0.1429,
+          0.2906
+        ],
+        "n": 203,
+        "b_wins": 57,
+        "a_wins": 13,
+        "p": 0.0
+      },
+      "heldout_strategyqa": {
+        "diff": 0.5784,
+        "ci95": [
+          0.5027,
+          0.6541
+        ],
+        "n": 185,
+        "b_wins": 108,
+        "a_wins": 1,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3481,
+        "ci95": [
+          0.3079,
+          0.3869
+        ],
+        "n": 747,
+        "b_wins": 289,
+        "a_wins": 29,
+        "p": 0.0
+      }
+    },
+    "base -> tg17": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.4294,
+        "ci95": [
+          0.3529,
+          0.5059
+        ],
+        "n": 170,
+        "b_wins": 75,
+        "a_wins": 2,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2011,
+        "ci95": [
+          0.1323,
+          0.2751
+        ],
+        "n": 189,
+        "b_wins": 47,
+        "a_wins": 9,
+        "p": 0.0
+      },
+      "heldout_musique": {
+        "diff": 0.197,
+        "ci95": [
+          0.1232,
+          0.2709
+        ],
+        "n": 203,
+        "b_wins": 54,
+        "a_wins": 14,
+        "p": 1e-06
+      },
+      "heldout_strategyqa": {
+        "diff": 0.5676,
+        "ci95": [
+          0.4973,
+          0.6378
+        ],
+        "n": 185,
+        "b_wins": 105,
+        "a_wins": 0,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3427,
+        "ci95": [
+          0.3039,
+          0.3815
+        ],
+        "n": 747,
+        "b_wins": 281,
+        "a_wins": 25,
+        "p": 0.0
+      }
+    },
+    "base -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.4118,
+        "ci95": [
+          0.3353,
+          0.4882
+        ],
+        "n": 170,
+        "b_wins": 72,
+        "a_wins": 2,
+        "p": 0.0
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.2011,
+        "ci95": [
+          0.127,
+          0.2751
+        ],
+        "n": 189,
+        "b_wins": 49,
+        "a_wins": 11,
+        "p": 1e-06
+      },
+      "heldout_musique": {
+        "diff": 0.197,
+        "ci95": [
+          0.1232,
+          0.2709
+        ],
+        "n": 203,
+        "b_wins": 54,
+        "a_wins": 14,
+        "p": 1e-06
+      },
+      "heldout_strategyqa": {
+        "diff": 0.6,
+        "ci95": [
+          0.5297,
+          0.6703
+        ],
+        "n": 185,
+        "b_wins": 111,
+        "a_wins": 0,
+        "p": 0.0
+      },
+      "pooled": {
+        "diff": 0.3467,
+        "ci95": [
+          0.3079,
+          0.3855
+        ],
+        "n": 747,
+        "b_wins": 286,
+        "a_wins": 27,
+        "p": 0.0
+      }
+    },
+    "self13 -> self17": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0118,
+        "ci95": [
+          -0.0647,
+          0.0412
+        ],
+        "n": 170,
+        "b_wins": 9,
+        "a_wins": 11,
+        "p": 0.823803
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0212,
+        "ci95": [
+          -0.0688,
+          0.0265
+        ],
+        "n": 189,
+        "b_wins": 9,
+        "a_wins": 13,
+        "p": 0.523467
+      },
+      "heldout_musique": {
+        "diff": -0.0394,
+        "ci95": [
+          -0.0985,
+          0.0148
+        ],
+        "n": 203,
+        "b_wins": 14,
+        "a_wins": 22,
+        "p": 0.242985
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0054,
+        "ci95": [
+          -0.0324,
+          0.0432
+        ],
+        "n": 185,
+        "b_wins": 7,
+        "a_wins": 6,
+        "p": 1.0
+      },
+      "pooled": {
+        "diff": -0.0174,
+        "ci95": [
+          -0.0428,
+          0.0067
+        ],
+        "n": 747,
+        "b_wins": 39,
+        "a_wins": 52,
+        "p": 0.208174
+      }
+    },
+    "self13 -> self23": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0529,
+        "ci95": [
+          -0.1059,
+          0.0
+        ],
+        "n": 170,
+        "b_wins": 7,
+        "a_wins": 16,
+        "p": 0.09314
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0212,
+        "ci95": [
+          -0.0741,
+          0.0265
+        ],
+        "n": 189,
+        "b_wins": 10,
+        "a_wins": 14,
+        "p": 0.541256
+      },
+      "heldout_musique": {
+        "diff": -0.0443,
+        "ci95": [
+          -0.0985,
+          0.0099
+        ],
+        "n": 203,
+        "b_wins": 11,
+        "a_wins": 20,
+        "p": 0.149613
+      },
+      "heldout_strategyqa": {
+        "diff": -0.0216,
+        "ci95": [
+          -0.0541,
+          0.0108
+        ],
+        "n": 185,
+        "b_wins": 3,
+        "a_wins": 7,
+        "p": 0.34375
+      },
+      "pooled": {
+        "diff": -0.0348,
+        "ci95": [
+          -0.0589,
+          -0.0107
+        ],
+        "n": 747,
+        "b_wins": 31,
+        "a_wins": 57,
+        "p": 0.007343
+      }
+    },
+    "self13 -> tg13": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0235,
+        "ci95": [
+          -0.0765,
+          0.0294
+        ],
+        "n": 170,
+        "b_wins": 9,
+        "a_wins": 13,
+        "p": 0.523467
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0529,
+        "ci95": [
+          -0.1164,
+          0.0106
+        ],
+        "n": 189,
+        "b_wins": 15,
+        "a_wins": 25,
+        "p": 0.15386
+      },
+      "heldout_musique": {
+        "diff": -0.1034,
+        "ci95": [
+          -0.1872,
+          -0.0246
+        ],
+        "n": 203,
+        "b_wins": 26,
+        "a_wins": 47,
+        "p": 0.018618
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0054,
+        "ci95": [
+          -0.0541,
+          0.0649
+        ],
+        "n": 185,
+        "b_wins": 15,
+        "a_wins": 14,
+        "p": 1.0
+      },
+      "pooled": {
+        "diff": -0.0455,
+        "ci95": [
+          -0.079,
+          -0.012
+        ],
+        "n": 747,
+        "b_wins": 65,
+        "a_wins": 99,
+        "p": 0.009756
+      }
+    },
+    "self13 -> tg17": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0059,
+        "ci95": [
+          -0.0706,
+          0.0588
+        ],
+        "n": 170,
+        "b_wins": 15,
+        "a_wins": 16,
+        "p": 1.0
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0582,
+        "ci95": [
+          -0.1164,
+          0.0
+        ],
+        "n": 189,
+        "b_wins": 10,
+        "a_wins": 21,
+        "p": 0.070756
+      },
+      "heldout_musique": {
+        "diff": -0.1232,
+        "ci95": [
+          -0.197,
+          -0.0493
+        ],
+        "n": 203,
+        "b_wins": 19,
+        "a_wins": 44,
+        "p": 0.002228
+      },
+      "heldout_strategyqa": {
+        "diff": -0.0054,
+        "ci95": [
+          -0.0649,
+          0.0541
+        ],
+        "n": 185,
+        "b_wins": 14,
+        "a_wins": 15,
+        "p": 1.0
+      },
+      "pooled": {
+        "diff": -0.0509,
+        "ci95": [
+          -0.083,
+          -0.0187
+        ],
+        "n": 747,
+        "b_wins": 58,
+        "a_wins": 96,
+        "p": 0.002749
+      }
+    },
+    "self13 -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0235,
+        "ci95": [
+          -0.0882,
+          0.0412
+        ],
+        "n": 170,
+        "b_wins": 14,
+        "a_wins": 18,
+        "p": 0.596615
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0582,
+        "ci95": [
+          -0.1217,
+          0.0053
+        ],
+        "n": 189,
+        "b_wins": 13,
+        "a_wins": 24,
+        "p": 0.098872
+      },
+      "heldout_musique": {
+        "diff": -0.1232,
+        "ci95": [
+          -0.202,
+          -0.0493
+        ],
+        "n": 203,
+        "b_wins": 19,
+        "a_wins": 44,
+        "p": 0.002228
+      },
+      "heldout_strategyqa": {
+        "diff": 0.027,
+        "ci95": [
+          -0.0378,
+          0.0919
+        ],
+        "n": 185,
+        "b_wins": 21,
+        "a_wins": 16,
+        "p": 0.511376
+      },
+      "pooled": {
+        "diff": -0.0469,
+        "ci95": [
+          -0.0817,
+          -0.0134
+        ],
+        "n": 747,
+        "b_wins": 67,
+        "a_wins": 102,
+        "p": 0.008715
+      }
+    },
+    "self17 -> self23": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0412,
+        "ci95": [
+          -0.1,
+          0.0176
+        ],
+        "n": 170,
+        "b_wins": 9,
+        "a_wins": 16,
+        "p": 0.229523
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.0,
+        "ci95": [
+          -0.0423,
+          0.0423
+        ],
+        "n": 189,
+        "b_wins": 8,
+        "a_wins": 8,
+        "p": 1.0
+      },
+      "heldout_musique": {
+        "diff": -0.0049,
+        "ci95": [
+          -0.0591,
+          0.0493
+        ],
+        "n": 203,
+        "b_wins": 16,
+        "a_wins": 17,
+        "p": 1.0
+      },
+      "heldout_strategyqa": {
+        "diff": -0.027,
+        "ci95": [
+          -0.0703,
+          0.0162
+        ],
+        "n": 185,
+        "b_wins": 6,
+        "a_wins": 11,
+        "p": 0.332306
+      },
+      "pooled": {
+        "diff": -0.0174,
+        "ci95": [
+          -0.0428,
+          0.0067
+        ],
+        "n": 747,
+        "b_wins": 39,
+        "a_wins": 52,
+        "p": 0.208174
+      }
+    },
+    "self17 -> tg13": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0118,
+        "ci95": [
+          -0.0706,
+          0.0412
+        ],
+        "n": 170,
+        "b_wins": 11,
+        "a_wins": 13,
+        "p": 0.83882
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0317,
+        "ci95": [
+          -0.0847,
+          0.0265
+        ],
+        "n": 189,
+        "b_wins": 12,
+        "a_wins": 18,
+        "p": 0.361595
+      },
+      "heldout_musique": {
+        "diff": -0.064,
+        "ci95": [
+          -0.1429,
+          0.0099
+        ],
+        "n": 203,
+        "b_wins": 25,
+        "a_wins": 38,
+        "p": 0.129918
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0,
+        "ci95": [
+          -0.0541,
+          0.0541
+        ],
+        "n": 185,
+        "b_wins": 13,
+        "a_wins": 13,
+        "p": 1.0
+      },
+      "pooled": {
+        "diff": -0.0281,
+        "ci95": [
+          -0.0589,
+          0.004
+        ],
+        "n": 747,
+        "b_wins": 61,
+        "a_wins": 82,
+        "p": 0.094083
+      }
+    },
+    "self17 -> tg17": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0059,
+        "ci95": [
+          -0.0647,
+          0.0765
+        ],
+        "n": 170,
+        "b_wins": 18,
+        "a_wins": 17,
+        "p": 1.0
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.037,
+        "ci95": [
+          -0.0899,
+          0.0159
+        ],
+        "n": 189,
+        "b_wins": 10,
+        "a_wins": 17,
+        "p": 0.247789
+      },
+      "heldout_musique": {
+        "diff": -0.0837,
+        "ci95": [
+          -0.1576,
+          -0.0148
+        ],
+        "n": 203,
+        "b_wins": 19,
+        "a_wins": 36,
+        "p": 0.030029
+      },
+      "heldout_strategyqa": {
+        "diff": -0.0108,
+        "ci95": [
+          -0.0649,
+          0.0432
+        ],
+        "n": 185,
+        "b_wins": 13,
+        "a_wins": 15,
+        "p": 0.850554
+      },
+      "pooled": {
+        "diff": -0.0335,
+        "ci95": [
+          -0.0656,
+          -0.0027
+        ],
+        "n": 747,
+        "b_wins": 60,
+        "a_wins": 85,
+        "p": 0.045877
+      }
+    },
+    "self17 -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0118,
+        "ci95": [
+          -0.0765,
+          0.0529
+        ],
+        "n": 170,
+        "b_wins": 14,
+        "a_wins": 16,
+        "p": 0.855536
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.037,
+        "ci95": [
+          -0.0952,
+          0.0212
+        ],
+        "n": 189,
+        "b_wins": 13,
+        "a_wins": 20,
+        "p": 0.296206
+      },
+      "heldout_musique": {
+        "diff": -0.0837,
+        "ci95": [
+          -0.1576,
+          -0.0148
+        ],
+        "n": 203,
+        "b_wins": 19,
+        "a_wins": 36,
+        "p": 0.030029
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0216,
+        "ci95": [
+          -0.0378,
+          0.0865
+        ],
+        "n": 185,
+        "b_wins": 19,
+        "a_wins": 15,
+        "p": 0.607591
+      },
+      "pooled": {
+        "diff": -0.0295,
+        "ci95": [
+          -0.0616,
+          0.0027
+        ],
+        "n": 747,
+        "b_wins": 65,
+        "a_wins": 87,
+        "p": 0.088175
+      }
+    },
+    "self23 -> tg13": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0294,
+        "ci95": [
+          -0.0353,
+          0.0882
+        ],
+        "n": 170,
+        "b_wins": 17,
+        "a_wins": 12,
+        "p": 0.458258
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0317,
+        "ci95": [
+          -0.0899,
+          0.0265
+        ],
+        "n": 189,
+        "b_wins": 12,
+        "a_wins": 18,
+        "p": 0.361595
+      },
+      "heldout_musique": {
+        "diff": -0.0591,
+        "ci95": [
+          -0.1379,
+          0.0148
+        ],
+        "n": 203,
+        "b_wins": 26,
+        "a_wins": 38,
+        "p": 0.168643
+      },
+      "heldout_strategyqa": {
+        "diff": 0.027,
+        "ci95": [
+          -0.027,
+          0.0811
+        ],
+        "n": 185,
+        "b_wins": 17,
+        "a_wins": 12,
+        "p": 0.458258
+      },
+      "pooled": {
+        "diff": -0.0107,
+        "ci95": [
+          -0.0415,
+          0.0228
+        ],
+        "n": 747,
+        "b_wins": 72,
+        "a_wins": 80,
+        "p": 0.570333
+      }
+    },
+    "self23 -> tg17": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0471,
+        "ci95": [
+          -0.0176,
+          0.1118
+        ],
+        "n": 170,
+        "b_wins": 19,
+        "a_wins": 11,
+        "p": 0.200488
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.037,
+        "ci95": [
+          -0.0899,
+          0.0159
+        ],
+        "n": 189,
+        "b_wins": 10,
+        "a_wins": 17,
+        "p": 0.247789
+      },
+      "heldout_musique": {
+        "diff": -0.0788,
+        "ci95": [
+          -0.1527,
+          -0.0099
+        ],
+        "n": 203,
+        "b_wins": 19,
+        "a_wins": 35,
+        "p": 0.040224
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0162,
+        "ci95": [
+          -0.0432,
+          0.0757
+        ],
+        "n": 185,
+        "b_wins": 17,
+        "a_wins": 14,
+        "p": 0.7201
+      },
+      "pooled": {
+        "diff": -0.0161,
+        "ci95": [
+          -0.0469,
+          0.0161
+        ],
+        "n": 747,
+        "b_wins": 65,
+        "a_wins": 77,
+        "p": 0.356
+      }
+    },
+    "self23 -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0294,
+        "ci95": [
+          -0.0294,
+          0.0882
+        ],
+        "n": 170,
+        "b_wins": 16,
+        "a_wins": 11,
+        "p": 0.442068
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.037,
+        "ci95": [
+          -0.1005,
+          0.0212
+        ],
+        "n": 189,
+        "b_wins": 14,
+        "a_wins": 21,
+        "p": 0.310505
+      },
+      "heldout_musique": {
+        "diff": -0.0788,
+        "ci95": [
+          -0.1478,
+          -0.0099
+        ],
+        "n": 203,
+        "b_wins": 18,
+        "a_wins": 34,
+        "p": 0.036483
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0486,
+        "ci95": [
+          -0.0108,
+          0.1081
+        ],
+        "n": 185,
+        "b_wins": 21,
+        "a_wins": 12,
+        "p": 0.162756
+      },
+      "pooled": {
+        "diff": -0.012,
+        "ci95": [
+          -0.0442,
+          0.0187
+        ],
+        "n": 747,
+        "b_wins": 69,
+        "a_wins": 78,
+        "p": 0.509502
+      }
+    },
+    "tg13 -> tg17": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0176,
+        "ci95": [
+          -0.0353,
+          0.0706
+        ],
+        "n": 170,
+        "b_wins": 12,
+        "a_wins": 9,
+        "p": 0.663624
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0053,
+        "ci95": [
+          -0.0582,
+          0.0476
+        ],
+        "n": 189,
+        "b_wins": 12,
+        "a_wins": 13,
+        "p": 1.0
+      },
+      "heldout_musique": {
+        "diff": -0.0197,
+        "ci95": [
+          -0.0837,
+          0.0443
+        ],
+        "n": 203,
+        "b_wins": 22,
+        "a_wins": 26,
+        "p": 0.665466
+      },
+      "heldout_strategyqa": {
+        "diff": -0.0108,
+        "ci95": [
+          -0.0595,
+          0.0378
+        ],
+        "n": 185,
+        "b_wins": 9,
+        "a_wins": 11,
+        "p": 0.823803
+      },
+      "pooled": {
+        "diff": -0.0054,
+        "ci95": [
+          -0.0335,
+          0.0228
+        ],
+        "n": 747,
+        "b_wins": 55,
+        "a_wins": 59,
+        "p": 0.778876
+      }
+    },
+    "tg13 -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": 0.0,
+        "ci95": [
+          -0.0529,
+          0.0529
+        ],
+        "n": 170,
+        "b_wins": 11,
+        "a_wins": 11,
+        "p": 1.0
+      },
+      "heldout_hotpotqa": {
+        "diff": -0.0053,
+        "ci95": [
+          -0.0635,
+          0.0529
+        ],
+        "n": 189,
+        "b_wins": 16,
+        "a_wins": 17,
+        "p": 1.0
+      },
+      "heldout_musique": {
+        "diff": -0.0197,
+        "ci95": [
+          -0.0788,
+          0.0394
+        ],
+        "n": 203,
+        "b_wins": 18,
+        "a_wins": 22,
+        "p": 0.635828
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0216,
+        "ci95": [
+          -0.027,
+          0.0703
+        ],
+        "n": 185,
+        "b_wins": 13,
+        "a_wins": 9,
+        "p": 0.523467
+      },
+      "pooled": {
+        "diff": -0.0013,
+        "ci95": [
+          -0.0295,
+          0.0268
+        ],
+        "n": 747,
+        "b_wins": 58,
+        "a_wins": 59,
+        "p": 1.0
+      }
+    },
+    "tg17 -> tg23": {
+      "heldout_2wikimultihopqa": {
+        "diff": -0.0176,
+        "ci95": [
+          -0.0706,
+          0.0353
+        ],
+        "n": 170,
+        "b_wins": 9,
+        "a_wins": 12,
+        "p": 0.663624
+      },
+      "heldout_hotpotqa": {
+        "diff": 0.0,
+        "ci95": [
+          -0.0529,
+          0.0529
+        ],
+        "n": 189,
+        "b_wins": 12,
+        "a_wins": 12,
+        "p": 1.0
+      },
+      "heldout_musique": {
+        "diff": 0.0,
+        "ci95": [
+          -0.064,
+          0.064
+        ],
+        "n": 203,
+        "b_wins": 22,
+        "a_wins": 22,
+        "p": 1.0
+      },
+      "heldout_strategyqa": {
+        "diff": 0.0324,
+        "ci95": [
+          -0.0216,
+          0.0865
+        ],
+        "n": 185,
+        "b_wins": 15,
+        "a_wins": 9,
+        "p": 0.307456
+      },
+      "pooled": {
+        "diff": 0.004,
+        "ci95": [
+          -0.0241,
+          0.0321
+        ],
+        "n": 747,
+        "b_wins": 58,
+        "a_wins": 55,
+        "p": 0.85087
+      }
+    }
+  },
+  "paired_metric": "judge"
+}
