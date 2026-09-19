@@ -25,6 +25,12 @@ or `teacher_accept`): base 2.4 %, guided 4.6 %, trained 11.0 %, teacher 24.0 % (
 
 ## History
 
+- **2026-09-19: teacher arm superseded as the reference.** This teacher arm ran through another
+  provider with the harness default of 1,200 output tokens per call (3,889 tokens per question,
+  71.1 %). The kit's teacher-alone run under the protocol of the teacher's own rollouts (E08,
+  budget 3, 6,000-token limit) scores 82.7 % at 7,231 tokens per question; 16 % of its step calls
+  exceed 1,190 tokens. The paper uses 82.7 % as the teacher-alone reference. The comparisons in
+  this folder are unchanged.
 - **2026-09-18: re-judged with Gemma-4-31B-it**, the judge of every other table (E16 picked it).
   Episodes were imported unchanged from the research workspace
   (`experiments/exp00_reference/import_runs.py`) and judged by the pool task `judge_e00`. The

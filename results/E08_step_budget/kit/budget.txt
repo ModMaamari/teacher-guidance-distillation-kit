@@ -1,0 +1,8 @@
+metric: judge_correct   (steps used / tokens per episode in brackets)
+
+  arm                                b=1                   b=3                   b=5                   b=8
+  base                 0.5% [1.00/1,419]    27.3% [2.97/5,067]    28.1% [4.89/8,939]   26.2% [7.74/14,923]
+  teacher             60.0% [1.00/4,766]    82.7% [2.89/7,231]   85.0% [4.21/10,055]   85.8% [5.64/13,358]
+  trained             10.3% [1.00/1,729]    62.1% [2.92/5,334]    66.8% [4.44/9,027]   67.3% [6.51/13,922]
+
+reading: a student that gains with budget is stopping too early, not retrieving badly.
