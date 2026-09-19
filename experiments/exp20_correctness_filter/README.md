@@ -28,6 +28,13 @@ Contrasts, stated before the results:
 4. `wrongonly` vs base and vs `correct`: how much of the gain comes from format and tool use
    alone.
 
+Cost, not only accuracy: `train_cost.py` reports each arm's training examples, training tokens,
+the trainer's own FLOP counter (transformers counts 6 x parameters x tokens, an upper bound for
+LoRA and comparable between arms), wall-clock GPU-hours summed over resumed chunks, and the peak
+GPU memory the training process allocated. Inference cost is measured per arm by the results table
+(steps and tokens per question). Collection cost is identical for every arm: the failed episodes
+were collected anyway, so the filter only saves training.
+
 Statistics: per seed, the paired bootstrap CI and exact McNemar of the results table; across
 seeds, mean and SD, and a seed-averaged paired test (each question's accuracy averaged over the
 three seeds of each arm, bootstrap CI and sign-flip permutation p over the 747 questions), with
@@ -40,6 +47,7 @@ bash experiments/pool/run_task.sh prep_e20      # splits: data/splits_self_{all,
 ```
 
 Pool tasks: `prep_e20`, `train_mixall_s{13,17,23}`, `train_mixmatch_s{13,17,23}`,
-`train_wrongonly`, `eval_*`, `judge_*`, `results_E20` (which also runs `summarize.py` and
+`train_wrongonly`, `eval_*`, `judge_*`, `results_E20mm` (the size-matched arms and
+incorrect-only, published as soon as they are judged) and `results_E20` (everything, which also
 refreshes E12). `make_matched.py` builds the size-matched split; `summarize.py` prints the
-seed-level table.
+seed-level table; `train_cost.py` the cost table.
