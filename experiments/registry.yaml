@@ -94,10 +94,11 @@ experiments:
     folder: experiments/exp08_step_budget
     question: Does the conclusion depend on the 3-step budget?
     tier: 2
-    status: running
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E08_step_budget
     paper: fig:E08-budget
-    next: "Teacher-alone arms b3, b5, b8 (revived after endpoint outages), then results_E08."
+    next: "none (teacher_b3, 82.7 %, is the paper's teacher-alone reference)"
 
   - id: E09
     name: forgetting
@@ -136,10 +137,11 @@ experiments:
     folder: experiments/exp12_multiple_comparisons
     question: Do the p-values survive Holm and Benjamini-Hochberg correction?
     tier: 3
-    status: planned
+    status: done
+    judge: Gemma-4-31B-it
     results: results/E12_multiple_comparisons
     paper: tab:E12-corrected
-    next: "Pool: e12_pvalues after the result tables."
+    next: "none (matched self-guided vs unguided and per-seed self vs teacher-guided survive BH only)"
 
   - id: E13
     name: lodo_transfer
