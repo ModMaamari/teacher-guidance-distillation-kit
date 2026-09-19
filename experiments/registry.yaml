@@ -210,8 +210,8 @@ experiments:
     folder: experiments/exp19_self_guided_robustness
     question: Do the seed, transfer and forgetting results hold for the self-guided student?
     tier: 1
-    status: partial
+    status: done
     judge: Gemma-4-31B-it
     results: results/E19_self_guided_robustness
     paper: tab:E19-self-robustness
-    next: "Transfer folds: the 2WikiMultihopQA fold's evaluation, then results_E19lodo."
+    next: "none (one seed per fold)"

@@ -1,4 +1,4 @@
-# E19 — Robustness of the self-guided student (partial)
+# E19 — Robustness of the self-guided student
 
 **Question.** Do the seed, transfer and forgetting results hold for the self-guided student?
 
@@ -29,10 +29,26 @@ teacher-guided seeds of E02 (same seeds, same recipe):
 Self-guided training is less stable across seeds (SD 1.7 vs 0.3), but its lowest seed beats the
 highest teacher-guided one. Numbers: `kit/results.json`, `kit/seeds.txt`.
 
-**Still running.** The four leave-one-dataset-out self-guided folds against the base student on
-the full unseen sets (`results_E19lodo`); the 2WikiMultihopQA fold's evaluation is the last piece.
+**Done: transfer.** Four leave-one-dataset-out students trained on the self-guided episodes
+(`data/splits_self/lodo/fold_*`), each evaluated on every question of the dataset it never saw,
+against the base student re-run on the same questions:
+
+| Unseen dataset | n | Base | Self-guided fold | Δ (95 % CI) | Teacher-guided fold (E13) |
+|---|---|---|---|---|---|
+| HotpotQA | 2,000 | 46.9 % | 72.5 % | +25.7 (+23.4 to +27.8) | 69.0 % |
+| 2WikiMultihopQA | 2,000 | 38.6 % | 73.3 % | +34.6 (+32.3 to +37.0) | 71.3 % |
+| MuSiQue | 2,000 | 12.2 % | 40.6 % | +28.4 (+26.2 to +30.6) | 32.8 % |
+| StrategyQA | 1,999 | 16.9 % | 64.8 % | +47.9 (+45.6 to +50.3) | 65.3 % |
+
+Self-guided folds transfer at least as well as teacher-guided ones: higher on three unseen
+datasets and within 0.5 points on StrategyQA. The teacher-guided folds come from E13 and were
+compared there with an earlier base run (47.1 / 38.9 / 11.7 / 15.9 %). Numbers:
+`lodo/results.json`, table `lodo/RESULTS.md`.
+
+**Caveats.** One seed per fold.
 
 ## History
 
 - **2026-09-18:** forgetting check (pool task `forget_selftaught`).
-- **2026-09-19:** seeds 17 and 23, paired with the teacher-guided seeds (`results_E19`).
+- **2026-09-19:** seeds 17 and 23, paired with the teacher-guided seeds (`results_E19`); the four
+  transfer folds (`results_E19lodo`).
