@@ -295,6 +295,15 @@ case "$TASK" in
           --results runs/results/E20s13/results.json --json-out runs/results/E20s13/summary.json \
           | tee runs/results/E20s13/summary.txt &&
       $TOOLS publish runs/results/E20s13 results/E20_correctness_filter/seed13 --only summary.txt summary.json ;;
+  results_E20mm)     # E20 early: the size-matched mix (three seeds) and incorrect-only, before the all-episode arms finish
+    results E20mm results/E20_correctness_filter/matched base=runs/eval/base \
+        correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
+        mixmatch13=runs/eval/mixmatch_s13 mixmatch17=runs/eval/mixmatch_s17 mixmatch23=runs/eval/mixmatch_s23 \
+        wrongonly=runs/eval/wrongonly &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E20mm \
+          --results runs/results/E20mm/results.json --json-out runs/results/E20mm/summary.json \
+          | tee runs/results/E20mm/summary.txt &&
+      $TOOLS publish runs/results/E20mm results/E20_correctness_filter/matched --only summary.txt summary.json ;;
   results_E20)       # E20: correct-only vs mixed self-guided episodes, three seeds each
     results E20 results/E20_correctness_filter/kit base=runs/eval/base \
         correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
