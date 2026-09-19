@@ -20,7 +20,8 @@ Also written: ``pools.json`` (qid -> pool), ``stats.json``, and a ``manifest.jso
 split with counts and the train/test qid-overlap proof (always 0). Run
 ``scripts/check_leakage.py`` afterwards for the independent check.
 
-Only episodes whose final answer was correct become training examples. Test files use
+Only episodes whose final answer was correct become training examples (``--keep all`` or
+``--keep incorrect`` lifts or inverts that filter, for E20). Test files use
 ALL questions of a dataset regardless of collection-time correctness. Two hygiene
 filters run on the training side: a question whose text duplicates a held-out question
 (same text, different id -- datasets contain such duplicates) is excluded from training,
@@ -148,6 +149,9 @@ def main() -> int:
     ap.add_argument("--salt", default=DEFAULT_SALT, help="hash salt of the held-out assignment")
     ap.add_argument("--dev-salt", default=DEFAULT_DEV_SALT)
     ap.add_argument("--limit", type=int, default=None, help="cap episodes read (smoke tests)")
+    ap.add_argument("--keep", choices=("correct", "all", "incorrect"), default="correct",
+                    help="episodes that become training examples: the correct ones (the kit's filter), "
+                         "all of them, or only the incorrect ones (E20)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -158,7 +162,7 @@ def main() -> int:
     heldout_text = {norm(r["query"]) for ds in datasets for r in questions[ds]
                     if pool_of(str(r["id"]), args.heldout_fraction, args.salt) == "heldout_test"}
 
-    # ---- pass 1: episodes -> pools + SFT examples (trainable & correct only)
+    # ---- pass 1: episodes -> pools + SFT examples (trainable & kept by --keep; default: correct only)
     pools: Dict[str, str] = {}
     examples: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
     counts = collections.defaultdict(collections.Counter)
@@ -171,7 +175,8 @@ def main() -> int:
         counts[ds][pool] += 1
         correct = bool((ep.get("final_metrics") or {}).get("answer_correct"))
         counts[ds]["correct"] += int(correct)
-        if not correct or pool != "trainable":
+        kept = {"correct": correct, "all": True, "incorrect": not correct}[args.keep]
+        if not kept or pool != "trainable":
             continue
         if norm(ep.get("query", "")) in heldout_text:
             counts[ds]["dropped_duplicate_of_heldout"] += 1
@@ -192,6 +197,7 @@ def main() -> int:
             ex["metadata"]["dataset"] = ds
             ex["metadata"]["qid"] = qid
             ex["metadata"]["query"] = ep.get("query", "")
+            ex["metadata"]["episode_correct"] = correct
             built.append(ex)
         if not built:
             counts[ds]["episodes_without_examples"] += 1
@@ -199,6 +205,7 @@ def main() -> int:
         examples[ds].extend(built)
         counts[ds]["train_examples"] += len(built)
         counts[ds]["train_episodes"] += 1
+        counts[ds]["train_episodes_correct"] += int(correct)
 
     # ---- pass 2: test question files
     test_dir = out / "test"
@@ -225,7 +232,7 @@ def main() -> int:
             f"lodo/fold_{k}", out, [d for d in datasets if d != k], examples,
             args.dev_fraction, args.dev_salt, test_qids, k)
     (out / "pools.json").write_text(json.dumps(pools, indent=0), encoding="utf-8")
-    stats["config"] = {k: getattr(args, k) for k in ("heldout_fraction", "dev_fraction", "salt", "dev_salt")}
+    stats["config"] = {k: getattr(args, k) for k in ("heldout_fraction", "dev_fraction", "salt", "dev_salt", "keep")}
     (out / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print("\nper dataset:")
     for ds in datasets:
