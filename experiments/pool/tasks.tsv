@@ -75,7 +75,8 @@ judge_selflodo_2wikimultihopqa	0	1	0.5	1	done:eval_selflodo_2wikimultihopqa
 judge_selflodo_musique	0	1	0.5	1	done:eval_selflodo_musique
 judge_selflodo_strategyqa	0	1	0.5	1	done:eval_selflodo_strategyqa
 judge_basefull	0	1	1	1	done:eval_basefull_hotpotqa,done:eval_basefull_2wikimultihopqa,done:eval_basefull_musique,done:eval_basefull_strategyqa
-results_E19	0	1	0.3	1	done:judge_base,done:judge_selftaught,done:judge_selftaught_s17,done:judge_selftaught_s23,done:judge_basefull,done:judge_selflodo_hotpotqa,done:judge_selflodo_2wikimultihopqa,done:judge_selflodo_musique,done:judge_selflodo_strategyqa
+results_E19	0	1	0.2	1	done:judge_base,done:judge_selftaught,done:judge_selftaught_s17,done:judge_selftaught_s23,done:judge_seed13,done:judge_seed17,done:judge_seed23
+results_E19lodo	0	1	0.2	1	done:judge_basefull,done:judge_selflodo_hotpotqa,done:judge_selflodo_2wikimultihopqa,done:judge_selflodo_musique,done:judge_selflodo_strategyqa
 import_research	0	1	0.1	1	-
 judge_e00	0	1	0.5	1	done:import_research
 e03_sample	0	1	0.1	1	done:judge_e00

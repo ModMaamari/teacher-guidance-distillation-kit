@@ -41,7 +41,9 @@ def main() -> int:
     ap.add_argument("--arms", nargs="+", required=True)
     ap.add_argument("--judge", action="append", required=True, metavar="NAME=DIR")
     ap.add_argument("--pair", action="append", default=[], metavar="A:B")
+    ap.add_argument("--json-out", default="", help="also write every number as JSON (for generated tables)")
     a = ap.parse_args()
+    out = {"accuracy": {}, "median_words": {}, "paired": {}}
     runs = Path(a.runs)
     keys, words = {}, {}
     for arm in a.arms:
@@ -60,8 +62,10 @@ def main() -> int:
     print("|---|---|" + "---|" * len(judges))
     for arm in a.arms:
         cells = []
-        for v in judges.values():
+        out["median_words"][arm] = st.median(words[arm]) if words[arm] else None
+        for jn, v in judges.items():
             xs = [v[k] for k in keys[arm] if k in v]
+            out["accuracy"].setdefault(arm, {})[jn] = {"acc": sum(xs) / len(xs), "n": len(xs)} if xs else None
             cells.append(f"{100 * sum(xs) / len(xs):.1f} ({len(xs)})" if xs else "—")
         print(f"| {arm} | {st.median(words[arm]) if words[arm] else '—'} | " + " | ".join(cells) + " |")
 
@@ -72,7 +76,7 @@ def main() -> int:
         for spec in a.pair:
             x, y = spec.split(":")
             cells = []
-            for v in judges.values():
+            for jn, v in judges.items():
                 qa = {k[1:]: v[k] for k in keys[x] if k in v}
                 qb = {k[1:]: v[k] for k in keys[y] if k in v}
                 common = sorted(set(qa) & set(qb))
@@ -83,8 +87,11 @@ def main() -> int:
                 b = paired_bootstrap(va, vb)
                 p = mcnemar_exact(va, vb)
                 p = p.get("p") if isinstance(p, dict) else p
+                out["paired"].setdefault(f"{x} -> {y}", {})[jn] = {"diff": b["diff"], "ci95": b["ci95"], "n": b["n"], "p": p}
                 cells.append(f"{100 * b['diff']:+.1f} [{100 * b['ci95'][0]:+.1f}, {100 * b['ci95'][1]:+.1f}] p={p:.2g}")
             print(f"| {x} → {y} | " + " | ".join(cells) + " |")
+    if a.json_out:
+        Path(a.json_out).write_text(json.dumps(out, indent=1), encoding="utf-8")
     return 0
 
 

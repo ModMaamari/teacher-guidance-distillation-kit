@@ -144,8 +144,9 @@ case "$TASK" in
         --judge strict=runs/judge_e18/strict --judge kimi=runs/judge_e18/kimi --judge qwen=runs/judge_e18/qwen \
         --pair seed13:selftaught --pair seed13:glmtaught --pair sup_guided:sup_selfdist \
         --pair sup_selfdist:sup_selftaught --pair sup_guided:sup_selftaught --pair sup_selftaught:sup_teachdist \
-        --pair selfdist_full:selftaught --pair seed13:selfdist_full > runs/results/E18/report.md &&
-      cat runs/results/E18/report.md && $TOOLS publish runs/results/E18 results/E18_answer_form/kit --only report.md ;;
+        --pair selfdist_full:selftaught --pair seed13:selfdist_full --json-out runs/results/E18/report.json \
+        > runs/results/E18/report.md &&
+      cat runs/results/E18/report.md && $TOOLS publish runs/results/E18 results/E18_answer_form/kit --only report.md report.json ;;
 
   # ---------- data preparation ----------
   prep_sizes)       # nested cuts: one seeded order per dataset, so adding a size never changes the others
@@ -275,13 +276,15 @@ case "$TASK" in
   results_E17full)   # all available episodes of each source
     results E17full results/E17_self_guidance/full base=runs/eval/base selfdist_full=runs/eval/selfdist_full \
         selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
-  results_E19)
+  results_E19)       # seeds: self-guided and teacher-guided students, paired seed by seed
     results E19 results/E19_self_guided_robustness/kit base=runs/eval/base self13=runs/eval/selftaught \
-        self17=runs/eval/selftaught_s17 self23=runs/eval/selftaught_s23 &&
+        self17=runs/eval/selftaught_s17 self23=runs/eval/selftaught_s23 \
+        tg13=runs/eval/seed13 tg17=runs/eval/seed17 tg23=runs/eval/seed23 &&
       $PY_BASE experiments/exp02_seed_variance/summarize_seeds.py --results runs/results/E19/results.json \
         --arm-pattern '^self(\d+)$' | tee runs/results/E19/seeds.txt &&
-      $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seeds.txt &&
-      results E19lodo results/E19_self_guided_robustness/lodo basefull=runs/eval/basefull \
+      $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seeds.txt ;;
+  results_E19lodo)   # transfer: self-guided leave-one-dataset-out folds against the base on the whole unseen sets
+    results E19lodo results/E19_self_guided_robustness/lodo basefull=runs/eval/basefull \
         fold_hotpotqa=runs/eval/selflodo_hotpotqa fold_2wikimultihopqa=runs/eval/selflodo_2wikimultihopqa \
         fold_musique=runs/eval/selflodo_musique fold_strategyqa=runs/eval/selflodo_strategyqa ;;
   results_E11)
