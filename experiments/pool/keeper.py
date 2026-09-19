@@ -4,10 +4,12 @@
 Submits workers only for work that can start now, so no GPU is held while its tasks wait on
 something else:
 
-  * GPU workers (`tgd-gpu`, GPU_PARTITION, 12 h) up to min(GPU_WORKERS, GPU tasks that are
-    runnable or running); these limits are re-read from local.env on every pass;
-  * one `tgd-short` worker (SHORT_PARTITION, 1 h, evaluations only) whenever a GPU task
-    estimated at <= 1 h is runnable, because that partition starts at once;
+  * GPU workers (`tgd-gpu`, GPU_PARTITION, GPU_WALL_H h, default 12) up to min(GPU_WORKERS, GPU
+    tasks that are runnable or running); these limits are re-read from local.env on every pass;
+  * up to SHORT_WORKERS (default 1) `tgd-short` workers (SHORT_PARTITION, 1 h) while GPU tasks
+    estimated at <= 1 h are runnable, because that partition starts at once. With SHORT_CHUNKS=1
+    they also take resumable tasks of any length, which then advance in 50-minute chunks
+    (training resumes from its last checkpoint), for when GPU_PARTITION is congested;
   * one CPU worker (`tgd-cpu`, CPU_PARTITION, 24 h) while any CPU/API task is pending.
 
     python experiments/pool/keeper.py             # one pass
@@ -41,12 +43,16 @@ def _local_env() -> dict:
 
 
 os.environ.update({k: v for k, v in _local_env().items()
-                   if k in ("GPU_PARTITION", "SHORT_PARTITION", "SHORT_GRES", "CPU_PARTITION", "GPU_WORKERS")})
+                   if k in ("GPU_PARTITION", "SHORT_PARTITION", "SHORT_GRES", "CPU_PARTITION", "GPU_WORKERS",
+                            "GPU_WALL_H", "SHORT_WORKERS", "SHORT_CHUNKS")})
 GPU_PARTITION = os.environ.get("GPU_PARTITION", "gpu")
 SHORT_PARTITION = os.environ.get("SHORT_PARTITION", "short")
-SHORT_GRES = os.environ.get("SHORT_GRES", "gpu:l40s:1")
+SHORT_GRES = os.environ.get("SHORT_GRES", "gpu:l40s:1").split("|")   # alternatives, used in turn
 CPU_PARTITION = os.environ.get("CPU_PARTITION", "general")
 GPU_WORKERS = int(os.environ.get("GPU_WORKERS", "4"))
+GPU_WALL_H = int(os.environ.get("GPU_WALL_H", "12"))
+SHORT_WORKERS = int(os.environ.get("SHORT_WORKERS", "1"))
+SHORT_CHUNKS = os.environ.get("SHORT_CHUNKS", "0") == "1"
 
 
 def say(*a):
@@ -79,7 +85,7 @@ def main() -> int:
     runnable = [t for t in pending if t not in claimed and W.deps_ok(t)]
     gpu_run = [t for t in runnable if t["vram"] > 0]
     gpu_busy = [t for t in claimed if t["vram"] > 0]
-    short_run = [t for t in gpu_run if t["est"] <= 1]
+    short_run = [t for t in gpu_run if t["est"] <= 1 or (SHORT_CHUNKS and t["resumable"])]
     cpu_pending = [t for t in pending if t["vram"] == 0]
     have = jobs()
     say(f"pending {len(pending)} (runnable gpu {len(gpu_run)}, short {len(short_run)}, running gpu "
@@ -88,10 +94,13 @@ def main() -> int:
 
     want_gpu = min(GPU_WORKERS, len(gpu_run) + len(gpu_busy))
     for _ in range(max(0, want_gpu - have["tgd-gpu"])) if gpu_run else ():
-        submit("tgd-gpu", ["-p", GPU_PARTITION, "--gres=gpu:1", "-t", "12:00:00"], "WORKER_WALL_H=12", dry)
-    if short_run and not have["tgd-short"]:
-        submit("tgd-short", ["-p", SHORT_PARTITION, f"--gres={SHORT_GRES}", "-t", "01:00:00", "-c", "8",
-                             "--mem=64G"], "WORKER_WALL_H=1,MAX_EST_H=1,IDLE_EXIT=300", dry)
+        submit("tgd-gpu", ["-p", GPU_PARTITION, "--gres=gpu:1", "-t", f"{GPU_WALL_H}:00:00"],
+               f"WORKER_WALL_H={GPU_WALL_H}", dry)
+    for i in range(max(0, min(SHORT_WORKERS, len(short_run)) - have["tgd-short"])):
+        gres = SHORT_GRES[(int(time.time() // 600) + i) % len(SHORT_GRES)]
+        submit("tgd-short", ["-p", SHORT_PARTITION, f"--gres={gres}", "-t", "01:00:00", "-c", "8",
+                             "--mem=64G"], f"WORKER_WALL_H=1,MAX_EST_H=1,IDLE_EXIT=300,CHUNK_RESUMABLE={int(SHORT_CHUNKS)}",
+               dry)
     if cpu_pending and not have["tgd-cpu"]:
         submit("tgd-cpu", ["-p", CPU_PARTITION, "-c", "8", "--mem=32G", "-t", "1-00:00:00"],
                "WORKER_KIND=cpu,WORKER_WALL_H=24,WORKER_THREADS=1", dry)

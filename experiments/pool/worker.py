@@ -17,7 +17,8 @@ failed MAX_FAIL times (default 5), at least 2 minutes apart, then marked dead. E
 run_task.sh (runs/pool/snap/), so the script can be edited while workers run. On SIGUSR1 (Slurm, before the walltime) the worker stops its tasks and releases
 their claims. A GPU worker exits after IDLE_EXIT seconds with nothing to run; a CPU worker
 stays while any task of its kind is still pending, because upstream GPU work will unblock it.
-MAX_EST_H skips tasks estimated longer than that (the 1-hour `short` workers run evals only).
+MAX_EST_H skips tasks estimated longer than that (the 1-hour `short` workers run evals, and with
+CHUNK_RESUMABLE=1 also resumable tasks, in chunks).
 
     python experiments/pool/worker.py --dry     # show what would start, start nothing
 """
@@ -42,6 +43,7 @@ THREADS = int(os.environ.get("WORKER_THREADS", "4"))
 START = time.time()
 WALL_S = float(os.environ.get("WORKER_WALL_H", "12")) * 3600
 MAX_EST_H = float(os.environ.get("MAX_EST_H", "1e9"))
+CHUNK = os.environ.get("CHUNK_RESUMABLE", "0") == "1"   # also take resumable tasks longer than MAX_EST_H
 MAX_FAIL = int(os.environ.get("MAX_FAIL", "5"))
 RETRY_AFTER_S = 120   # a failed task waits this long before a retry (transient storage or API stalls)
 SNAP = KIT / "runs" / "pool" / "snap"
@@ -224,7 +226,8 @@ def main():
         need = lambda t: max(t["vram"], 1.1 * peaks[t["name"]]) if t["name"] in peaks else t["vram"]  # noqa: E731
         used_v = sum(r["vram"] for r in running.values())
         used_r = sum(r["ram"] for r in running.values())
-        todo = [t for t in tasks() if mine(t) and t["est"] <= MAX_EST_H and not (Q / "done" / t["name"]).exists()
+        todo = [t for t in tasks() if mine(t) and (t["est"] <= MAX_EST_H or (CHUNK and t["resumable"]))
+                and not (Q / "done" / t["name"]).exists()
                 and not (Q / "dead" / t["name"]).exists()]
         started = False
         n_run = len(running)

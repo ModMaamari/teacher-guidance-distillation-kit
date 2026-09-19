@@ -212,9 +212,9 @@ case "$TASK" in
 
   # ---------- training (LoRA on the student) ----------
   train_seed*)      s=${TASK#train_seed}; train "seed$s" data/splits/uniform --seed "$s" ;;
-  train_mixall_s*)   s=${TASK#train_mixall_s}; train "mixall_s$s" data/splits_self_all/uniform --seed "$s" ;;          # E20
-  train_mixmatch_s*) s=${TASK#train_mixmatch_s}; train "mixmatch_s$s" data/splits_self_mixmatch/uniform --seed "$s" ;;  # E20
-  train_wrongonly)   train wrongonly data/splits_self_wrong/uniform ;;                                                # E20
+  train_mixall_s*)   s=${TASK#train_mixall_s}; train "mixall_s$s" data/splits_self_all/uniform --seed "$s" --save-steps 100 ;;   # E20 (checkpoints often: may run in short chunks)
+  train_mixmatch_s*) s=${TASK#train_mixmatch_s}; train "mixmatch_s$s" data/splits_self_mixmatch/uniform --seed "$s" --save-steps 100 ;;  # E20
+  train_wrongonly)   train wrongonly data/splits_self_wrong/uniform --save-steps 100 ;;                                # E20
   train_ep*)        n=${TASK#train_ep}; train "ep$n" "data/splits/uniform_ep$n" ;;
   train_selftaught) train selftaught data/splits_self/uniform ;;
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
