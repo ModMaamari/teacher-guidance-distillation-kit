@@ -217,3 +217,14 @@ experiments:
     results: results/E19_self_guided_robustness
     paper: tab:E19-self-robustness
     next: "none (one seed per fold)"
+
+  - id: E20
+    name: correctness_filter
+    folder: experiments/exp20_correctness_filter
+    question: Does keeping only correct episodes train a better student than training on correct and incorrect ones?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E20_correctness_filter
+    paper: tab:E20-filter
+    next: "Pool: mixall/mixmatch x seeds 13/17/23 and wrongonly; results_E20s13 first, then results_E20."

@@ -1,5 +1,29 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
+prep_e20	0	8	0.3	1	-
+train_mixall_s13	30	32	8	1	done:prep_e20
+train_mixmatch_s13	30	32	4	1	done:prep_e20
+train_wrongonly	30	32	3.5	1	done:prep_e20
+eval_mixall_s13	25	16	0.6	1	done:train_mixall_s13
+eval_mixmatch_s13	25	16	0.6	1	done:train_mixmatch_s13
+eval_wrongonly	25	16	0.6	1	done:train_wrongonly
+judge_mixall_s13	0	1	0.3	1	done:eval_mixall_s13
+judge_mixmatch_s13	0	1	0.3	1	done:eval_mixmatch_s13
+judge_wrongonly	0	1	0.3	1	done:eval_wrongonly
+results_E20s13	0	4	0.2	1	done:judge_base,done:judge_selftaught,done:judge_mixall_s13,done:judge_mixmatch_s13,done:judge_wrongonly
+train_mixall_s17	30	32	8	1	done:prep_e20
+train_mixmatch_s17	30	32	4	1	done:prep_e20
+train_mixall_s23	30	32	8	1	done:prep_e20
+train_mixmatch_s23	30	32	4	1	done:prep_e20
+eval_mixall_s17	25	16	0.6	1	done:train_mixall_s17
+judge_mixall_s17	0	1	0.3	1	done:eval_mixall_s17
+eval_mixmatch_s17	25	16	0.6	1	done:train_mixmatch_s17
+judge_mixmatch_s17	0	1	0.3	1	done:eval_mixmatch_s17
+eval_mixall_s23	25	16	0.6	1	done:train_mixall_s23
+judge_mixall_s23	0	1	0.3	1	done:eval_mixall_s23
+eval_mixmatch_s23	25	16	0.6	1	done:train_mixmatch_s23
+judge_mixmatch_s23	0	1	0.3	1	done:eval_mixmatch_s23
+results_E20	0	4	0.2	1	done:judge_base,done:judge_selftaught,done:judge_selftaught_s17,done:judge_selftaught_s23,done:judge_wrongonly,done:judge_mixall_s13,done:judge_mixall_s17,done:judge_mixall_s23,done:judge_mixmatch_s13,done:judge_mixmatch_s17,done:judge_mixmatch_s23
 eval_sup_selftaught	25	16	0.5	1	done:train_sup_selftaught
 eval_selfdist_full	25	16	0.5	1	done:train_selfdist_full
 eval_selftaught_s17	25	16	0.6	1	done:train_selftaught_s17

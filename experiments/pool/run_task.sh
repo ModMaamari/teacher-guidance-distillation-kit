@@ -181,6 +181,15 @@ case "$TASK" in
       fi
     done <<< "$plan" ;;
 
+  prep_e20)         # E20: self-guided splits without the correctness filter: all episodes, incorrect only, size-matched
+    for keep in all incorrect; do
+      d=data/splits_self_${keep/incorrect/wrong}
+      [ -f "$d/stats.json" ] && [ -s "$d/uniform/train.jsonl" ] && { echo "have $d"; continue; }
+      $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz --out "$d" --keep "$keep" || exit 1
+    done
+    [ -f data/splits_self_mixmatch/uniform/manifest.json ] ||
+      $PY_BASE experiments/exp20_correctness_filter/make_matched.py --source data/splits_self_all/uniform \
+          --target data/splits_self/uniform --out data/splits_self_mixmatch/uniform ;;
   prep_e17)         # E17: the self-taught (self-guided) episodes cut to E01's matched usable count
     t=${E01_TARGET:-1412}
     n=$($PY_BASE experiments/exp01_supervision_ablation/match_sizes.py --root selftaught=data/splits_self \
@@ -203,6 +212,9 @@ case "$TASK" in
 
   # ---------- training (LoRA on the student) ----------
   train_seed*)      s=${TASK#train_seed}; train "seed$s" data/splits/uniform --seed "$s" ;;
+  train_mixall_s*)   s=${TASK#train_mixall_s}; train "mixall_s$s" data/splits_self_all/uniform --seed "$s" ;;          # E20
+  train_mixmatch_s*) s=${TASK#train_mixmatch_s}; train "mixmatch_s$s" data/splits_self_mixmatch/uniform --seed "$s" ;;  # E20
+  train_wrongonly)   train wrongonly data/splits_self_wrong/uniform ;;                                                # E20
   train_ep*)        n=${TASK#train_ep}; train "ep$n" "data/splits/uniform_ep$n" ;;
   train_selftaught) train selftaught data/splits_self/uniform ;;
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
@@ -276,6 +288,27 @@ case "$TASK" in
   results_E17full)   # all available episodes of each source
     results E17full results/E17_self_guidance/full base=runs/eval/base selfdist_full=runs/eval/selfdist_full \
         selfguided_full=runs/eval/selftaught guided_full=runs/eval/seed13 ;;
+  results_E20s13)    # E20 first look: seed 13 of every arm
+    results E20s13 results/E20_correctness_filter/seed13 base=runs/eval/base correct13=runs/eval/selftaught \
+        mixall13=runs/eval/mixall_s13 mixmatch13=runs/eval/mixmatch_s13 wrongonly=runs/eval/wrongonly &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E20s13 \
+          --results runs/results/E20s13/results.json --json-out runs/results/E20s13/summary.json \
+          | tee runs/results/E20s13/summary.txt &&
+      $TOOLS publish runs/results/E20s13 results/E20_correctness_filter/seed13 --only summary.txt summary.json ;;
+  results_E20)       # E20: correct-only vs mixed self-guided episodes, three seeds each
+    results E20 results/E20_correctness_filter/kit base=runs/eval/base \
+        correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
+        mixall13=runs/eval/mixall_s13 mixall17=runs/eval/mixall_s17 mixall23=runs/eval/mixall_s23 \
+        mixmatch13=runs/eval/mixmatch_s13 mixmatch17=runs/eval/mixmatch_s17 mixmatch23=runs/eval/mixmatch_s23 \
+        wrongonly=runs/eval/wrongonly &&
+      for d in all wrong mixmatch; do cp "data/splits_self_$d/uniform/manifest.json" "runs/results/E20/split_$d.json"; done &&
+      cp data/splits_self/uniform/manifest.json runs/results/E20/split_correct.json &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E20 \
+          --results runs/results/E20/results.json --json-out runs/results/E20/summary.json \
+          | tee runs/results/E20/summary.txt &&
+      $TOOLS publish runs/results/E20 results/E20_correctness_filter/kit \
+          --only summary.txt summary.json split_correct.json split_all.json split_wrong.json split_mixmatch.json &&
+      $TOOLS pvalues --out results/E12_multiple_comparisons/kit ;;
   results_E19)       # seeds: self-guided and teacher-guided students, paired seed by seed
     results E19 results/E19_self_guided_robustness/kit base=runs/eval/base self13=runs/eval/selftaught \
         self17=runs/eval/selftaught_s17 self23=runs/eval/selftaught_s23 \
