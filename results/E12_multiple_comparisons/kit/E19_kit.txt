@@ -1,0 +1,26 @@
+21 comparisons, alpha 0.05   (uncorrected family-wise error ~66%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base -> self13                                 +39.4   0.00e+00     0.0000     0.0000  survives Holm
+  base -> self17                                 +37.6   0.00e+00     0.0000     0.0000  survives Holm
+  base -> self23                                 +35.9   0.00e+00     0.0000     0.0000  survives Holm
+  base -> tg13                                   +34.8   0.00e+00     0.0000     0.0000  survives Holm
+  base -> tg17                                   +34.3   0.00e+00     0.0000     0.0000  survives Holm
+  base -> tg23                                   +34.7   0.00e+00     0.0000     0.0000  survives Holm
+  self13 -> tg17                                  -5.1     0.0027     0.0412     0.0082  survives Holm
+  self13 -> self23                                -3.5     0.0073     0.1028     0.0193  survives BH only
+  self13 -> tg23                                  -4.7     0.0087     0.1133     0.0203  survives BH only
+  self13 -> tg13                                  -4.5     0.0098     0.1171     0.0205  survives BH only
+  self17 -> tg17                                  -3.4     0.0459     0.5046     0.0876  NOT significant
+  self17 -> tg23                                  -2.9     0.0882     0.8818     0.1520  NOT significant
+  self17 -> tg13                                  -2.8     0.0941     0.8818     0.1520  NOT significant
+  self13 -> self17                                -1.7     0.2082     1.0000     0.2914  NOT significant
+  self17 -> self23                                -1.7     0.2082     1.0000     0.2914  NOT significant
+  self23 -> tg17                                  -1.6     0.3560     1.0000     0.4672  NOT significant
+  self23 -> tg23                                  -1.2     0.5095     1.0000     0.6294  NOT significant
+  self23 -> tg13                                  -1.1     0.5703     1.0000     0.6654  NOT significant
+  tg13 -> tg17                                    -0.5     0.7789     1.0000     0.8609  NOT significant
+  tg17 -> tg23                                    +0.4     0.8509     1.0000     0.8934  NOT significant
+  tg13 -> tg23                                    -0.1     1.0000     1.0000     1.0000  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

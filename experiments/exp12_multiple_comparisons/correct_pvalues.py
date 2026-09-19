@@ -65,9 +65,9 @@ def main() -> int:
     h, b = holm(ps), bh(ps)
     print(f"{len(ps)} comparisons, alpha {a.alpha}   "
           f"(uncorrected family-wise error ~{1 - (1 - a.alpha) ** len(ps):.0%})\n")
-    print(f"  {'comparison':<44}{'diff':>8}{'raw p':>11}{'Holm':>11}{'BH':>11}  verdict")
+    print(f"  {'comparison':<44}{'diff pt':>8}{'raw p':>11}{'Holm':>11}{'BH':>11}  verdict")
     for i in sorted(range(len(ps)), key=lambda i: ps[i]):
-        d = f"{diffs[i]:+.1f}" if isinstance(diffs[i], (int, float)) else "-"
+        d = f"{100 * diffs[i]:+.1f}" if isinstance(diffs[i], (int, float)) else "-"
         if h[i] < a.alpha:
             v = "survives Holm"
         elif b[i] < a.alpha:

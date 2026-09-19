@@ -1,0 +1,71 @@
+66 comparisons, alpha 0.05   (uncorrected family-wise error ~97%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base_b1 -> base_b3                             +26.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> base_b5                             +27.6   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> base_b8                             +25.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> teacher_b1                          +59.4   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> teacher_b3                          +82.2   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> teacher_b5                          +84.5   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> teacher_b8                          +85.3   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> trained_b1                           +9.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> trained_b3                          +61.6   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> trained_b5                          +66.3   0.00e+00     0.0000     0.0000  survives Holm
+  base_b1 -> trained_b8                          +66.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> teacher_b1                          +32.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> teacher_b3                          +55.4   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> teacher_b5                          +57.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> teacher_b8                          +58.5   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> trained_b1                          -17.0   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> trained_b3                          +34.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> trained_b5                          +39.5   0.00e+00     0.0000     0.0000  survives Holm
+  base_b3 -> trained_b8                          +40.0   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> teacher_b1                          +31.9   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> teacher_b3                          +54.6   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> teacher_b5                          +56.9   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> teacher_b8                          +57.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> trained_b1                          -17.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> trained_b3                          +34.0   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> trained_b5                          +38.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b5 -> trained_b8                          +39.2   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> teacher_b1                          +33.7   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> teacher_b3                          +56.5   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> teacher_b5                          +58.8   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> teacher_b8                          +59.6   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> trained_b1                          -15.9   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> trained_b3                          +35.9   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> trained_b5                          +40.6   0.00e+00     0.0000     0.0000  survives Holm
+  base_b8 -> trained_b8                          +41.1   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b1 -> teacher_b3                       +22.8   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b1 -> teacher_b5                       +25.0   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b1 -> teacher_b8                       +25.8   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b1 -> trained_b1                       -49.7   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b3 -> trained_b1                       -72.4   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b3 -> trained_b3                       -20.6   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b3 -> trained_b5                       -15.9   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b3 -> trained_b8                       -15.4   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b5 -> trained_b1                       -74.7   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b5 -> trained_b3                       -22.9   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b5 -> trained_b5                       -18.2   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b5 -> trained_b8                       -17.7   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b8 -> trained_b1                       -75.5   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b8 -> trained_b3                       -23.7   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b8 -> trained_b5                       -19.0   0.00e+00     0.0000     0.0000  survives Holm
+  teacher_b8 -> trained_b8                       -18.5   0.00e+00     0.0000     0.0000  survives Holm
+  trained_b1 -> trained_b3                       +51.8   0.00e+00     0.0000     0.0000  survives Holm
+  trained_b1 -> trained_b5                       +56.5   0.00e+00     0.0000     0.0000  survives Holm
+  trained_b1 -> trained_b8                       +57.0   0.00e+00     0.0000     0.0000  survives Holm
+  trained_b3 -> trained_b8                        +5.2     0.0004     0.0053     0.0005  survives Holm
+  trained_b3 -> trained_b5                        +4.7     0.0009     0.0102     0.0011  survives Holm
+  teacher_b1 -> trained_b8                        +7.4     0.0012     0.0124     0.0014  survives Holm
+  teacher_b1 -> trained_b5                        +6.8     0.0032     0.0288     0.0036  survives Holm
+  teacher_b3 -> teacher_b8                        +3.1     0.0044     0.0356     0.0050  survives Holm
+  teacher_b3 -> teacher_b5                        +2.3     0.0363     0.2544     0.0400  survives BH only
+  base_b5 -> base_b8                              -1.9     0.2504     1.0000     0.2710  NOT significant
+  teacher_b1 -> trained_b3                        +2.1     0.3833     1.0000     0.4080  NOT significant
+  teacher_b5 -> teacher_b8                        +0.8     0.4614     1.0000     0.4834  NOT significant
+  base_b3 -> base_b8                              -1.1     0.5543     1.0000     0.5716  NOT significant
+  base_b3 -> base_b5                              +0.8     0.6636     1.0000     0.6738  NOT significant
+  trained_b5 -> trained_b8                        +0.5     0.7644     1.0000     0.7644  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

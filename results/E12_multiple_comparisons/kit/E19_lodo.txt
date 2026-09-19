@@ -1,0 +1,9 @@
+4 comparisons, alpha 0.05   (uncorrected family-wise error ~19%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  basefull -> fold_2wikimultihopqa               +34.6   0.00e+00     0.0000     0.0000  survives Holm
+  basefull -> fold_hotpotqa                      +25.7   0.00e+00     0.0000     0.0000  survives Holm
+  basefull -> fold_musique                       +28.4   0.00e+00     0.0000     0.0000  survives Holm
+  basefull -> fold_strategyqa                    +47.9   0.00e+00     0.0000     0.0000  survives Holm
+
+Report which correction you used. 'Survives Holm' is the strong claim.

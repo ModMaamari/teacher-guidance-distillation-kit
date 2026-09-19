@@ -1,0 +1,11 @@
+6 comparisons, alpha 0.05   (uncorrected family-wise error ~26%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base -> guided                                 +29.0   0.00e+00     0.0000     0.0000  survives Holm
+  base -> teacher                                +43.9   0.00e+00     0.0000     0.0000  survives Holm
+  base -> trained                                +36.1   0.00e+00     0.0000     0.0000  survives Holm
+  guided -> teacher                              +14.9   0.00e+00     0.0000     0.0000  survives Holm
+  teacher -> trained                              -7.8   2.10e-05     0.0000     0.0000  survives Holm
+  guided -> trained                               +7.1   6.20e-05     0.0001     0.0001  survives Holm
+
+Report which correction you used. 'Survives Holm' is the strong claim.

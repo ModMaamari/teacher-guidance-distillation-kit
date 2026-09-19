@@ -1,0 +1,26 @@
+21 comparisons, alpha 0.05   (uncorrected family-wise error ~66%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  all4 -> base                                   -36.0   0.00e+00     0.0000     0.0000  survives Holm
+  base -> fold_2wikimultihopqa                   +32.2   0.00e+00     0.0000     0.0000  survives Holm
+  base -> fold_hotpotqa                          +25.7   0.00e+00     0.0000     0.0000  survives Holm
+  base -> fold_musique                           +25.1   0.00e+00     0.0000     0.0000  survives Holm
+  base -> fold_strategyqa                        +43.7   0.00e+00     0.0000     0.0000  survives Holm
+  base -> teacher                                +43.1   0.00e+00     0.0000     0.0000  survives Holm
+  fold_2wikimultihopqa -> teacher                +12.3   0.00e+00     0.0000     0.0000  survives Holm
+  fold_musique -> teacher                        +10.3   0.00e+00     0.0000     0.0000  survives Holm
+  fold_strategyqa -> teacher                     +12.0   0.00e+00     0.0000     0.0000  survives Holm
+  fold_hotpotqa -> teacher                        +9.2   1.00e-06     0.0000     0.0000  survives Holm
+  all4 -> teacher                                 +7.8   2.10e-05     0.0002     0.0000  survives Holm
+  all4 -> fold_strategyqa                         -5.5     0.0029     0.0293     0.0051  survives Holm
+  fold_hotpotqa -> fold_strategyqa                -5.4     0.0245     0.2201     0.0395  survives BH only
+  fold_2wikimultihopqa -> fold_strategyqa         -3.8     0.0912     0.7295     0.1368  NOT significant
+  fold_musique -> fold_strategyqa                 -3.3     0.1619     1.0000     0.2266  NOT significant
+  fold_2wikimultihopqa -> fold_hotpotqa           +2.8     0.2215     1.0000     0.2908  NOT significant
+  all4 -> fold_2wikimultihopqa                    -1.9     0.2891     1.0000     0.3571  NOT significant
+  all4 -> fold_hotpotqa                           -1.6     0.4069     1.0000     0.4747  NOT significant
+  all4 -> fold_musique                            -1.3     0.4828     1.0000     0.5336  NOT significant
+  fold_hotpotqa -> fold_musique                   +1.4     0.5966     1.0000     0.6265  NOT significant
+  fold_2wikimultihopqa -> fold_musique            +0.8     0.7948     1.0000     0.7948  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

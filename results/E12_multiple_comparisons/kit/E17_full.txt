@@ -1,0 +1,11 @@
+6 comparisons, alpha 0.05   (uncorrected family-wise error ~26%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base -> guided_full                            +34.8   0.00e+00     0.0000     0.0000  survives Holm
+  base -> selfdist_full                          +34.9   0.00e+00     0.0000     0.0000  survives Holm
+  base -> selfguided_full                        +39.4   0.00e+00     0.0000     0.0000  survives Holm
+  selfdist_full -> selfguided_full                +4.4     0.0027     0.0081     0.0040  survives Holm
+  guided_full -> selfguided_full                  +4.5     0.0098     0.0195     0.0117  survives Holm
+  guided_full -> selfdist_full                    +0.1     1.0000     1.0000     1.0000  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

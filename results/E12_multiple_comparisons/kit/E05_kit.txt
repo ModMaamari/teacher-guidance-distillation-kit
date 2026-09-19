@@ -1,0 +1,11 @@
+6 comparisons, alpha 0.05   (uncorrected family-wise error ~26%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  granite_base -> granite_trained                +34.8   0.00e+00     0.0000     0.0000  survives Holm
+  granite_base -> minicpm_base                   -24.9   0.00e+00     0.0000     0.0000  survives Holm
+  granite_base -> minicpm_trained                +37.4   0.00e+00     0.0000     0.0000  survives Holm
+  granite_trained -> minicpm_base                -59.7   0.00e+00     0.0000     0.0000  survives Holm
+  minicpm_base -> minicpm_trained                +62.3   0.00e+00     0.0000     0.0000  survives Holm
+  granite_trained -> minicpm_trained              +2.5     0.1660     0.1660     0.1660  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.
