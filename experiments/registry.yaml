@@ -94,7 +94,7 @@ experiments:
     folder: experiments/exp08_step_budget
     question: Does the conclusion depend on the 3-step budget?
     tier: 2
-    status: partial
+    status: running
     results: results/E08_step_budget
     paper: fig:E08-budget
     next: "Teacher-alone arms b3, b5, b8 (revived after endpoint outages), then results_E08."
