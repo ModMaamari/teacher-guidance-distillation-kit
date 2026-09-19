@@ -300,10 +300,13 @@ case "$TASK" in
         correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
         mixmatch13=runs/eval/mixmatch_s13 mixmatch17=runs/eval/mixmatch_s17 mixmatch23=runs/eval/mixmatch_s23 \
         wrongonly=runs/eval/wrongonly &&
+      for d in all wrong mixmatch; do cp "data/splits_self_$d/uniform/manifest.json" "runs/results/E20mm/split_$d.json"; done &&
+      cp data/splits_self/uniform/manifest.json runs/results/E20mm/split_correct.json &&
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E20mm \
           --results runs/results/E20mm/results.json --json-out runs/results/E20mm/summary.json \
           | tee runs/results/E20mm/summary.txt &&
-      $TOOLS publish runs/results/E20mm results/E20_correctness_filter/matched --only summary.txt summary.json ;;
+      $TOOLS publish runs/results/E20mm results/E20_correctness_filter/matched \
+          --only summary.txt summary.json split_correct.json split_all.json split_wrong.json split_mixmatch.json ;;
   results_E20)       # E20: correct-only vs mixed self-guided episodes, three seeds each
     results E20 results/E20_correctness_filter/kit base=runs/eval/base \
         correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
