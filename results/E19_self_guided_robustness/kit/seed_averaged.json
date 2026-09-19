@@ -1,0 +1,102 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "self": {
+      "arms": [
+        "self13",
+        "self17",
+        "self23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "tg": {
+      "arms": [
+        "tg13",
+        "tg17",
+        "tg23"
+      ],
+      "acc": [
+        62.12,
+        61.58,
+        61.98
+      ],
+      "mean": 61.89,
+      "sd": 0.28,
+      "steps": 2.91,
+      "tokens": 5335,
+      "voluntary_finish": 9.1,
+      "median_words": 2.0
+    }
+  },
+  "per_seed": {
+    "tg13 -> self13": {
+      "diff": 4.55,
+      "ci95": [
+        1.2,
+        7.9
+      ],
+      "p": 0.009756
+    },
+    "tg17 -> self17": {
+      "diff": 3.35,
+      "ci95": [
+        0.27,
+        6.5600000000000005
+      ],
+      "p": 0.045877
+    },
+    "tg23 -> self23": {
+      "diff": 1.2,
+      "ci95": [
+        -1.87,
+        4.42
+      ],
+      "p": 0.509502
+    }
+  },
+  "seed_averaged": {
+    "tg -> self": {
+      "diff": 3.03,
+      "ci95": [
+        0.67,
+        5.44
+      ],
+      "p": 0.0153,
+      "n": 747,
+      "a": [
+        "tg13",
+        "tg17",
+        "tg23"
+      ],
+      "b": [
+        "self13",
+        "self17",
+        "self23"
+      ],
+      "holm": 0.0153
+    }
+  }
+}

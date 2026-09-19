@@ -8,7 +8,8 @@ judge-correct accuracy of every seed with mean and SD, steps, tokens per questio
 finishes and median answer length; then each contrast seed by seed (paired bootstrap CI and exact
 McNemar from results.json) and seed-averaged: every question's accuracy is averaged over the seeds
 of each family, and the per-question difference gets a bootstrap 95 % CI and a sign-flip
-permutation p over the questions. Holm is applied over the primary contrasts.
+permutation p over the questions. Holm is applied over the primary contrasts. Other studies
+name their own contrasts (E19: ``--primary tg:self --secondary -``).
 
     python experiments/exp20_correctness_filter/summarize.py --view runs/views/E20 \\
         --results runs/results/E20/results.json --json-out runs/results/E20/summary.json
@@ -87,7 +88,13 @@ def main() -> int:
     ap.add_argument("--view", default="runs/views/E20")
     ap.add_argument("--results", default="runs/results/E20/results.json")
     ap.add_argument("--json-out", default=None)
+    ap.add_argument("--primary", nargs="+", default=[f"{x}:{y}" for x, y in PRIMARY],
+                    help="family contrasts a:b (b - a), Holm-corrected together")
+    ap.add_argument("--secondary", nargs="+", default=[f"{x}:{y}" for x, y in SECONDARY],
+                    help="further contrasts a:b, uncorrected; '-' for none")
     a = ap.parse_args()
+    primary = [tuple(c.split(":")) for c in a.primary if c != "-"]
+    secondary = [tuple(c.split(":")) for c in a.secondary if c != "-"]
     view = Path(a.view)
     res = json.loads(Path(a.results).read_text(encoding="utf-8"))
     pooled, paired = res["pooled"], res["paired"]
@@ -123,7 +130,7 @@ def main() -> int:
               f"{row['steps']:>7.2f}{row['tokens']:>8,}{row['voluntary_finish']:>8.1f}{row['median_words']:>7.1f}")
 
     print("\nper seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):")
-    for fa, fb in PRIMARY + SECONDARY:
+    for fa, fb in primary + secondary:
         if fa not in families or fb not in families:
             continue
         for s in sorted(set(families[fa]) & set(families[fb]), key=int) or []:
@@ -138,12 +145,12 @@ def main() -> int:
             print(f"  {x:>12} -> {y:<12}{sign * 100 * p['diff']:+7.1f}  [{lo:+.1f}, {hi:+.1f}]  p {p['p']:.4f}")
 
     print("\nseed-averaged (each question averaged over the seeds of each family):")
-    contrasts = [(fa, fb) for fa, fb in PRIMARY + SECONDARY if fa in families and fb in families]
+    contrasts = [(fa, fb) for fa, fb in primary + secondary if fa in families and fb in families]
     for fa, fb in contrasts:
         r = seed_averaged(pq, [families[fa][s] for s in sorted(families[fa], key=int)],
                           [families[fb][s] for s in sorted(families[fb], key=int)])
         out["seed_averaged"][f"{fa} -> {fb}"] = r
-    prim = [f"{fa} -> {fb}" for fa, fb in PRIMARY if f"{fa} -> {fb}" in out["seed_averaged"]]
+    prim = [f"{fa} -> {fb}" for fa, fb in primary if f"{fa} -> {fb}" in out["seed_averaged"]]
     for k, h in zip(prim, holm([out["seed_averaged"][k]["p"] for k in prim])):
         out["seed_averaged"][k]["holm"] = round(h, 4)
     for k, r in out["seed_averaged"].items():

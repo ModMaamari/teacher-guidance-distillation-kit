@@ -316,6 +316,11 @@ case "$TASK" in
       $PY_BASE experiments/exp02_seed_variance/summarize_seeds.py --results runs/results/E19/results.json \
         --arm-pattern '^self(\d+)$' | tee runs/results/E19/seeds.txt &&
       $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seeds.txt ;;
+  e19_seedavg)       # E19: self- vs teacher-guided with each question averaged over the three seeds of each
+    $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E19 \
+        --results runs/results/E19/results.json --primary tg:self --secondary - \
+        --json-out runs/results/E19/seed_averaged.json | tee runs/results/E19/seed_averaged.txt &&
+      $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seed_averaged.txt seed_averaged.json ;;
   results_E19lodo)   # transfer: self-guided leave-one-dataset-out folds against the base on the whole unseen sets
     results E19lodo results/E19_self_guided_robustness/lodo basefull=runs/eval/basefull \
         fold_hotpotqa=runs/eval/selflodo_hotpotqa fold_2wikimultihopqa=runs/eval/selflodo_2wikimultihopqa \

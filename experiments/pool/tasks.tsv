@@ -1,6 +1,7 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
 prep_e20	0	8	0.3	1	-
+e19_seedavg	0	4	0.1	1	done:results_E19
 train_mixall_s13	30	32	8	1	done:prep_e20
 train_mixmatch_s13	30	32	4	1	done:prep_e20
 train_wrongonly	30	32	3.5	1	done:prep_e20
