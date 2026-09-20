@@ -234,11 +234,11 @@ experiments:
     folder: experiments/exp21_unguided_baselines
     question: Do the matched-size comparisons of guided vs unguided trajectories hold across three seeds?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E21_unguided_baselines
     paper: tab:E21-unguided
-    next: "Pool: train_sup_*_s{17,23}, train_selfdist_full_s{17,23}, then results_E21 and results_E21full."
+    next: "none (it revised E01/E17's single-seed self-vs-unguided advantage to inconclusive)"
 
   - id: E22
     name: judge_filter

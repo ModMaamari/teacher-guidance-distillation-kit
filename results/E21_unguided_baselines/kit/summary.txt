@@ -1,0 +1,28 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        27.3    27.3     -   2.97   5,067     3.2    1.0
+  selfguided    64.7 / 63.6 / 62.3    63.5   1.2   2.91   5,248     9.2   19.0
+  teacherguided    62.3 / 58.4 / 60.0    60.2   1.9   2.90   5,333     9.8    2.0
+  teacherrollouts    67.7 / 66.9 / 70.0    68.2   1.6   2.93   5,086     7.1   16.0
+  unguided      61.5 / 61.7 / 62.9    62.0   0.8   2.94   4,870     5.7   20.7
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+    unguided13 -> selfguided13   +3.2  [+0.4, +6.0]  p 0.0308
+    unguided17 -> selfguided17   +1.9  [-0.8, +4.5]  p 0.2065
+    unguided23 -> selfguided23   -0.7  [-3.4, +2.1]  p 0.7044
+    unguided13 -> teacherguided13   +0.8  [-2.4, +3.9]  p 0.6728
+    unguided17 -> teacherguided17   -3.4  [-6.4, -0.3]  p 0.0429
+    unguided23 -> teacherguided23   -2.9  [-6.0, +0.3]  p 0.0882
+    unguided13 -> teacherrollouts13   +6.3  [+2.9, +9.6]  p 0.0004
+    unguided17 -> teacherrollouts17   +5.2  [+1.9, +8.4]  p 0.0025
+    unguided23 -> teacherrollouts23   +7.1  [+3.8, +10.4]  p 0.0001
+  selfguided13 -> teacherrollouts13   +3.1  [-0.1, +6.3]  p 0.0730
+  selfguided17 -> teacherrollouts17   +3.4  [-0.1, +6.7]  p 0.0614
+  selfguided23 -> teacherrollouts23   +7.8  [+4.4, +11.1]  p 0.0000
+
+seed-averaged (each question averaged over the seeds of each family):
+  unguided -> selfguided     +1.5  [-0.4, +3.4]  p 0.1333  Holm 0.2628  (n 747, seeds 3 vs 3)
+  unguided -> teacherguided   -1.8  [-4.1, +0.5]  p 0.1314  Holm 0.2628  (n 747, seeds 3 vs 3)
+  unguided -> teacherrollouts   +6.2  [+3.6, +8.9]  p 0.0001  (n 747, seeds 3 vs 3)
+  selfguided -> teacherrollouts   +4.7  [+2.2, +7.3]  p 0.0004  (n 747, seeds 3 vs 3)

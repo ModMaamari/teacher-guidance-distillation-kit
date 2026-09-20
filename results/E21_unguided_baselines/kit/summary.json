@@ -1,0 +1,268 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "acc": [
+        64.66,
+        63.59,
+        62.25
+      ],
+      "mean": 63.5,
+      "sd": 1.21,
+      "steps": 2.91,
+      "tokens": 5248,
+      "voluntary_finish": 9.2,
+      "median_words": 19.0
+    },
+    "teacherguided": {
+      "arms": [
+        "teacherguided13",
+        "teacherguided17",
+        "teacherguided23"
+      ],
+      "acc": [
+        62.25,
+        58.37,
+        59.97
+      ],
+      "mean": 60.2,
+      "sd": 1.95,
+      "steps": 2.9,
+      "tokens": 5333,
+      "voluntary_finish": 9.8,
+      "median_words": 2.0
+    },
+    "teacherrollouts": {
+      "arms": [
+        "teacherrollouts13",
+        "teacherrollouts17",
+        "teacherrollouts23"
+      ],
+      "acc": [
+        67.74,
+        66.93,
+        70.01
+      ],
+      "mean": 68.23,
+      "sd": 1.6,
+      "steps": 2.93,
+      "tokens": 5086,
+      "voluntary_finish": 7.1,
+      "median_words": 16.0
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "acc": [
+        61.45,
+        61.71,
+        62.92
+      ],
+      "mean": 62.03,
+      "sd": 0.78,
+      "steps": 2.94,
+      "tokens": 4870,
+      "voluntary_finish": 5.7,
+      "median_words": 20.666666666666668
+    }
+  },
+  "per_seed": {
+    "unguided13 -> selfguided13": {
+      "diff": 3.21,
+      "ci95": [
+        0.4,
+        6.02
+      ],
+      "p": 0.030776
+    },
+    "unguided17 -> selfguided17": {
+      "diff": 1.87,
+      "ci95": [
+        -0.8,
+        4.55
+      ],
+      "p": 0.206498
+    },
+    "unguided23 -> selfguided23": {
+      "diff": -0.67,
+      "ci95": [
+        -3.35,
+        2.1399999999999997
+      ],
+      "p": 0.704379
+    },
+    "unguided13 -> teacherguided13": {
+      "diff": 0.8,
+      "ci95": [
+        -2.41,
+        3.88
+      ],
+      "p": 0.672757
+    },
+    "unguided17 -> teacherguided17": {
+      "diff": -3.35,
+      "ci95": [
+        -6.43,
+        -0.27
+      ],
+      "p": 0.04288
+    },
+    "unguided23 -> teacherguided23": {
+      "diff": -2.95,
+      "ci95": [
+        -6.02,
+        0.27
+      ],
+      "p": 0.088175
+    },
+    "unguided13 -> teacherrollouts13": {
+      "diff": 6.29,
+      "ci95": [
+        2.9499999999999997,
+        9.64
+      ],
+      "p": 0.000404
+    },
+    "unguided17 -> teacherrollouts17": {
+      "diff": 5.22,
+      "ci95": [
+        1.87,
+        8.43
+      ],
+      "p": 0.002473
+    },
+    "unguided23 -> teacherrollouts23": {
+      "diff": 7.1,
+      "ci95": [
+        3.75,
+        10.440000000000001
+      ],
+      "p": 5.6e-05
+    },
+    "selfguided13 -> teacherrollouts13": {
+      "diff": 3.08,
+      "ci95": [
+        -0.13,
+        6.29
+      ],
+      "p": 0.073049
+    },
+    "selfguided17 -> teacherrollouts17": {
+      "diff": 3.35,
+      "ci95": [
+        -0.13,
+        6.69
+      ],
+      "p": 0.061378
+    },
+    "selfguided23 -> teacherrollouts23": {
+      "diff": 7.76,
+      "ci95": [
+        4.42,
+        11.110000000000001
+      ],
+      "p": 7e-06
+    }
+  },
+  "seed_averaged": {
+    "unguided -> selfguided": {
+      "diff": 1.47,
+      "ci95": [
+        -0.4,
+        3.35
+      ],
+      "p": 0.1333,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "holm": 0.2628
+    },
+    "unguided -> teacherguided": {
+      "diff": -1.83,
+      "ci95": [
+        -4.11,
+        0.49
+      ],
+      "p": 0.1314,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "teacherguided13",
+        "teacherguided17",
+        "teacherguided23"
+      ],
+      "holm": 0.2628
+    },
+    "unguided -> teacherrollouts": {
+      "diff": 6.2,
+      "ci95": [
+        3.57,
+        8.92
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "teacherrollouts13",
+        "teacherrollouts17",
+        "teacherrollouts23"
+      ]
+    },
+    "selfguided -> teacherrollouts": {
+      "diff": 4.73,
+      "ci95": [
+        2.23,
+        7.27
+      ],
+      "p": 0.0004,
+      "n": 747,
+      "a": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "b": [
+        "teacherrollouts13",
+        "teacherrollouts17",
+        "teacherrollouts23"
+      ]
+    }
+  }
+}

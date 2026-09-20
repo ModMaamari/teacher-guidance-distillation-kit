@@ -1,0 +1,219 @@
+{
+  "unguided13": {
+    "run": "sup_selfdist",
+    "flops": 2.3657557771118592e+17,
+    "epochs": 2.0,
+    "train_loss": 0.07834992705200014,
+    "eval_loss": 0.07086577266454697,
+    "split": "data/splits_sup_selfdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5291,
+    "peak_gib": 18.2,
+    "resumes": 0,
+    "gpu_hours": 1.28,
+    "gpu": [
+      "NVIDIA H200"
+    ],
+    "tokens": 11596842,
+    "pflops": 236.6
+  },
+  "unguided17": {
+    "run": "sup_selfdist_s17",
+    "flops": 2.3657557771118592e+17,
+    "epochs": 2.0,
+    "train_loss": 0.07940184406013287,
+    "eval_loss": 0.07108158618211746,
+    "split": "data/splits_sup_selfdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5291,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 1.08,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 11596842,
+    "pflops": 236.6
+  },
+  "unguided23": {
+    "run": "sup_selfdist_s23",
+    "flops": 2.3657557771118592e+17,
+    "epochs": 2.0,
+    "train_loss": 0.07895985285095938,
+    "eval_loss": 0.07041256129741669,
+    "split": "data/splits_sup_selfdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5291,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 1.09,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 11596842,
+    "pflops": 236.6
+  },
+  "teacherguided13": {
+    "run": "sup_guided",
+    "flops": 2.6025189957064704e+17,
+    "epochs": 2.0,
+    "train_loss": 0.2862351751182137,
+    "eval_loss": 0.2702382802963257,
+    "split": "data/splits_sup_guided/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5236,
+    "peak_gib": 12.76,
+    "resumes": 0,
+    "gpu_hours": 1.3,
+    "gpu": [
+      "NVIDIA H200"
+    ],
+    "tokens": 12757446,
+    "pflops": 260.3
+  },
+  "teacherguided17": {
+    "run": "sup_guided_s17",
+    "flops": 2.6025189957064704e+17,
+    "epochs": 2.0,
+    "train_loss": 0.2870123958805712,
+    "eval_loss": 0.26972150802612305,
+    "split": "data/splits_sup_guided/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5236,
+    "peak_gib": 12.72,
+    "resumes": 0,
+    "gpu_hours": 1.15,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 12757446,
+    "pflops": 260.3
+  },
+  "teacherguided23": {
+    "run": "sup_guided_s23",
+    "flops": 2.6025189957064704e+17,
+    "epochs": 2.0,
+    "train_loss": 0.28681783232747055,
+    "eval_loss": 0.270175576210022,
+    "split": "data/splits_sup_guided/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5236,
+    "peak_gib": 12.72,
+    "resumes": 0,
+    "gpu_hours": 1.57,
+    "gpu": [
+      "NVIDIA L40"
+    ],
+    "tokens": 12757446,
+    "pflops": 260.3
+  },
+  "selfguided13": {
+    "run": "sup_selftaught",
+    "flops": 2.6020354566223872e+17,
+    "epochs": 2.0,
+    "train_loss": 0.19926102034973375,
+    "eval_loss": 0.1818920224905014,
+    "split": "data/splits_sup_selftaught/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5265,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 1.89,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 12755076,
+    "pflops": 260.2
+  },
+  "selfguided17": {
+    "run": "sup_selftaught_s17",
+    "flops": 2.6020354566223872e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1978976014888648,
+    "eval_loss": 0.18203361332416534,
+    "split": "data/splits_sup_selftaught/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5265,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.34,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 12755076,
+    "pflops": 260.2
+  },
+  "selfguided23": {
+    "run": "sup_selftaught_s23",
+    "flops": 2.6020354566223872e+17,
+    "epochs": 2.0,
+    "train_loss": 0.19825737349914782,
+    "eval_loss": 0.18237872421741486,
+    "split": "data/splits_sup_selftaught/matched/train.jsonl",
+    "batch": 16,
+    "examples": 5265,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.38,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 12755076,
+    "pflops": 260.2
+  },
+  "teacherrollouts13": {
+    "run": "sup_teachdist",
+    "flops": 1.9375796082561024e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1908026733471237,
+    "eval_loss": 0.21591490507125854,
+    "split": "data/splits_sup_teachdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 4189,
+    "peak_gib": 10.92,
+    "resumes": 0,
+    "gpu_hours": 0.87,
+    "gpu": [
+      "NVIDIA H200",
+      "NVIDIA L40S"
+    ],
+    "tokens": 9497939,
+    "pflops": 193.8
+  },
+  "teacherrollouts17": {
+    "run": "sup_teachdist_s17",
+    "flops": 1.9375796082561024e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18891859600562175,
+    "eval_loss": 0.21376191079616547,
+    "split": "data/splits_sup_teachdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 4189,
+    "peak_gib": 10.92,
+    "resumes": 0,
+    "gpu_hours": 1.77,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 9497939,
+    "pflops": 193.8
+  },
+  "teacherrollouts23": {
+    "run": "sup_teachdist_s23",
+    "flops": 1.9375796082561024e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18908408432061435,
+    "eval_loss": 0.21350780129432678,
+    "split": "data/splits_sup_teachdist/matched/train.jsonl",
+    "batch": 16,
+    "examples": 4189,
+    "peak_gib": 10.92,
+    "resumes": 0,
+    "gpu_hours": 0.85,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 9497939,
+    "pflops": 193.8
+  }
+}
