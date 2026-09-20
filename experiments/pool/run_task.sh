@@ -339,6 +339,19 @@ case "$TASK" in
           teacherrollouts13=sup_teachdist teacherrollouts17=sup_teachdist_s17 teacherrollouts23=sup_teachdist_s23 \
           --json-out runs/results/E21/train_cost.json | tee runs/results/E21/train_cost.txt &&
       $TOOLS publish runs/results/E21 results/E21_unguided_baselines/kit --only summary.txt summary.json train_cost.txt train_cost.json ;;
+  results_E25)       # six seeds per arm: self-guided vs the student's own filtered rollouts
+    views=""
+    for sd in 13 17 23 29 31 37; do
+      u=runs/eval/selfdist_full; g=runs/eval/selftaught
+      [ "$sd" = 13 ] || { u=${u}_s$sd; g=${g}_s$sd; }
+      views="$views unguided$sd=$u selfguided$sd=$g"
+    done
+    # shellcheck disable=SC2086
+    results E25 results/E25_seed_power/kit base=runs/eval/base $views &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E25 \
+          --results runs/results/E25/results.json --json-out runs/results/E25/summary.json \
+          --primary unguided:selfguided --secondary - | tee runs/results/E25/summary.txt &&
+      $TOOLS publish runs/results/E25 results/E25_seed_power/kit --only summary.txt summary.json ;;
   results_E21full)   # the same question with every episode each route collected
     results E21full results/E21_unguided_baselines/full base=runs/eval/base \
         unguided13=runs/eval/selfdist_full unguided17=runs/eval/selfdist_full_s17 unguided23=runs/eval/selfdist_full_s23 \

@@ -1,5 +1,24 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
+train_selfdist_full_s29	30	32	5	1	-
+train_selftaught_s29	30	32	5	1	-
+train_selfdist_full_s31	30	32	5	1	-
+train_selftaught_s31	30	32	5	1	-
+train_selfdist_full_s37	30	32	5	1	-
+train_selftaught_s37	30	32	5	1	-
+eval_selfdist_full_s29	25	16	0.6	1	done:train_selfdist_full_s29
+judge_selfdist_full_s29	0	1	0.3	1	done:eval_selfdist_full_s29
+eval_selftaught_s29	25	16	0.6	1	done:train_selftaught_s29
+judge_selftaught_s29	0	1	0.3	1	done:eval_selftaught_s29
+eval_selfdist_full_s31	25	16	0.6	1	done:train_selfdist_full_s31
+judge_selfdist_full_s31	0	1	0.3	1	done:eval_selfdist_full_s31
+eval_selftaught_s31	25	16	0.6	1	done:train_selftaught_s31
+judge_selftaught_s31	0	1	0.3	1	done:eval_selftaught_s31
+eval_selfdist_full_s37	25	16	0.6	1	done:train_selfdist_full_s37
+judge_selfdist_full_s37	0	1	0.3	1	done:eval_selfdist_full_s37
+eval_selftaught_s37	25	16	0.6	1	done:train_selftaught_s37
+judge_selftaught_s37	0	1	0.3	1	done:eval_selftaught_s37
+results_E25	0	4	0.2	1	done:judge_base,done:judge_selfdist_full,done:judge_selftaught,done:judge_selfdist_full_s17,done:judge_selfdist_full_s23,done:judge_selfdist_full_s29,done:judge_selfdist_full_s31,done:judge_selfdist_full_s37,done:judge_selftaught_s17,done:judge_selftaught_s23,done:judge_selftaught_s29,done:judge_selftaught_s31,done:judge_selftaught_s37
 prep_e22	0	12	0.3	1	-
 train_judgefilt_s13	30	32	6	1	done:prep_e22
 train_judgefilt_s17	30	32	6	1	done:prep_e22

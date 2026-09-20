@@ -272,3 +272,14 @@ experiments:
     paper: tab:E24-teacher-scale
     next: "Pool: collect_teachdist_more (API, ~10 h), prep_e24, train_teachdist_full_s{13,17,23}, results_E24."
 
+  - id: E25
+    name: seed_power
+    folder: experiments/exp25_seed_power
+    question: With six seeds per arm, does self-guidance beat the student's own correctness-filtered rollouts?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E25_seed_power
+    paper: tab:E21-unguided
+    next: "Pool: train_{selfdist_full,selftaught}_s{29,31,37}, then results_E25."
+
