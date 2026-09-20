@@ -259,7 +259,19 @@ case "$TASK" in
     done
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-2000}" \
         --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist_or --tag teachdist_or \
-        --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
+        --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}"
+    # A few questions fail every attempt (provider refusals, truncations). Retrying the whole
+    # collection for them costs API calls and blocks E24, so 99% collected counts as done.
+    $PY_BASE - "$@" <<'PY'
+import sys; sys.path.insert(0, ".")
+from pathlib import Path
+from tgd.collection_state import unique_done
+done = sum(unique_done(sh) for ds in ("hotpotqa", "2wikimultihopqa", "musique", "strategyqa")
+           for sh in sorted(Path(f"runs/collect_teachdist_or/{ds}").glob("teachdist_or_*_s*")))
+print(f"collected {done}/7999 episodes ({100 * done / 7999:.1f}%)")
+raise SystemExit(0 if done >= 0.99 * 7999 else 1)
+PY
+    ;;
   collect_teachdist)  # the teacher alone, through its API
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N:-1000}" \
         --shards "${TEACHDIST_SHARDS:-4}" --out runs/collect_teachdist --tag teachdist \
