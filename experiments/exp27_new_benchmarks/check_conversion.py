@@ -46,8 +46,10 @@ def main() -> int:
         c["n"] += 1
         fm = ep.get("final_metrics") or {}
         c["answered"] += bool(str(ep.get("final_answer") or "").strip())
-        c["cover"] += bool(fm.get("answer_correct"))
+        c["cover"] += bool(fm.get("cover_match", fm.get("answer_correct")))
+        c["exact"] += bool(fm.get("exact_match"))
         c["gold_retrieved"] += bool(fm.get("doc_recall"))
+        c["doc_recall_missing"] += fm.get("doc_recall") is None
         c["steps"] += len(ep.get("steps") or [])
         c[f"stop:{ep.get('stop_reason')}"] += 1
         for s in ep.get("steps") or []:
@@ -56,13 +58,16 @@ def main() -> int:
     n = max(c["n"], 1)
     print(f"smoke episodes: {c['n']}  answered {100 * c['answered'] / n:.0f}%  "
           f"gold doc retrieved {100 * c['gold_retrieved'] / n:.0f}%  "
-          f"cover-correct {100 * c['cover'] / n:.0f}%  steps {c['steps'] / n:.2f}")
+          f"cover-correct {100 * c['cover'] / n:.0f}%  exact {100 * c['exact'] / n:.0f}%  "
+          f"steps {c['steps'] / n:.2f}")
     print("  tools:", {k.split(":")[1]: v for k, v in c.items() if k.startswith("tool:")})
     print("  stop: ", {k.split(":")[1]: v for k, v in c.items() if k.startswith("stop:")})
     problems = []
     if c["answered"] < n:
         problems.append("some episodes produced no answer")
-    if c["gold_retrieved"] == 0:
+    if c["doc_recall_missing"]:
+        problems.append(f"{c['doc_recall_missing']} episodes have no doc recall: gold.gold_doc_ids is missing")
+    elif c["gold_retrieved"] == 0:
         problems.append("no episode retrieved a gold document: retrieval or the candidate sets are wrong")
     if c["steps"] / n < 1.5:
         problems.append("fewer than 1.5 steps per episode: the agent is not using the tools")

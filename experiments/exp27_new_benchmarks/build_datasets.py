@@ -73,8 +73,11 @@ def write_dataset(ds: str, rows: list[dict], docs: dict[str, list[dict]], limit:
                     "source": ds, "split": "test"}, ensure_ascii=False) + "\n")
     out_rows = []
     for r in rows:
-        ids = [f"{r['id']}::doc{i}" for i in range(len(docs[r["id"]]))]
+        mine = docs[r["id"]]
+        ids = [f"{r['id']}::doc{i}" for i in range(len(mine))]
+        gold_ids = [f"{r['id']}::doc{i}" for i, d in enumerate(mine) if d["gold"]]
         r = {**r, "source": ds, "split": "test",
+             "gold": {**r["gold"], "gold_doc_ids": gold_ids},   # tgd reads gold.gold_doc_ids for doc recall
              "retrieval_scope": {"backend": "hotpot_local", "qid": r["id"], "candidate_doc_ids": ids}}
         out_rows.append(r)
     with gzip.open(qdir / f"{ds}_questions.jsonl.gz", "wt", encoding="utf-8") as fh:
