@@ -1,0 +1,195 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "correct": {
+      "arms": [
+        "correct13"
+      ],
+      "acc": [
+        66.67
+      ],
+      "mean": 66.67,
+      "sd": null,
+      "steps": 2.9,
+      "tokens": 5159,
+      "voluntary_finish": 10.2,
+      "median_words": 19.0
+    },
+    "mixall": {
+      "arms": [
+        "mixall13"
+      ],
+      "acc": [
+        63.05
+      ],
+      "mean": 63.05,
+      "sd": null,
+      "steps": 2.89,
+      "tokens": 5115,
+      "voluntary_finish": 11.2,
+      "median_words": 20.0
+    },
+    "mixmatch": {
+      "arms": [
+        "mixmatch13"
+      ],
+      "acc": [
+        61.04
+      ],
+      "mean": 61.04,
+      "sd": null,
+      "steps": 2.87,
+      "tokens": 5193,
+      "voluntary_finish": 12.7,
+      "median_words": 20.0
+    },
+    "wrongonly": {
+      "arms": [
+        "wrongonly"
+      ],
+      "acc": [
+        58.9
+      ],
+      "mean": 58.9,
+      "sd": null,
+      "steps": 2.91,
+      "tokens": 5241,
+      "voluntary_finish": 8.6,
+      "median_words": 21.0
+    }
+  },
+  "per_seed": {
+    "correct13 -> mixall13": {
+      "diff": -3.61,
+      "ci95": [
+        -6.43,
+        -0.9400000000000001
+      ],
+      "p": 0.012404
+    },
+    "correct13 -> mixmatch13": {
+      "diff": -5.62,
+      "ci95": [
+        -8.43,
+        -2.9499999999999997
+      ],
+      "p": 9e-05
+    },
+    "mixmatch13 -> mixall13": {
+      "diff": 2.01,
+      "ci95": [
+        -0.4,
+        4.55
+      ],
+      "p": 0.146177
+    },
+    "wrongonly -> correct13": {
+      "diff": 7.76,
+      "ci95": [
+        5.09,
+        10.58
+      ],
+      "p": 0.0
+    },
+    "base -> wrongonly": {
+      "diff": 31.59,
+      "ci95": [
+        27.439999999999998,
+        35.74
+      ],
+      "p": 0.0
+    }
+  },
+  "seed_averaged": {
+    "correct -> mixall": {
+      "diff": -3.61,
+      "ci95": [
+        -6.29,
+        -0.94
+      ],
+      "p": 0.0149,
+      "n": 747,
+      "a": [
+        "correct13"
+      ],
+      "b": [
+        "mixall13"
+      ],
+      "holm": 0.0149
+    },
+    "correct -> mixmatch": {
+      "diff": -5.62,
+      "ci95": [
+        -8.43,
+        -2.95
+      ],
+      "p": 0.0002,
+      "n": 747,
+      "a": [
+        "correct13"
+      ],
+      "b": [
+        "mixmatch13"
+      ],
+      "holm": 0.0004
+    },
+    "mixmatch -> mixall": {
+      "diff": 2.01,
+      "ci95": [
+        -0.54,
+        4.55
+      ],
+      "p": 0.1487,
+      "n": 747,
+      "a": [
+        "mixmatch13"
+      ],
+      "b": [
+        "mixall13"
+      ]
+    },
+    "wrongonly -> correct": {
+      "diff": 7.76,
+      "ci95": [
+        4.95,
+        10.58
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "wrongonly"
+      ],
+      "b": [
+        "correct13"
+      ]
+    },
+    "base -> wrongonly": {
+      "diff": 31.59,
+      "ci95": [
+        27.44,
+        35.61
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "base"
+      ],
+      "b": [
+        "wrongonly"
+      ]
+    }
+  }
+}

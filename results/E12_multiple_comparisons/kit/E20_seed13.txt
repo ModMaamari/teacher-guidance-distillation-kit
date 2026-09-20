@@ -1,0 +1,15 @@
+10 comparisons, alpha 0.05   (uncorrected family-wise error ~40%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base -> correct13                              +39.4   0.00e+00     0.0000     0.0000  survives Holm
+  base -> mixall13                               +35.7   0.00e+00     0.0000     0.0000  survives Holm
+  base -> mixmatch13                             +33.7   0.00e+00     0.0000     0.0000  survives Holm
+  base -> wrongonly                              +31.6   0.00e+00     0.0000     0.0000  survives Holm
+  correct13 -> wrongonly                          -7.8   0.00e+00     0.0000     0.0000  survives Holm
+  correct13 -> mixmatch13                         -5.6   9.00e-05     0.0005     0.0002  survives Holm
+  mixall13 -> wrongonly                           -4.2     0.0019     0.0077     0.0027  survives Holm
+  correct13 -> mixall13                           -3.6     0.0124     0.0372     0.0155  survives Holm
+  mixmatch13 -> wrongonly                         -2.1     0.1174     0.2347     0.1304  NOT significant
+  mixall13 -> mixmatch13                          -2.0     0.1462     0.2347     0.1462  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

@@ -1,0 +1,33 @@
+28 comparisons, alpha 0.05   (uncorrected family-wise error ~76%)
+
+  comparison                                   diff pt      raw p       Holm         BH  verdict
+  base -> correct13                              +39.4   0.00e+00     0.0000     0.0000  survives Holm
+  base -> correct17                              +37.6   0.00e+00     0.0000     0.0000  survives Holm
+  base -> correct23                              +35.9   0.00e+00     0.0000     0.0000  survives Holm
+  base -> mixmatch13                             +33.7   0.00e+00     0.0000     0.0000  survives Holm
+  base -> mixmatch17                             +35.1   0.00e+00     0.0000     0.0000  survives Holm
+  base -> mixmatch23                             +35.1   0.00e+00     0.0000     0.0000  survives Holm
+  base -> wrongonly                              +31.6   0.00e+00     0.0000     0.0000  survives Holm
+  correct13 -> wrongonly                          -7.8   0.00e+00     0.0000     0.0000  survives Holm
+  correct17 -> wrongonly                          -6.0   1.60e-05     0.0003     0.0000  survives Holm
+  correct13 -> mixmatch13                         -5.6   9.00e-05     0.0017     0.0003  survives Holm
+  correct13 -> mixmatch23                         -4.3     0.0020     0.0359     0.0051  survives Holm
+  correct13 -> mixmatch17                         -4.3     0.0024     0.0415     0.0053  survives Holm
+  correct23 -> wrongonly                          -4.3     0.0024     0.0415     0.0053  survives Holm
+  correct17 -> mixmatch13                         -3.9     0.0065     0.0978     0.0130  survives BH only
+  correct13 -> correct23                          -3.5     0.0073     0.1028     0.0137  survives BH only
+  mixmatch17 -> wrongonly                         -3.5     0.0088     0.1142     0.0154  survives BH only
+  mixmatch23 -> wrongonly                         -3.5     0.0138     0.1660     0.0228  survives BH only
+  correct17 -> mixmatch17                         -2.5     0.0756     0.8318     0.1114  NOT significant
+  correct17 -> mixmatch23                         -2.5     0.0756     0.8318     0.1114  NOT significant
+  mixmatch13 -> wrongonly                         -2.1     0.1174     1.0000     0.1643  NOT significant
+  correct23 -> mixmatch13                         -2.1     0.1523     1.0000     0.2031  NOT significant
+  correct13 -> correct17                          -1.7     0.2082     1.0000     0.2534  NOT significant
+  correct17 -> correct23                          -1.7     0.2082     1.0000     0.2534  NOT significant
+  mixmatch13 -> mixmatch17                        +1.3     0.3374     1.0000     0.3840  NOT significant
+  mixmatch13 -> mixmatch23                        +1.3     0.3428     1.0000     0.3840  NOT significant
+  correct23 -> mixmatch23                         -0.8     0.6101     1.0000     0.6438  NOT significant
+  correct23 -> mixmatch17                         -0.8     0.6208     1.0000     0.6438  NOT significant
+  mixmatch17 -> mixmatch23                        +0.0     1.0000     1.0000     1.0000  NOT significant
+
+Report which correction you used. 'Survives Holm' is the strong claim.

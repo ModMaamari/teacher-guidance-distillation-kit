@@ -1,0 +1,269 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "correct": {
+      "arms": [
+        "correct13",
+        "correct17",
+        "correct23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "mixall": {
+      "arms": [
+        "mixall13",
+        "mixall17",
+        "mixall23"
+      ],
+      "acc": [
+        63.05,
+        61.71,
+        63.05
+      ],
+      "mean": 62.6,
+      "sd": 0.77,
+      "steps": 2.89,
+      "tokens": 5133,
+      "voluntary_finish": 11.1,
+      "median_words": 20.0
+    },
+    "mixmatch": {
+      "arms": [
+        "mixmatch13",
+        "mixmatch17",
+        "mixmatch23"
+      ],
+      "acc": [
+        61.04,
+        62.38,
+        62.38
+      ],
+      "mean": 61.93,
+      "sd": 0.77,
+      "steps": 2.89,
+      "tokens": 5213,
+      "voluntary_finish": 10.9,
+      "median_words": 20.0
+    },
+    "wrongonly": {
+      "arms": [
+        "wrongonly"
+      ],
+      "acc": [
+        58.9
+      ],
+      "mean": 58.9,
+      "sd": null,
+      "steps": 2.91,
+      "tokens": 5241,
+      "voluntary_finish": 8.6,
+      "median_words": 21.0
+    }
+  },
+  "per_seed": {
+    "correct13 -> mixall13": {
+      "diff": -3.61,
+      "ci95": [
+        -6.43,
+        -0.9400000000000001
+      ],
+      "p": 0.012404
+    },
+    "correct17 -> mixall17": {
+      "diff": -3.21,
+      "ci95": [
+        -5.62,
+        -0.8
+      ],
+      "p": 0.011634
+    },
+    "correct23 -> mixall23": {
+      "diff": -0.13,
+      "ci95": [
+        -2.68,
+        2.41
+      ],
+      "p": 1.0
+    },
+    "correct13 -> mixmatch13": {
+      "diff": -5.62,
+      "ci95": [
+        -8.43,
+        -2.9499999999999997
+      ],
+      "p": 9e-05
+    },
+    "correct17 -> mixmatch17": {
+      "diff": -2.54,
+      "ci95": [
+        -5.09,
+        0.13
+      ],
+      "p": 0.075619
+    },
+    "correct23 -> mixmatch23": {
+      "diff": -0.8,
+      "ci95": [
+        -3.35,
+        1.7399999999999998
+      ],
+      "p": 0.610068
+    },
+    "mixmatch13 -> mixall13": {
+      "diff": 2.01,
+      "ci95": [
+        -0.4,
+        4.55
+      ],
+      "p": 0.146177
+    },
+    "mixmatch17 -> mixall17": {
+      "diff": -0.67,
+      "ci95": [
+        -3.35,
+        1.87
+      ],
+      "p": 0.690826
+    },
+    "mixmatch23 -> mixall23": {
+      "diff": 0.67,
+      "ci95": [
+        -2.01,
+        3.2099999999999995
+      ],
+      "p": 0.690826
+    },
+    "wrongonly -> correct13": {
+      "diff": 7.76,
+      "ci95": [
+        5.09,
+        10.58
+      ],
+      "p": 0.0
+    },
+    "base -> wrongonly": {
+      "diff": 31.59,
+      "ci95": [
+        27.439999999999998,
+        35.74
+      ],
+      "p": 0.0
+    }
+  },
+  "seed_averaged": {
+    "correct -> mixall": {
+      "diff": -2.32,
+      "ci95": [
+        -3.93,
+        -0.71
+      ],
+      "p": 0.0059,
+      "n": 747,
+      "a": [
+        "correct13",
+        "correct17",
+        "correct23"
+      ],
+      "b": [
+        "mixall13",
+        "mixall17",
+        "mixall23"
+      ],
+      "holm": 0.0059
+    },
+    "correct -> mixmatch": {
+      "diff": -2.99,
+      "ci95": [
+        -4.73,
+        -1.25
+      ],
+      "p": 0.0008,
+      "n": 747,
+      "a": [
+        "correct13",
+        "correct17",
+        "correct23"
+      ],
+      "b": [
+        "mixmatch13",
+        "mixmatch17",
+        "mixmatch23"
+      ],
+      "holm": 0.0016
+    },
+    "mixmatch -> mixall": {
+      "diff": 0.67,
+      "ci95": [
+        -0.89,
+        2.28
+      ],
+      "p": 0.4443,
+      "n": 747,
+      "a": [
+        "mixmatch13",
+        "mixmatch17",
+        "mixmatch23"
+      ],
+      "b": [
+        "mixall13",
+        "mixall17",
+        "mixall23"
+      ]
+    },
+    "wrongonly -> correct": {
+      "diff": 6.02,
+      "ci95": [
+        3.66,
+        8.34
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "wrongonly"
+      ],
+      "b": [
+        "correct13",
+        "correct17",
+        "correct23"
+      ]
+    },
+    "base -> wrongonly": {
+      "diff": 31.59,
+      "ci95": [
+        27.44,
+        35.61
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "base"
+      ],
+      "b": [
+        "wrongonly"
+      ]
+    }
+  }
+}

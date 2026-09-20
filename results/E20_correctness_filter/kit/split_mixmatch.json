@@ -1,0 +1,17 @@
+{
+  "split": "uniform (size-matched, unfiltered)",
+  "source": "data/splits_self_all/uniform",
+  "matched_to": "data/splits_self/uniform",
+  "target_examples": 13825,
+  "train_examples": 13828,
+  "train_questions": 3642,
+  "correct_episode_fraction": 0.5269,
+  "correct_example_fraction": 0.5168,
+  "per_dataset_examples": {
+    "hotpotqa": 3598,
+    "musique": 3449,
+    "2wikimultihopqa": 3418,
+    "strategyqa": 3363
+  },
+  "dev_file": "data/splits_self_all/uniform/dev.jsonl"
+}

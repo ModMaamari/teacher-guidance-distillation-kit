@@ -1,0 +1,10 @@
+collection: self   episodes: 7,999
+
+                          judged correct    judged wrong
+  filter keeps                     4,055             186
+  filter drops                       861           2,897
+
+  kept 4,241 (53.0% of episodes); of them 4.4% are judged wrong
+  dropped 3,758; of them 22.9% are judged correct (right answer, different wording)
+
+  filter accept rate 53.0%, judge accept rate 61.5%

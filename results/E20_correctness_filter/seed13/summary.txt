@@ -1,0 +1,22 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        27.3    27.3     -   2.97   5,067     3.2    1.0
+  correct                     66.7    66.7     -   2.90   5,159    10.2   19.0
+  mixall                      63.0    63.0     -   2.89   5,115    11.2   20.0
+  mixmatch                    61.0    61.0     -   2.87   5,193    12.7   20.0
+  wrongonly                   58.9    58.9     -   2.91   5,241     8.6   21.0
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+     correct13 -> mixall13       -3.6  [-6.4, -0.9]  p 0.0124
+     correct13 -> mixmatch13     -5.6  [-8.4, -2.9]  p 0.0001
+    mixmatch13 -> mixall13       +2.0  [-0.4, +4.5]  p 0.1462
+     wrongonly -> correct13      +7.8  [+5.1, +10.6]  p 0.0000
+          base -> wrongonly     +31.6  [+27.4, +35.7]  p 0.0000
+
+seed-averaged (each question averaged over the seeds of each family):
+  correct -> mixall          -3.6  [-6.3, -0.9]  p 0.0149  Holm 0.0149  (n 747, seeds 1 vs 1)
+  correct -> mixmatch        -5.6  [-8.4, -3.0]  p 0.0002  Holm 0.0004  (n 747, seeds 1 vs 1)
+  mixmatch -> mixall         +2.0  [-0.5, +4.5]  p 0.1487  (n 747, seeds 1 vs 1)
+  wrongonly -> correct       +7.8  [+5.0, +10.6]  p 0.0001  (n 747, seeds 1 vs 1)
+  base -> wrongonly         +31.6  [+27.4, +35.6]  p 0.0001  (n 747, seeds 1 vs 1)

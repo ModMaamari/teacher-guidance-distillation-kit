@@ -1,0 +1,14 @@
+  arm           examples      tokens   PFLOPs   GPU-h  peak GiB  gpu
+  correct13       13,825  33,524,882    683.9    5.35      18.1  NVIDIA A100-SXM4-80GB
+  correct17       13,825  33,524,882    683.9    2.90      18.1  NVIDIA L40S
+  correct23       13,825  33,524,882    683.9    2.90      18.1  NVIDIA L40S
+  mixall13        26,610  64,325,471   1312.2    4.36      18.1  NVIDIA L40  (resumed 1x)
+  mixall17        26,610  64,325,471   1312.2    4.43      18.1  NVIDIA A100-SXM4-80GB  (resumed 1x)
+  mixall23        26,610  64,325,471   1312.2    1.69      18.2  NVIDIA H200  (resumed 1x)
+  mixmatch13      13,828  33,406,100    681.5    1.01      13.6  NVIDIA A100-SXM4-80GB  (resumed 1x)
+  mixmatch17      13,828  33,406,100    681.5    4.76      18.2  NVIDIA H200
+  mixmatch23      13,828  33,406,100    681.5    4.77      18.2  NVIDIA H200
+  wrongonly       12,785  30,800,589    628.3    5.66      18.1  NVIDIA A100-SXM4-80GB
+
+PFLOPs: the trainer's own counter (6 x parameters x tokens; an upper bound for LoRA).
+GPU-h: wall-clock on the worker's GPU, summed over chunks; some runs shared a GPU.
