@@ -23,8 +23,13 @@ accuracy (Gemma-4-31B-it).
 | E17 self-guidance, all data | 6 | 5 | self-guided > unguided +4.4 (Holm 0.008) and > DeepSeek-guided +4.5 (Holm 0.020) |
 | E19 seeds (self vs DeepSeek-guided, 3 seeds each) | 21 | 7 | seed 13: +4.5 BH only (Holm 0.12, BH 0.021); seeds 17 and 23 n.s. |
 | E19 transfer (self-guided folds) | 4 | 4 | every fold vs its base (+25.7 to +47.9) |
+| E20 correctness filter (10 arms) | 55 | 15 | every arm vs base; correct-only > incorrect-only (-7.8, -6.0); seed-13 correct vs size-matched mix survives Holm, the seed-13/17 all-episode gaps BH only |
+| E20 matched (early publication) | 28 | 12 | the same arms without the all-episode ones |
+| E20 seed 13 | 10 | 6 | seed 13 of every arm |
 
-**Reading.** The gains of training over the base student survive every correction. Two
+**Reading.** The gains of training over the base student survive every correction. E20's planned
+contrasts are corrected in its own summary over the two contrasts stated in advance (Holm 0.006
+and 0.002); the 55-pair family here is far stricter and is reported for completeness. Two
 claims are strong: that self-guided beats unguided and teacher-guided rollouts with all data, and
 that the teacher's own rollouts beat both at matched size. Two claims are consistent but modest:
 the matched-size self-guided advantage and the per-seed self-vs-teacher-guided differences. The
