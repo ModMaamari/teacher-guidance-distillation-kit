@@ -185,11 +185,11 @@ case "$TASK" in
     [ -f data/splits_self_judge/stats.json ] && [ -s data/splits_self_judge/uniform/train.jsonl ] ||
       $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \
           --out data/splits_self_judge --keep judge --judge-verdicts runs/judge_self/verdicts.jsonl ;;
-  prep_e24)         # E24: consolidate every teacher rollout collected so far and build a full-size split
-    $PY_BASE scripts/consolidate_episodes.py --runs runs/collect_teachdist --out data/episodes_teachdist --gzip &&
-      { [ -f data/splits_teachdist_full/stats.json ] && [ -s data/splits_teachdist_full/uniform/train.jsonl ] ||
-        $PY_BASE scripts/build_splits.py --episodes data/episodes_teachdist/episodes.jsonl.gz \
-            --out data/splits_teachdist_full; } ;;
+  prep_e24)         # E24: consolidate the single-gateway teacher rollouts and build a full-size split
+    $PY_BASE scripts/consolidate_episodes.py --runs runs/collect_teachdist_or --out data/episodes_teachdist_or --gzip &&
+      { [ -f data/splits_teachdist_or/stats.json ] && [ -s data/splits_teachdist_or/uniform/train.jsonl ] ||
+        $PY_BASE scripts/build_splits.py --episodes data/episodes_teachdist_or/episodes.jsonl.gz \
+            --out data/splits_teachdist_or; } ;;
   prep_e20)         # E20: self-guided splits without the correctness filter: all episodes, incorrect only, size-matched
     for keep in all incorrect; do
       d=data/splits_self_${keep/incorrect/wrong}
@@ -214,13 +214,13 @@ case "$TASK" in
     MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist TAG=selfdist SHARDS=${SELFDIST_SHARDS:-8} N=2000 \
       PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
       bash slurm/collect_local.sbatch --no-teacher ;;
-  collect_teachdist_more)   # E24: extend the teacher's own rollouts to the self-guided scale (resumes the same run)
+  collect_teachdist_or)     # E24: the teacher's own rollouts at the self-guided scale, one gateway from scratch
     for i in $(seq 1 144); do   # an endpoint outage waits here instead of burning retries (as teacher_eval does)
       $TOOLS probe --model "$TEACHER" && break
       echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
     done
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-1250}" \
-        --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist --tag teachdist \
+        --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist_or --tag teachdist_or \
         --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
   collect_teachdist)  # the teacher alone, through its API
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N:-1000}" \
@@ -244,7 +244,7 @@ case "$TASK" in
   train_judgefilt_s*) s=${TASK#train_judgefilt_s}                                                        # E22: judge-filtered
                     train "judgefilt_s$s" data/splits_self_judge/uniform --seed "$s" --save-steps 100 ;;
   train_teachdist_full_s*) s=${TASK#train_teachdist_full_s}                                              # E24: teacher rollouts at scale
-                    train "teachdist_full_s$s" data/splits_teachdist_full/uniform --seed "$s" --save-steps 100 ;;
+                    train "teachdist_full_s$s" data/splits_teachdist_or/uniform --seed "$s" --save-steps 100 ;;
   train_selftaught_s*) s=${TASK#train_selftaught_s}; train "selftaught_s$s" data/splits_self/uniform --seed "$s" ;;   # E19
   train_selflodo_*)   d=${TASK#train_selflodo_}; train "selflodo_$d" "data/splits_self/lodo/fold_$d" ;;             # E19
   train_r*)         r=${TASK#train_r}; train "r$r" data/splits/uniform --lora-r "$r" --lora-alpha $((2 * r)) ;;
@@ -368,8 +368,9 @@ case "$TASK" in
         teachdist13=runs/eval/teachdist_full_s13 teachdist17=runs/eval/teachdist_full_s17 \
         teachdist23=runs/eval/teachdist_full_s23 \
         selfguided13=runs/eval/selftaught selfguided17=runs/eval/selftaught_s17 selfguided23=runs/eval/selftaught_s23 &&
-      cp data/splits_teachdist_full/uniform/manifest.json runs/results/E24/split_teachdist.json &&
-      $PY_BASE experiments/exp24_teacher_scale/provider_split.py | tee runs/results/E24/provider_split.txt &&
+      cp data/splits_teachdist_or/uniform/manifest.json runs/results/E24/split_teachdist.json &&
+      $PY_BASE experiments/exp24_teacher_scale/provider_split.py \
+          --episodes data/episodes_teachdist_or/episodes.jsonl.gz | tee runs/results/E24/provider_split.txt &&
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E24 \
           --results runs/results/E24/results.json --json-out runs/results/E24/summary.json \
           --primary selfguided:teachdist --secondary - | tee runs/results/E24/summary.txt &&

@@ -14,8 +14,8 @@ train_sup_teachdist_s17	30	32	3	1	-
 train_sup_teachdist_s23	30	32	3	1	-
 train_selfdist_full_s17	30	32	5	1	-
 train_selfdist_full_s23	30	32	5	1	-
-collect_teachdist_more	0	8	12	1	-
-prep_e24	0	16	0.5	1	done:collect_teachdist_more
+collect_teachdist_or	0	8	8	1	-
+prep_e24	0	16	0.5	1	done:collect_teachdist_or
 train_teachdist_full_s13	30	32	5	1	done:prep_e24
 train_teachdist_full_s17	30	32	5	1	done:prep_e24
 train_teachdist_full_s23	30	32	5	1	done:prep_e24
