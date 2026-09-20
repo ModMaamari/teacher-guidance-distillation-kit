@@ -181,6 +181,43 @@ case "$TASK" in
       fi
     done <<< "$plan" ;;
 
+  prep_e26)         # E26: a questions directory holding only the 747 held-out questions
+    for ds in hotpotqa 2wikimultihopqa musique strategyqa; do
+      mkdir -p "data/questions_heldout/$ds"
+      ln -sfn "$KIT/data/splits/test/heldout_${ds}_questions.jsonl" "data/questions_heldout/$ds/${ds}_questions.jsonl"
+      ln -sfn "$KIT/data/questions/$ds/${ds}_corpus.jsonl.gz" "data/questions_heldout/$ds/${ds}_corpus.jsonl.gz"
+    done
+    ls -l data/questions_heldout/*/ | head -20 ;;
+  oracle_self_student)  # E26: the student answers the held-out questions while critiquing itself with the gold answer
+    MODEL=$STUDENT_MODEL OUT=runs/oracle_self_student TAG=oracself SHARDS=8 N=2000 \
+      PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
+      bash slurm/collect_local.sbatch --questions data/questions_heldout ;;
+  oracle_self_teacher)  # E26: the teacher answers them while critiquing itself with the gold answer
+    for i in $(seq 1 144); do
+      $TOOLS probe --model "$TEACHER" && break
+      echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
+    done
+    $PY_TRAIN scripts/collect_episodes.py --student "$TEACHER" --teacher "$TEACHER" \
+        --questions data/questions_heldout --num-samples 2000 --shards "${TEACHDIST_SHARDS:-8}" \
+        --out runs/oracle_self_teacher --tag oracteach \
+        --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
+  cons_e26)         # E26: consolidate both oracle runs and judge them with the primary judge
+    for a in self_student self_teacher; do
+      [ -s "data/episodes_oracle_$a/episodes.jsonl.gz" ] ||
+        $PY_BASE scripts/consolidate_episodes.py --runs "runs/oracle_$a" --out "data/episodes_oracle_$a" --gzip || exit 1
+    done ;;
+  judge_oracle_*)   a=${TASK#judge_oracle_}
+                    judge "runs/judge/oracle_$a" "data/episodes_oracle_$a/episodes.jsonl.gz" "$JUDGE" ;;
+  results_E26)      # every untrained way of answering the held-out questions, side by side
+    mkdir -p runs/results/E26 &&
+      $PY_BASE experiments/exp26_oracle_guidance/reference_table.py \
+        --arm "base student alone=runs/eval/base:runs/judge/base/verdicts.jsonl" \
+              "base student + self-critique=data/episodes_oracle_self_student/episodes.jsonl.gz:runs/judge/oracle_self_student/verdicts.jsonl" \
+              "base student + teacher critique=runs/e00/eval/guided:runs/judge/e00/verdicts.jsonl" \
+              "teacher alone=runs/eval/teacher_b3:runs/judge/teacher_b3/verdicts.jsonl" \
+              "teacher + self-critique=data/episodes_oracle_self_teacher/episodes.jsonl.gz:runs/judge/oracle_self_teacher/verdicts.jsonl" \
+        --json-out runs/results/E26/reference.json | tee runs/results/E26/reference.txt &&
+      $TOOLS publish runs/results/E26 results/E26_oracle_guidance/kit --only reference.txt reference.json ;;
   prep_e22)         # E22: the same self-guided episodes, filtered by the LLM judge instead of the string match
     [ -f data/splits_self_judge/stats.json ] && [ -s data/splits_self_judge/uniform/train.jsonl ] ||
       $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \

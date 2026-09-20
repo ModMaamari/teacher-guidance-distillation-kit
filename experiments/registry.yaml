@@ -283,3 +283,14 @@ experiments:
     paper: tab:E21-unguided
     next: "Pool: train_{selfdist_full,selftaught}_s{29,31,37}, then results_E25."
 
+  - id: E26
+    name: oracle_guidance
+    folder: experiments/exp26_oracle_guidance
+    question: How well does each untrained configuration answer the held-out questions, including a student and a teacher that critique themselves with the gold answer?
+    tier: 2
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E26_oracle_guidance
+    paper: tab:main
+    next: "Pool: prep_e26, oracle_self_student (GPU), oracle_self_teacher (API, after E24), cons_e26, judge_oracle_*, results_E26."
+
