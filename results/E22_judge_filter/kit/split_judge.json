@@ -1,0 +1,31 @@
+{
+  "split": "uniform",
+  "train_datasets": [
+    "hotpotqa",
+    "2wikimultihopqa",
+    "musique",
+    "strategyqa"
+  ],
+  "unseen_dataset": null,
+  "train_examples": 15960,
+  "dev_examples": 482,
+  "train_questions": 4416,
+  "per_dataset_examples": {
+    "hotpotqa": 4955,
+    "2wikimultihopqa": 4957,
+    "musique": 2460,
+    "strategyqa": 4070
+  },
+  "test_sets": {
+    "heldout_hotpotqa": 189,
+    "heldout_2wikimultihopqa": 170,
+    "heldout_musique": 203,
+    "heldout_strategyqa": 185
+  },
+  "train_test_qid_overlap": {
+    "heldout_hotpotqa": 0,
+    "heldout_2wikimultihopqa": 0,
+    "heldout_musique": 0,
+    "heldout_strategyqa": 0
+  }
+}

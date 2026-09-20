@@ -1,0 +1,102 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "cover": {
+      "arms": [
+        "cover13",
+        "cover17",
+        "cover23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "judgefilt": {
+      "arms": [
+        "judgefilt13",
+        "judgefilt17",
+        "judgefilt23"
+      ],
+      "acc": [
+        64.79,
+        63.99,
+        62.38
+      ],
+      "mean": 63.72,
+      "sd": 1.23,
+      "steps": 2.88,
+      "tokens": 5199,
+      "voluntary_finish": 11.9,
+      "median_words": 20.0
+    }
+  },
+  "per_seed": {
+    "cover13 -> judgefilt13": {
+      "diff": -1.87,
+      "ci95": [
+        -4.55,
+        0.67
+      ],
+      "p": 0.188847
+    },
+    "cover17 -> judgefilt17": {
+      "diff": -0.94,
+      "ci95": [
+        -3.4799999999999995,
+        1.6099999999999999
+      ],
+      "p": 0.53406
+    },
+    "cover23 -> judgefilt23": {
+      "diff": -0.8,
+      "ci95": [
+        -3.4799999999999995,
+        1.87
+      ],
+      "p": 0.630634
+    }
+  },
+  "seed_averaged": {
+    "cover -> judgefilt": {
+      "diff": -1.2,
+      "ci95": [
+        -2.68,
+        0.27
+      ],
+      "p": 0.126,
+      "n": 747,
+      "a": [
+        "cover13",
+        "cover17",
+        "cover23"
+      ],
+      "b": [
+        "judgefilt13",
+        "judgefilt17",
+        "judgefilt23"
+      ],
+      "holm": 0.126
+    }
+  }
+}

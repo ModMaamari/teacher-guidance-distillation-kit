@@ -1,0 +1,110 @@
+{
+  "cover13": {
+    "run": "selftaught",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18589432556505148,
+    "eval_loss": 0.16768428683280945,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.35,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "cover17": {
+    "run": "selftaught_s17",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18620958445389146,
+    "eval_loss": 0.16757377982139587,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.9,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "cover23": {
+    "run": "selftaught_s23",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1861073413336208,
+    "eval_loss": 0.1676679104566574,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.9,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "judgefilt13": {
+    "run": "judgefilt_s13",
+    "flops": 7.89760613196288e+17,
+    "epochs": 2.0,
+    "train_loss": 0.01408368946316247,
+    "eval_loss": 0.1711706519126892,
+    "split": "data/splits_self_judge/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 15960,
+    "peak_gib": 18.15,
+    "resumes": 2,
+    "gpu_hours": 0.36,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 38713756,
+    "pflops": 789.8
+  },
+  "judgefilt17": {
+    "run": "judgefilt_s17",
+    "flops": 7.89760613196288e+17,
+    "epochs": 2.0,
+    "train_loss": 0.028731422995278734,
+    "eval_loss": 0.1713019609451294,
+    "split": "data/splits_self_judge/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 15960,
+    "peak_gib": 18.15,
+    "resumes": 1,
+    "gpu_hours": 0.74,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 38713756,
+    "pflops": 789.8
+  },
+  "judgefilt23": {
+    "run": "judgefilt_s23",
+    "flops": 7.89760613196288e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18931226193427084,
+    "eval_loss": 0.17138931155204773,
+    "split": "data/splits_self_judge/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 15960,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.51,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 38713756,
+    "pflops": 789.8
+  }
+}

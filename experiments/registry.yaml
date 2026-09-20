@@ -245,11 +245,11 @@ experiments:
     folder: experiments/exp22_judge_filter
     question: Does filtering the collected episodes with an LLM judge beat the string match?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E22_judge_filter
-    paper: tab:E22-judge-filter
-    next: "Pool: prep_e22, train_judgefilt_s{13,17,23}, then results_E22."
+    paper: tab:E20-filter
+    next: "none (the judge filter is 1.2 points behind the string match at 15 % more compute)"
 
   - id: E23
     name: pipeline_cost
