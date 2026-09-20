@@ -11,6 +11,15 @@ episodes, matching the self-guided split. Then train three seeds and compare wit
 students, in accuracy and in end-to-end cost (E23): the teacher writes more output tokens per
 episode and needs its 284B weights hosted, but it fails far less often, so it needs fewer episodes.
 
+**Two gateways.** The first 2,000 episodes were collected through the primary gateway. On
+2026-09-20 its DeepSeek deployment began returning HTTP 500 (the other models it serves were
+unaffected), so the rest were collected through a second gateway serving the same model id. Every
+call records the model id it used, so the episodes remain separable; `provider_split.py` compares
+what the experiment depends on -- how often an episode ends correct, its steps and its tokens --
+and its output is published with the results. A large gap belongs in the write-up, because the
+paper already documents one teacher run whose accuracy moved when the provider and the token cap
+changed (appendix).
+
 **Run.** `collect_teachdist_more` (API, resumable), `prep_e24` (consolidate + build
 `data/splits_teachdist_full`), `train_teachdist_full_s{13,17,23}`, `eval_*`, `judge_*`,
 `results_E24`.

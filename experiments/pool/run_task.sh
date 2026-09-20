@@ -369,6 +369,7 @@ case "$TASK" in
         teachdist23=runs/eval/teachdist_full_s23 \
         selfguided13=runs/eval/selftaught selfguided17=runs/eval/selftaught_s17 selfguided23=runs/eval/selftaught_s23 &&
       cp data/splits_teachdist_full/uniform/manifest.json runs/results/E24/split_teachdist.json &&
+      $PY_BASE experiments/exp24_teacher_scale/provider_split.py | tee runs/results/E24/provider_split.txt &&
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E24 \
           --results runs/results/E24/results.json --json-out runs/results/E24/summary.json \
           --primary selfguided:teachdist --secondary - | tee runs/results/E24/summary.txt &&
@@ -377,7 +378,7 @@ case "$TASK" in
           selfguided13=selftaught selfguided17=selftaught_s17 selfguided23=selftaught_s23 \
           --json-out runs/results/E24/train_cost.json | tee runs/results/E24/train_cost.txt &&
       $TOOLS publish runs/results/E24 results/E24_teacher_scale/kit \
-          --only summary.txt summary.json train_cost.txt train_cost.json split_teachdist.json ;;
+          --only summary.txt summary.json train_cost.txt train_cost.json split_teachdist.json provider_split.txt ;;
   e23_pipeline_cost) # end-to-end cost of every route, from collection to inference
     mkdir -p runs/results/E23 &&
       $PY_BASE experiments/exp23_pipeline_cost/pipeline_cost.py --json-out runs/results/E23/pipeline_cost.json \
