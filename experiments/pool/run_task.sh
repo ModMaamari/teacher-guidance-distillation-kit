@@ -215,6 +215,10 @@ case "$TASK" in
       PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
       bash slurm/collect_local.sbatch --no-teacher ;;
   collect_teachdist_more)   # E24: extend the teacher's own rollouts to the self-guided scale (resumes the same run)
+    for i in $(seq 1 144); do   # an endpoint outage waits here instead of burning retries (as teacher_eval does)
+      $TOOLS probe --model "$TEACHER" && break
+      echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
+    done
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-1250}" \
         --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist --tag teachdist \
         --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
