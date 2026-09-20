@@ -5,11 +5,18 @@ usable episodes), but only 2,000 were collected because they run a 284B-paramete
 agent. Self-Guidance trains on 3,818. A reviewer will ask what plain distillation does with the
 same number of usable episodes, which is the fair "normal distillation" baseline.
 
-**Design.** Extend the teacher-rollout collection from 500 to 1,250 questions per dataset (the
-command resumes and skips what exists), which at a 78 % keep rate yields about 3,900 usable
-episodes, matching the self-guided split. Then train three seeds and compare with the self-guided
-students, in accuracy and in end-to-end cost (E23): the teacher writes more output tokens per
-episode and needs its 284B weights hosted, but it fails far less often, so it needs fewer episodes.
+**Design.** Collect the teacher's own rollouts over **the same 7,999 questions as every other
+collection** (2,000 per dataset), so the routes differ only in who produced the trajectories. At the
+observed 78 % keep rate that yields about 6,200 usable episodes, against 3,818 for self-guided,
+because the teacher fails far less often on the same questions. Then train three seeds and compare
+with the self-guided students in accuracy and in end-to-end cost (E23): the teacher writes more
+output tokens per episode and needs its 284B weights hosted, but wastes far fewer episodes.
+
+Two comparisons follow, and they answer different questions. **Same questions collected** (this
+experiment) is the practical one: given one pass over the question set, which route gives the
+better student? **Same number of usable episodes** (E01/E21, ~1,400 each) controls for training-set
+size and already shows the teacher's rollouts ahead by +6.2 points. Reporting only the first would
+confound source with data volume, so the write-up gives both.
 
 **One gateway, collected from scratch.** The first attempt extended the existing 2,000-episode
 collection, but its gateway's DeepSeek deployment started returning HTTP 500 mid-run (the other

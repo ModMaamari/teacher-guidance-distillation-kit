@@ -214,12 +214,13 @@ case "$TASK" in
     MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist TAG=selfdist SHARDS=${SELFDIST_SHARDS:-8} N=2000 \
       PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
       bash slurm/collect_local.sbatch --no-teacher ;;
-  collect_teachdist_or)     # E24: the teacher's own rollouts at the self-guided scale, one gateway from scratch
+  collect_teachdist_or)     # E24: the teacher's own rollouts over the same 7,999 questions as every other
+                            # collection, one gateway, from scratch (2,000 per dataset)
     for i in $(seq 1 144); do   # an endpoint outage waits here instead of burning retries (as teacher_eval does)
       $TOOLS probe --model "$TEACHER" && break
       echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
     done
-    $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-1250}" \
+    $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-2000}" \
         --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist_or --tag teachdist_or \
         --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
   collect_teachdist)  # the teacher alone, through its API
