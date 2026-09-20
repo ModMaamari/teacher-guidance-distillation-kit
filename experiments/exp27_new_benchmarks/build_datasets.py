@@ -35,6 +35,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 import httpx
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 KIT = Path(__file__).resolve().parents[2]
 RAW = KIT / "data" / "_raw"
@@ -42,6 +43,9 @@ CACHE = KIT / "data" / "_cache" / "wiki"
 DOCS_PER_QUESTION = 10
 MAX_DOC_CHARS = 6000
 WIKI = "https://en.wikipedia.org/w/api.php"
+# Wikimedia rejects requests whose User-Agent carries no contact (HTTP 403), which a first run
+# hit silently because failures were cached as empty articles.
+UA = "teacher-guidance-distillation-kit/1.0 (https://github.com/ModMaamari/teacher-guidance-distillation-kit)"
 
 
 def sentences_of(text: str) -> list[str]:
@@ -133,21 +137,27 @@ def build_multihoprag(a) -> int:
 
 
 def wiki_text(title: str, client: httpx.Client) -> str:
+    """Article text, cached. An empty result is never cached: it would look like a real article
+    with no content and quietly shrink the benchmark."""
     CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / (re.sub(r"[^A-Za-z0-9_.-]", "_", title)[:150] + ".txt")
     if f.exists():
-        return f.read_text(encoding="utf-8")
+        cached = f.read_text(encoding="utf-8")
+        if cached.strip():
+            return cached
     for attempt in range(4):
         try:
             r = client.get(WIKI, params={"action": "query", "prop": "extracts", "explaintext": 1,
                                          "format": "json", "redirects": 1, "titles": title}, timeout=30)
+            r.raise_for_status()
             pages = r.json().get("query", {}).get("pages", {})
             text = next(iter(pages.values())).get("extract", "") if pages else ""
-            f.write_text(text, encoding="utf-8")
-            return text
+            if text.strip():
+                f.write_text(text, encoding="utf-8")
+                return text
+            return ""          # the article genuinely has no extract (missing page)
         except Exception:
             time.sleep(2 * (attempt + 1))
-    f.write_text("", encoding="utf-8")
     return ""
 
 
@@ -172,12 +182,24 @@ def build_framesqa(a) -> int:
         titles_of.append(ts)
     need = sorted({t for ts in titles_of for t in ts})
     print(f"framesqa: fetching {len(need)} Wikipedia articles (cached under {CACHE.relative_to(KIT)})")
-    texts = {}
-    with httpx.Client(headers={"User-Agent": "research-kit/1.0 (multi-hop QA benchmark build)"}) as cl:
-        for i, t in enumerate(need, 1):
-            texts[t] = wiki_text(t, cl)
-            if i % 200 == 0:
-                print(f"  {i}/{len(need)}")
+    # Serial fetching took longer than the job's time limit, so fetch with a small pool; the API
+    # asks for modest concurrency, and the on-disk cache makes a rerun resume.
+    texts, done = {}, 0
+    with httpx.Client(headers={"User-Agent": UA}) as cl:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(wiki_text, t, cl): t for t in need}
+            for fut in as_completed(futures):
+                t = futures[fut]
+                texts[t] = fut.result()
+                done += 1
+                if done % 200 == 0:
+                    print(f"  {done}/{len(need)}", flush=True)
+    missing = [t for t in need if not (texts.get(t) or "").strip()]
+    print(f"framesqa: {len(need) - len(missing)}/{len(need)} articles fetched"
+          + (f"; {len(missing)} unavailable, e.g. {missing[:3]}" if missing else ""))
+    if len(missing) > 0.1 * len(need):
+        print("!! more than 10% of articles are missing: not building a benchmark on that")
+        return 1
     rows, docs = [], {}
     all_titles = [t for t in need if texts.get(t)]
     for i, (r, ts) in enumerate(zip(rows_in, titles_of)):
