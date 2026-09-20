@@ -277,11 +277,11 @@ experiments:
     folder: experiments/exp25_seed_power
     question: With six seeds per arm, does self-guidance beat the student's own correctness-filtered rollouts?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E25_seed_power
-    paper: tab:E21-unguided
-    next: "Pool: train_{selfdist_full,selftaught}_s{29,31,37}, then results_E25."
+    paper: sec:matched
+    next: "none (six seeds: +2.3 points, p 0.008; the matched-size version is still three seeds)"
 
   - id: E26
     name: oracle_guidance
