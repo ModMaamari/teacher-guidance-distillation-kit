@@ -29,4 +29,5 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E17 | [`E17_self_guidance`](E17_self_guidance/README.md) | ✅ done | Gemma-4-31B-it | `full/`, `kit/` |
 | E18 | [`E18_answer_form`](E18_answer_form/README.md) | ✅ done | Gemma-4-31B-it (+ strict rubric, Kimi-K2.6, Qwen3.6-35B) | `kit/` |
 | E19 | [`E19_self_guided_robustness`](E19_self_guided_robustness/README.md) | ✅ done | Gemma-4-31B-it | `forgetting/`, `kit/`, `lodo/` |
+| E20 | [`E20_correctness_filter`](E20_correctness_filter/README.md) | ✅ done | Gemma-4-31B-it | `kit/`, `matched/`, `seed13/` |
 <!-- index:end -->
