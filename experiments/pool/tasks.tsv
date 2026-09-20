@@ -1,5 +1,17 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
+e27_smoke_multihoprag	25	16	0.4	1	-
+e27_leakcheck	0	8	0.2	1	-
+e27_smoke_framesqa	25	16	0.4	1	file:data/questions/framesqa/framesqa_questions.jsonl.gz
+evalnew_multihoprag_base	25	16	0.5	1	done:e27_smoke_multihoprag
+evalnew_multihoprag_self	28	24	3	1	done:e27_smoke_multihoprag
+evalnew_multihoprag_unguided	28	24	3	1	done:e27_smoke_multihoprag
+evalnew_framesqa_base	25	16	0.5	1	done:e27_smoke_framesqa
+evalnew_framesqa_self	28	24	3	1	done:e27_smoke_framesqa
+evalnew_framesqa_unguided	28	24	3	1	done:e27_smoke_framesqa
+judgenew_multihoprag	0	2	0.8	1	done:evalnew_multihoprag_base,done:evalnew_multihoprag_self,done:evalnew_multihoprag_unguided
+judgenew_framesqa	0	2	0.8	1	done:evalnew_framesqa_base,done:evalnew_framesqa_self,done:evalnew_framesqa_unguided
+results_E27	0	4	0.3	1	done:judgenew_multihoprag,done:judgenew_framesqa,done:e27_leakcheck
 prep_e26	0	4	0.1	1	-
 oracle_self_student	32	32	2	1	done:prep_e26
 oracle_self_teacher	0	8	2	1	done:prep_e26,done:collect_teachdist_or

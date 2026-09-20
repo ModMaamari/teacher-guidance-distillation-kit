@@ -294,3 +294,14 @@ experiments:
     paper: tab:main
     next: "Pool: prep_e26, oracle_self_student (GPU), oracle_self_teacher (API, after E24), cons_e26, judge_oracle_*, results_E26."
 
+  - id: E27
+    name: new_benchmarks
+    folder: experiments/exp27_new_benchmarks
+    question: Does the self-guided advantage over the student's own filtered rollouts hold on two external multi-hop benchmarks?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E27_new_benchmarks
+    paper: sec:matched
+    next: "Pool: build datasets, e27_smoke_*, evalnew_*, judgenew_*, results_E27."
+

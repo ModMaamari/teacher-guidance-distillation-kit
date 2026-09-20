@@ -181,6 +181,51 @@ case "$TASK" in
       fi
     done <<< "$plan" ;;
 
+  e27_smoke_*)      # E27: a few episodes on a new benchmark, to check the conversion before 13 arms run on it
+    ds=${TASK#e27_smoke_}
+    evals "smoke_$ds=student" "newtest_$ds" --limit 8 &&
+      $PY_BASE experiments/exp27_new_benchmarks/check_conversion.py --dataset "$ds" \
+          --episodes "runs/eval/smoke_$ds/newtest_$ds/episodes.jsonl" ;;
+  e27_leakcheck)    # E27: do the new questions overlap the trajectories our students trained on?
+    mkdir -p runs/results/E27 &&
+      $PY_BASE experiments/exp27_new_benchmarks/leak_check.py | tee runs/results/E27/leak_check.txt ;;
+  evalnew_*)        # E27: one served model, every seed of one family, on one new benchmark
+    rest=${TASK#evalnew_}; ds=${rest%%_*}; fam=${rest#*_}
+    case "$fam" in
+      base)      specs="base=student" ;;
+      self)      specs="selftaught=selftaught:runs/train/selftaught/adapter"
+                 for sd in 17 23 29 31 37; do specs="$specs selftaught_s$sd=selftaught_s$sd:runs/train/selftaught_s$sd/adapter"; done ;;
+      unguided)  specs="selfdist_full=selfdist_full:runs/train/selfdist_full/adapter"
+                 for sd in 17 23 29 31 37; do specs="$specs selfdist_full_s$sd=selfdist_full_s$sd:runs/train/selfdist_full_s$sd/adapter"; done ;;
+      *) echo "!! unknown family $fam"; exit 2 ;;
+    esac
+    # shellcheck disable=SC2086
+    evals "$specs" "newtest_$ds" ;;
+  judgenew_*)       # E27: judge every arm's episodes on one new benchmark
+    ds=${TASK#judgenew_}
+    judge "runs/judge/new_$ds" "runs/eval/*/newtest_$ds/episodes.jsonl" "$JUDGE" ;;
+  results_E27)      # E27: self-guided vs the student's own filtered rollouts on the new benchmarks
+    for ds in multihoprag framesqa; do
+      # One arm directory per arm holding only this benchmark's episodes, so collect_results does
+      # not pool the new benchmark with the four the students were trained for.
+      v="runs/views/E27_$ds"; rm -rf "$v"; mkdir -p "$v"
+      for fam in self unguided; do
+        [ "$fam" = self ] && run=selftaught || run=selfdist_full
+        for sd in 13 17 23 29 31 37; do
+          [ "$sd" = 13 ] && src="runs/eval/$run" || src="runs/eval/${run}_s$sd"
+          mkdir -p "$v/${fam}$sd" && ln -sfn "$KIT/$src/newtest_$ds" "$v/${fam}$sd/newtest_$ds"
+        done
+      done
+      mkdir -p "$v/base" && ln -sfn "$KIT/runs/eval/base/newtest_$ds" "$v/base/newtest_$ds"
+      cat runs/judge/new_$ds/verdicts.jsonl > "$v/verdicts.jsonl" || exit 1
+      $PY_BASE scripts/collect_results.py --runs "$v" --judge "$v/verdicts.jsonl" \
+          --out "runs/results/E27_$ds" || exit 1
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view "runs/views/E27_$ds" \
+          --results "runs/results/E27_$ds/results.json" --primary unguided:self --secondary - \
+          --json-out "runs/results/E27/summary_$ds.json" | tee "runs/results/E27/summary_$ds.txt" || exit 1
+    done
+    $TOOLS publish runs/results/E27 results/E27_new_benchmarks/kit \
+        --only summary_multihoprag.txt summary_multihoprag.json summary_framesqa.txt summary_framesqa.json leak_check.txt ;;
   prep_e26)         # E26: a questions directory holding only the 747 held-out questions
     for ds in hotpotqa 2wikimultihopqa musique strategyqa; do
       mkdir -p "data/questions_heldout/$ds"
