@@ -1,0 +1,132 @@
+{
+  "models": {
+    "student": {
+      "name": "Granite-4.1-3B",
+      "total_params": 3400000000.0,
+      "active_params": 3400000000.0
+    },
+    "deepseek": {
+      "name": "DeepSeek-V4-Flash",
+      "total_params": 284000000000.0,
+      "active_params": 13000000000.0
+    },
+    "glm": {
+      "name": "GLM-5.3-flash",
+      "total_params": 320000000000.0,
+      "active_params": 18000000000.0
+    },
+    "judge": {
+      "name": "Gemma-4-31B-it",
+      "total_params": 31000000000.0,
+      "active_params": 31000000000.0
+    }
+  },
+  "collections": {
+    "self": {
+      "episodes": 7999,
+      "actor_in": 5259.6,
+      "actor_out": 1239.3,
+      "critic_in": 6674.3,
+      "critic_out": 1350.2,
+      "actor_calls": 5.74,
+      "critic_calls": 5.17,
+      "actor": "student",
+      "critic": "student",
+      "label": "self-guided (ours)",
+      "pflops_per_episode": 0.09875912,
+      "pflops_total": 789.97420088,
+      "keep_rate": 0.5301912739092387,
+      "episodes_needed": 7201,
+      "collect_pflops": 711.181678604065,
+      "filter_pflops": 0.0,
+      "train_pflops": 684.0,
+      "total_pflops": 1395.181678604065
+    },
+    "deepseek": {
+      "episodes": 7999,
+      "actor_in": 6733.3,
+      "actor_out": 1371.0,
+      "critic_in": 6875.4,
+      "critic_out": 1925.7,
+      "actor_calls": 6.56,
+      "critic_calls": 5.36,
+      "actor": "student",
+      "critic": "deepseek",
+      "label": "teacher-guided (DeepSeek)",
+      "pflops_per_episode": 0.28393784,
+      "pflops_total": 2271.21878216,
+      "keep_rate": 0.5484435554444306,
+      "episodes_needed": 6962,
+      "collect_pflops": 1976.6385480480692,
+      "filter_pflops": 0.0,
+      "train_pflops": 684.0,
+      "total_pflops": 2660.6385480480694
+    },
+    "glm": {
+      "episodes": 7999,
+      "actor_in": 4219.8,
+      "actor_out": 958.8,
+      "critic_in": 5484.1,
+      "critic_out": 1029.1,
+      "actor_calls": 3.72,
+      "critic_calls": 3.7,
+      "actor": "student",
+      "critic": "glm",
+      "label": "teacher-guided (GLM)",
+      "pflops_per_episode": 0.26968968000000004,
+      "pflops_total": 2157.2477503200003,
+      "keep_rate": 0.5818227278409801,
+      "episodes_needed": 6562,
+      "collect_pflops": 1769.7404191494975,
+      "filter_pflops": 0.0,
+      "train_pflops": 684.0,
+      "total_pflops": 2453.7404191494975
+    },
+    "selfdist": {
+      "episodes": 7999,
+      "actor_in": 4012.9,
+      "actor_out": 727.9,
+      "critic_in": 0.0,
+      "critic_out": 0.0,
+      "actor_calls": 4.08,
+      "critic_calls": 0.0,
+      "actor": "student",
+      "critic": null,
+      "label": "student's own rollouts, unguided",
+      "pflops_per_episode": 0.03223744,
+      "pflops_total": 257.86728256,
+      "keep_rate": 0.5185648206025754,
+      "episodes_needed": 7363,
+      "collect_pflops": 237.3522865993442,
+      "filter_pflops": 0.0,
+      "train_pflops": 684.0,
+      "total_pflops": 921.3522865993442
+    },
+    "teachdist": {
+      "episodes": 2000,
+      "actor_in": 3955.6,
+      "actor_out": 3223.6,
+      "critic_in": 0.0,
+      "critic_out": 0.0,
+      "actor_calls": 4.0,
+      "critic_calls": 0.0,
+      "actor": "deepseek",
+      "critic": null,
+      "label": "teacher's own rollouts, unguided",
+      "pflops_per_episode": 0.1866592,
+      "pflops_total": 373.3184,
+      "keep_rate": 0.7765,
+      "episodes_needed": 4917,
+      "collect_pflops": 917.7911469414038,
+      "filter_pflops": 0.0,
+      "train_pflops": 684.0,
+      "total_pflops": 1601.791146941404
+    }
+  },
+  "filter": {
+    "cover_keep_rate": 0.5302,
+    "judge_keep_rate": 0.6146,
+    "judge_pflops_per_episode": 0.0155,
+    "judge_tokens_per_episode": 250
+  }
+}

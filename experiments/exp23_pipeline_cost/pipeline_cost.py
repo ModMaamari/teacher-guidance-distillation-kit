@@ -48,29 +48,42 @@ COLLECTIONS = {
 }
 
 
+CRITIC_CALLS = ("teacher_calls", "review_calls")   # every other call is the actor's own
+
+
 def tokens_of(path: Path, limit: int | None = None) -> dict:
-    """Input/output tokens per episode, split into actor and critic, from the recorded usage."""
+    """Input/output tokens per episode, split into actor and critic, from the recorded usage.
+
+    Every call anywhere in the episode is counted, found by walking the record: the agent's steps,
+    its initial plan and its plan revisions (actor), and the step reviews and plan reviews
+    (critic). Missing a call group would understate a route's cost, so nothing is hard-coded to a
+    fixed set of fields.
+    """
     c = collections.Counter()
     opener = gzip.open if path.suffix == ".gz" else open
+
+    def walk(o, role):
+        if isinstance(o, dict):
+            u = o.get("usage")
+            if isinstance(u, dict) and ("prompt_tokens" in u or "completion_tokens" in u):
+                c[f"{role}_in"] += int(u.get("prompt_tokens") or 0)
+                c[f"{role}_out"] += int(u.get("completion_tokens") or 0)
+                c[f"{role}_calls"] += 1
+            for k, v in o.items():
+                if k != "usage":
+                    walk(v, "critic" if k in CRITIC_CALLS else role)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x, role)
+
     with opener(path, "rt", encoding="utf-8") as fh:
         for i, line in enumerate(fh):
             if limit and i >= limit:
                 break
             if not line.strip():
                 continue
-            ep = json.loads(line)
             c["episodes"] += 1
-            pr = ep.get("plan_review") or {}
-            groups = [("actor", pr.get("initial_plan_calls") or []), ("actor", pr.get("revised_plan_calls") or [])]
-            for s in ep.get("steps") or []:
-                groups.append(("actor", s.get("student_calls") or []))
-                groups.append(("critic", s.get("teacher_calls") or []))
-            for role, calls in groups:
-                for call in calls:
-                    u = call.get("usage") or (call.get("raw_response") or {}).get("usage") or {}
-                    c[f"{role}_in"] += int(u.get("prompt_tokens") or 0)
-                    c[f"{role}_out"] += int(u.get("completion_tokens") or 0)
-                    c[f"{role}_calls"] += 1
+            walk(json.loads(line), "actor")
     n = max(c["episodes"], 1)
     return {"episodes": c["episodes"],
             **{k: round(c[k] / n, 1) for k in ("actor_in", "actor_out", "critic_in", "critic_out")},

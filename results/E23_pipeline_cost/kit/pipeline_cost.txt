@@ -1,0 +1,27 @@
+COLLECTION  (tokens per episode as the engines reported them; PFLOPs ~ 2 x active params x tokens)
+
+  route                              episodes  actor in actor out critic in critic out  PFLOPs/ep  total PF
+  self-guided (ours)                    7,999     5,260     1,239     6,674      1,350      0.099       790
+  teacher-guided (DeepSeek)             7,999     6,733     1,371     6,875      1,926      0.284     2,271
+  teacher-guided (GLM)                  7,999     4,220       959     5,484      1,029      0.270     2,157
+  student's own rollouts, unguided      7,999     4,013       728         0          0      0.032       258
+  teacher's own rollouts, unguided      2,000     3,956     3,224         0          0      0.187       373
+
+FILTER  (of the trainable pool; the string filter costs nothing, the judge costs tokens)
+
+  cover match (the kit's filter): keeps 53.0% of self-guided episodes, 0 FLOPs
+  LLM judge (Gemma-4-31B-it): keeps 61.5%, about 250 tokens and 0.0155 PFLOPs per episode judged
+  disagreement: dropped 3,758; of them 22.9% are judged correct (right answer, different wording)
+
+BUILD A STUDENT  (every route collects until it has 3,818 usable episodes)
+
+  route                                keep  episodes  collect PF  filter PF  train PF   total PF
+  self-guided (ours)                    53%     7,201         711          0       684      1,395
+  teacher-guided (DeepSeek)             55%     6,962       1,977          0       684      2,661
+  teacher-guided (GLM)                  58%     6,562       1,770          0       684      2,454
+  student's own rollouts, unguided      52%     7,363         237          0       684        921
+  teacher's own rollouts, unguided      78%     4,917         918          0       684      1,602
+
+  'keep' is the share of collected episodes the correctness filter keeps, so a route with a low
+  keep rate must collect more episodes for the same training set. Training compute is the
+  measured 684 PFLOPs of a 3,818-episode LoRA run (E20), identical across routes.
