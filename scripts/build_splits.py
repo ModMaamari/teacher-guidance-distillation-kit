@@ -20,8 +20,11 @@ Also written: ``pools.json`` (qid -> pool), ``stats.json``, and a ``manifest.jso
 split with counts and the train/test qid-overlap proof (always 0). Run
 ``scripts/check_leakage.py`` afterwards for the independent check.
 
-Only episodes whose final answer was correct become training examples (``--keep all`` or
-``--keep incorrect`` lifts or inverts that filter, for E20). Test files use
+Only episodes whose final answer was correct become training examples, where "correct" is the
+collection-time cover match (``tgd.metrics.cover_match``, a string test, no LLM). ``--keep all``
+and ``--keep incorrect`` lift or invert that filter (E20); ``--keep judge`` with
+``--judge-verdicts`` uses an LLM judge's verdicts on the collected episodes instead (E22). Test
+files use
 ALL questions of a dataset regardless of collection-time correctness. Two hygiene
 filters run on the training side: a question whose text duplicates a held-out question
 (same text, different id -- datasets contain such duplicates) is excluded from training,
@@ -149,13 +152,22 @@ def main() -> int:
     ap.add_argument("--salt", default=DEFAULT_SALT, help="hash salt of the held-out assignment")
     ap.add_argument("--dev-salt", default=DEFAULT_DEV_SALT)
     ap.add_argument("--limit", type=int, default=None, help="cap episodes read (smoke tests)")
-    ap.add_argument("--keep", choices=("correct", "all", "incorrect"), default="correct",
-                    help="episodes that become training examples: the correct ones (the kit's filter), "
-                         "all of them, or only the incorrect ones (E20)")
+    ap.add_argument("--keep", choices=("correct", "all", "incorrect", "judge"), default="correct",
+                    help="episodes that become training examples: the cover-matched ones (the kit's filter), "
+                         "all of them, only the incorrect ones (E20), or the ones an LLM judge accepts (E22)")
+    ap.add_argument("--judge-verdicts", help="verdicts.jsonl from scripts/judge.py, for --keep judge")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     datasets = list(args.datasets)
+    verdicts: Dict[str, int] = {}
+    if args.keep == "judge":
+        if not args.judge_verdicts:
+            print("!! --keep judge needs --judge-verdicts")
+            return 2
+        for r in read_jsonl(args.judge_verdicts):
+            verdicts[str(r["qid"])] = int(bool((r.get("verdict") or {}).get("correct")))
+        print(f"judge verdicts: {len(verdicts):,} ({sum(verdicts.values()):,} correct)")
 
     # ---- pass 0: question files -> the held-out question texts (duplicate guard)
     questions: Dict[str, List[Dict[str, Any]]] = {ds: load_jsonl(question_file(args.questions, ds)) for ds in datasets}
@@ -175,7 +187,9 @@ def main() -> int:
         counts[ds][pool] += 1
         correct = bool((ep.get("final_metrics") or {}).get("answer_correct"))
         counts[ds]["correct"] += int(correct)
-        kept = {"correct": correct, "all": True, "incorrect": not correct}[args.keep]
+        judged = verdicts.get(qid)
+        kept = {"correct": correct, "all": True, "incorrect": not correct, "judge": judged == 1}[args.keep]
+        counts[ds]["no_verdict"] += int(args.keep == "judge" and judged is None)
         if not kept or pool != "trainable":
             continue
         if norm(ep.get("query", "")) in heldout_text:
@@ -198,6 +212,8 @@ def main() -> int:
             ex["metadata"]["qid"] = qid
             ex["metadata"]["query"] = ep.get("query", "")
             ex["metadata"]["episode_correct"] = correct
+            if judged is not None:
+                ex["metadata"]["episode_judged_correct"] = judged
             built.append(ex)
         if not built:
             counts[ds]["episodes_without_examples"] += 1

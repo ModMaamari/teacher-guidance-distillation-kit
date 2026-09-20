@@ -228,3 +228,47 @@ experiments:
     results: results/E20_correctness_filter
     paper: tab:E20-filter
     next: "none (one seed for the incorrect-only arm; a judge-based filter is untested)"
+
+  - id: E21
+    name: unguided_baselines
+    folder: experiments/exp21_unguided_baselines
+    question: Do the matched-size comparisons of guided vs unguided trajectories hold across three seeds?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E21_unguided_baselines
+    paper: tab:E21-unguided
+    next: "Pool: train_sup_*_s{17,23}, train_selfdist_full_s{17,23}, then results_E21 and results_E21full."
+
+  - id: E22
+    name: judge_filter
+    folder: experiments/exp22_judge_filter
+    question: Does filtering the collected episodes with an LLM judge beat the string match?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E22_judge_filter
+    paper: tab:E22-judge-filter
+    next: "Pool: prep_e22, train_judgefilt_s{13,17,23}, then results_E22."
+
+  - id: E23
+    name: pipeline_cost
+    folder: experiments/exp23_pipeline_cost
+    question: What does each route cost end to end, from collection through filtering and training to inference?
+    tier: 1
+    status: running
+    results: results/E23_pipeline_cost
+    paper: tab:cost
+    next: "Pool: e23_pipeline_cost (CPU)."
+
+  - id: E24
+    name: teacher_scale
+    folder: experiments/exp24_teacher_scale
+    question: What does plain teacher distillation reach with as many usable episodes as Self-Guidance?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E24_teacher_scale
+    paper: tab:E24-teacher-scale
+    next: "Pool: collect_teachdist_more (API, ~10 h), prep_e24, train_teachdist_full_s{13,17,23}, results_E24."
+

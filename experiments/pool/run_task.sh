@@ -181,6 +181,15 @@ case "$TASK" in
       fi
     done <<< "$plan" ;;
 
+  prep_e22)         # E22: the same self-guided episodes, filtered by the LLM judge instead of the string match
+    [ -f data/splits_self_judge/stats.json ] && [ -s data/splits_self_judge/uniform/train.jsonl ] ||
+      $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \
+          --out data/splits_self_judge --keep judge --judge-verdicts runs/judge_self/verdicts.jsonl ;;
+  prep_e24)         # E24: consolidate every teacher rollout collected so far and build a full-size split
+    $PY_BASE scripts/consolidate_episodes.py --runs runs/collect_teachdist --out data/episodes_teachdist --gzip &&
+      { [ -f data/splits_teachdist_full/stats.json ] && [ -s data/splits_teachdist_full/uniform/train.jsonl ] ||
+        $PY_BASE scripts/build_splits.py --episodes data/episodes_teachdist/episodes.jsonl.gz \
+            --out data/splits_teachdist_full; } ;;
   prep_e20)         # E20: self-guided splits without the correctness filter: all episodes, incorrect only, size-matched
     for keep in all incorrect; do
       d=data/splits_self_${keep/incorrect/wrong}
@@ -205,6 +214,10 @@ case "$TASK" in
     MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist TAG=selfdist SHARDS=${SELFDIST_SHARDS:-8} N=2000 \
       PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
       bash slurm/collect_local.sbatch --no-teacher ;;
+  collect_teachdist_more)   # E24: extend the teacher's own rollouts to the self-guided scale (resumes the same run)
+    $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N2:-1250}" \
+        --shards "${TEACHDIST_SHARDS:-8}" --out runs/collect_teachdist --tag teachdist \
+        --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
   collect_teachdist)  # the teacher alone, through its API
     $PY_TRAIN scripts/collect_episodes.py --no-teacher --student "$TEACHER" --num-samples "${TEACHDIST_N:-1000}" \
         --shards "${TEACHDIST_SHARDS:-4}" --out runs/collect_teachdist --tag teachdist \
@@ -218,8 +231,16 @@ case "$TASK" in
   train_ep*)        n=${TASK#train_ep}; train "ep$n" "data/splits/uniform_ep$n" ;;
   train_selftaught) train selftaught data/splits_self/uniform ;;
   train_glmtaught)  train glmtaught data/splits_glm/uniform ;;
+  train_sup_*_s*)   a=${TASK#train_sup_}; arm=${a%_s*}; s=${a##*_s}                                    # E21: matched arms, more seeds
+                    train "sup_${arm}_s$s" "data/splits_sup_$arm/matched" --seed "$s" ;;
   train_sup_*)      arm=${TASK#train_sup_}; train "sup_$arm" "data/splits_sup_$arm/matched" ;;
   train_selfdist_full) train selfdist_full data/splits_selfdist/uniform ;;   # E17: unguided self-rollouts, all of them
+  train_selfdist_full_s*) s=${TASK#train_selfdist_full_s}                                                # E21: more seeds
+                    train "selfdist_full_s$s" data/splits_selfdist/uniform --seed "$s" --save-steps 100 ;;
+  train_judgefilt_s*) s=${TASK#train_judgefilt_s}                                                        # E22: judge-filtered
+                    train "judgefilt_s$s" data/splits_self_judge/uniform --seed "$s" --save-steps 100 ;;
+  train_teachdist_full_s*) s=${TASK#train_teachdist_full_s}                                              # E24: teacher rollouts at scale
+                    train "teachdist_full_s$s" data/splits_teachdist_full/uniform --seed "$s" --save-steps 100 ;;
   train_selftaught_s*) s=${TASK#train_selftaught_s}; train "selftaught_s$s" data/splits_self/uniform --seed "$s" ;;   # E19
   train_selflodo_*)   d=${TASK#train_selflodo_}; train "selflodo_$d" "data/splits_self/lodo/fold_$d" ;;             # E19
   train_r*)         r=${TASK#train_r}; train "r$r" data/splits/uniform --lora-r "$r" --lora-alpha $((2 * r)) ;;
@@ -295,6 +316,69 @@ case "$TASK" in
           --results runs/results/E20s13/results.json --json-out runs/results/E20s13/summary.json \
           | tee runs/results/E20s13/summary.txt &&
       $TOOLS publish runs/results/E20s13 results/E20_correctness_filter/seed13 --only summary.txt summary.json ;;
+  results_E21)       # guidance vs no guidance, three seeds per arm
+    results E21 results/E21_unguided_baselines/kit base=runs/eval/base \
+        unguided13=runs/eval/sup_selfdist unguided17=runs/eval/sup_selfdist_s17 unguided23=runs/eval/sup_selfdist_s23 \
+        teacherguided13=runs/eval/sup_guided teacherguided17=runs/eval/sup_guided_s17 teacherguided23=runs/eval/sup_guided_s23 \
+        selfguided13=runs/eval/sup_selftaught selfguided17=runs/eval/sup_selftaught_s17 selfguided23=runs/eval/sup_selftaught_s23 \
+        teacherrollouts13=runs/eval/sup_teachdist teacherrollouts17=runs/eval/sup_teachdist_s17 teacherrollouts23=runs/eval/sup_teachdist_s23 &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E21 \
+          --results runs/results/E21/results.json --json-out runs/results/E21/summary.json \
+          --primary unguided:selfguided unguided:teacherguided \
+          --secondary unguided:teacherrollouts selfguided:teacherrollouts \
+          | tee runs/results/E21/summary.txt &&
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm unguided13=sup_selfdist unguided17=sup_selfdist_s17 unguided23=sup_selfdist_s23 \
+          teacherguided13=sup_guided teacherguided17=sup_guided_s17 teacherguided23=sup_guided_s23 \
+          selfguided13=sup_selftaught selfguided17=sup_selftaught_s17 selfguided23=sup_selftaught_s23 \
+          teacherrollouts13=sup_teachdist teacherrollouts17=sup_teachdist_s17 teacherrollouts23=sup_teachdist_s23 \
+          --json-out runs/results/E21/train_cost.json | tee runs/results/E21/train_cost.txt &&
+      $TOOLS publish runs/results/E21 results/E21_unguided_baselines/kit --only summary.txt summary.json train_cost.txt train_cost.json ;;
+  results_E21full)   # the same question with every episode each route collected
+    results E21full results/E21_unguided_baselines/full base=runs/eval/base \
+        unguided13=runs/eval/selfdist_full unguided17=runs/eval/selfdist_full_s17 unguided23=runs/eval/selfdist_full_s23 \
+        teacherguided13=runs/eval/seed13 teacherguided17=runs/eval/seed17 teacherguided23=runs/eval/seed23 \
+        selfguided13=runs/eval/selftaught selfguided17=runs/eval/selftaught_s17 selfguided23=runs/eval/selftaught_s23 &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E21full \
+          --results runs/results/E21full/results.json --json-out runs/results/E21full/summary.json \
+          --primary unguided:selfguided unguided:teacherguided --secondary - \
+          | tee runs/results/E21full/summary.txt &&
+      $TOOLS publish runs/results/E21full results/E21_unguided_baselines/full --only summary.txt summary.json ;;
+  results_E22)       # string filter vs LLM-judge filter on the same episodes
+    results E22 results/E22_judge_filter/kit base=runs/eval/base \
+        cover13=runs/eval/selftaught cover17=runs/eval/selftaught_s17 cover23=runs/eval/selftaught_s23 \
+        judgefilt13=runs/eval/judgefilt_s13 judgefilt17=runs/eval/judgefilt_s17 judgefilt23=runs/eval/judgefilt_s23 &&
+      cp data/splits_self_judge/uniform/manifest.json runs/results/E22/split_judge.json &&
+      cp data/splits_self/uniform/manifest.json runs/results/E22/split_cover.json &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E22 \
+          --results runs/results/E22/results.json --json-out runs/results/E22/summary.json \
+          --primary cover:judgefilt --secondary - | tee runs/results/E22/summary.txt &&
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm cover13=selftaught cover17=selftaught_s17 cover23=selftaught_s23 \
+          judgefilt13=judgefilt_s13 judgefilt17=judgefilt_s17 judgefilt23=judgefilt_s23 \
+          --json-out runs/results/E22/train_cost.json | tee runs/results/E22/train_cost.txt &&
+      $TOOLS publish runs/results/E22 results/E22_judge_filter/kit \
+          --only summary.txt summary.json train_cost.txt train_cost.json split_cover.json split_judge.json ;;
+  results_E24)       # teacher-rollout distillation at the self-guided scale
+    results E24 results/E24_teacher_scale/kit base=runs/eval/base \
+        teachdist13=runs/eval/teachdist_full_s13 teachdist17=runs/eval/teachdist_full_s17 \
+        teachdist23=runs/eval/teachdist_full_s23 \
+        selfguided13=runs/eval/selftaught selfguided17=runs/eval/selftaught_s17 selfguided23=runs/eval/selftaught_s23 &&
+      cp data/splits_teachdist_full/uniform/manifest.json runs/results/E24/split_teachdist.json &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E24 \
+          --results runs/results/E24/results.json --json-out runs/results/E24/summary.json \
+          --primary selfguided:teachdist --secondary - | tee runs/results/E24/summary.txt &&
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm teachdist13=teachdist_full_s13 teachdist17=teachdist_full_s17 teachdist23=teachdist_full_s23 \
+          selfguided13=selftaught selfguided17=selftaught_s17 selfguided23=selftaught_s23 \
+          --json-out runs/results/E24/train_cost.json | tee runs/results/E24/train_cost.txt &&
+      $TOOLS publish runs/results/E24 results/E24_teacher_scale/kit \
+          --only summary.txt summary.json train_cost.txt train_cost.json split_teachdist.json ;;
+  e23_pipeline_cost) # end-to-end cost of every route, from collection to inference
+    mkdir -p runs/results/E23 &&
+      $PY_BASE experiments/exp23_pipeline_cost/pipeline_cost.py --json-out runs/results/E23/pipeline_cost.json \
+          | tee runs/results/E23/pipeline_cost.txt &&
+      $TOOLS publish runs/results/E23 results/E23_pipeline_cost/kit --only pipeline_cost.txt pipeline_cost.json ;;
   results_E20mm)     # E20 early: the size-matched mix (three seeds) and incorrect-only, before the all-episode arms finish
     results E20mm results/E20_correctness_filter/matched base=runs/eval/base \
         correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
