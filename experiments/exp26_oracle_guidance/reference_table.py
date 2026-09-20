@@ -52,13 +52,18 @@ def main() -> int:
     for spec in a.arm:
         label, _, rest = spec.partition("=")
         eps, _, verd = rest.partition(":")
+        # Key verdicts by (episode file, qid): a verdicts file often holds several arms, and keying
+        # by qid alone silently reads another arm's verdict for the same question.
         v = {}
         vp = KIT / verd
         if vp.exists():
             for r in read(vp):
-                v[str(r["qid"])] = int(bool((r.get("verdict") or {}).get("correct")))
+                src = Path(r["source"])
+                src = src if src.is_absolute() else (KIT / src)
+                v[(str(src.resolve()), str(r["qid"]))] = int(bool((r.get("verdict") or {}).get("correct")))
         c = collections.Counter()
         for f in episode_files(eps):
+            key = str(Path(f).resolve())
             for ep in read(f):
                 qid = str(ep.get("qid"))
                 if pool_of(qid, 0.10, DEFAULT_SALT) != "heldout_test":
@@ -71,9 +76,9 @@ def main() -> int:
                     for call in (s.get("student_calls") or []) + (s.get("teacher_calls") or []):
                         u = call.get("usage") or {}
                         c["tok"] += int(u.get("prompt_tokens") or 0) + int(u.get("completion_tokens") or 0)
-                if qid in v:
+                if (key, qid) in v:
                     c["judged"] += 1
-                    c["correct"] += v[qid]
+                    c["correct"] += v[(key, qid)]
         n = max(c["n"], 1)
         acc = 100 * c["correct"] / c["judged"] if c["judged"] else float("nan")
         rows[label] = {"n": c["n"], "judged": c["judged"], "judge_correct": round(acc, 2),

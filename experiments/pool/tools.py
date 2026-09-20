@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import gzip
 import json
 import os
 import re
@@ -43,11 +44,16 @@ if os.environ.get("PUBLISH_FORBID"):
 FORBIDDEN = re.compile("|".join(_forbid), re.I)
 
 
+def _open_text(path):
+    """Episode files are plain or gzipped; consolidated collections are always gzipped."""
+    return gzip.open(path, "rt", encoding="utf-8") if str(path).endswith(".gz") else open(path, encoding="utf-8")
+
+
 def judged(a) -> int:
     files = sorted({f for g in a.episodes for f in glob.glob(g)})
     want = set()
     for f in files:
-        for line in open(f, encoding="utf-8"):
+        for line in _open_text(f):
             if line.strip():
                 want.add((f, json.loads(line)["qid"]))
     have = set()
