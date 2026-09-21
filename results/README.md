@@ -33,5 +33,8 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E21 | [`E21_unguided_baselines`](E21_unguided_baselines/README.md) | ✅ done | Gemma-4-31B-it | `full/`, `kit/` |
 | E22 | [`E22_judge_filter`](E22_judge_filter/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E23 | [`E23_pipeline_cost`](E23_pipeline_cost/README.md) | 🔵 running | — | `kit/` |
+| E24 | [`E24_teacher_scale`](E24_teacher_scale/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E25 | [`E25_seed_power`](E25_seed_power/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E26 | [`E26_oracle_guidance`](E26_oracle_guidance/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E27 | [`E27_new_benchmarks`](E27_new_benchmarks/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 <!-- index:end -->
