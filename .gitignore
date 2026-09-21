@@ -30,3 +30,15 @@ experiments/pool/local.env
 data/splits_*/
 data/episodes_selfdist/
 data/episodes_teachdist/
+
+# E27: downloaded benchmarks, their converted copies and the Wikipedia article cache. These are
+# reproduced by experiments/exp27_new_benchmarks/build_datasets.py and carry their own upstream
+# licences, so the kit ships the converter rather than the data.
+data/_raw/
+data/_cache/
+data/questions/multihoprag/
+data/questions/framesqa/
+data/splits/test/newtest_*
+# episode sets the pool derives (large, rebuilt by consolidate_episodes.py)
+data/episodes_oracle_*/
+data/episodes_teachdist_or/
