@@ -1,0 +1,144 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        23.67
+      ],
+      "mean": 23.67,
+      "sd": null,
+      "steps": 2.93,
+      "tokens": 5449,
+      "voluntary_finish": 7.2,
+      "median_words": 1.0
+    },
+    "self": {
+      "arms": [
+        "self13",
+        "self17",
+        "self23",
+        "self29",
+        "self31",
+        "self37"
+      ],
+      "acc": [
+        64.0,
+        64.67,
+        62.33,
+        63.5,
+        64.33,
+        63.17
+      ],
+      "mean": 63.67,
+      "sd": 0.85,
+      "steps": 2.9,
+      "tokens": 5584,
+      "voluntary_finish": 9.8,
+      "median_words": 55.5
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "acc": [
+        64.33,
+        62.33,
+        63.67,
+        60.0,
+        62.33,
+        60.5
+      ],
+      "mean": 62.19,
+      "sd": 1.7,
+      "steps": 2.84,
+      "tokens": 5020,
+      "voluntary_finish": 15.7,
+      "median_words": 51.5
+    }
+  },
+  "per_seed": {
+    "unguided13 -> self13": {
+      "diff": -0.33,
+      "ci95": [
+        -3.17,
+        2.5
+      ],
+      "p": 0.912157
+    },
+    "unguided17 -> self17": {
+      "diff": 2.33,
+      "ci95": [
+        -0.67,
+        5.33
+      ],
+      "p": 0.150675
+    },
+    "unguided23 -> self23": {
+      "diff": -1.33,
+      "ci95": [
+        -4.5,
+        1.83
+      ],
+      "p": 0.475152
+    },
+    "unguided29 -> self29": {
+      "diff": 3.5,
+      "ci95": [
+        0.5,
+        6.5
+      ],
+      "p": 0.029456
+    },
+    "unguided31 -> self31": {
+      "diff": 2.0,
+      "ci95": [
+        -1.17,
+        5.17
+      ],
+      "p": 0.251322
+    },
+    "unguided37 -> self37": {
+      "diff": 2.67,
+      "ci95": [
+        -0.5,
+        5.83
+      ],
+      "p": 0.121371
+    }
+  },
+  "seed_averaged": {
+    "unguided -> self": {
+      "diff": 1.47,
+      "ci95": [
+        -0.11,
+        3.11
+      ],
+      "p": 0.0865,
+      "n": 600,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "self13",
+        "self17",
+        "self23",
+        "self29",
+        "self31",
+        "self37"
+      ],
+      "holm": 0.0865
+    }
+  }
+}

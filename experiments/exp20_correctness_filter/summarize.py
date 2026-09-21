@@ -139,7 +139,8 @@ def main() -> int:
             if not pr:
                 continue
             sign = 1 if f"{x} -> {y}" in paired else -1
-            p = pr["pooled"]
+            # One test set means no "pooled" scope; the single test is the pooled result.
+            p = pr.get("pooled") or next(iter(pr.values()))
             lo, hi = sorted(sign * 100 * c for c in p["ci95"])
             out["per_seed"][f"{x} -> {y}"] = {"diff": round(sign * 100 * p["diff"], 2), "ci95": [lo, hi], "p": p["p"]}
             print(f"  {x:>12} -> {y:<12}{sign * 100 * p['diff']:+7.1f}  [{lo:+.1f}, {hi:+.1f}]  p {p['p']:.4f}")

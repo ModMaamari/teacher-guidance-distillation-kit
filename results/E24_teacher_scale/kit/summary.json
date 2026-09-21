@@ -1,0 +1,102 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "teachdist": {
+      "arms": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ],
+      "acc": [
+        71.75,
+        72.29,
+        69.21
+      ],
+      "mean": 71.08,
+      "sd": 1.64,
+      "steps": 2.89,
+      "tokens": 5026,
+      "voluntary_finish": 10.9,
+      "median_words": 13.666666666666666
+    }
+  },
+  "per_seed": {
+    "selfguided13 -> teachdist13": {
+      "diff": 5.09,
+      "ci95": [
+        1.7399999999999998,
+        8.43
+      ],
+      "p": 0.003947
+    },
+    "selfguided17 -> teachdist17": {
+      "diff": 7.36,
+      "ci95": [
+        4.15,
+        10.58
+      ],
+      "p": 1e-05
+    },
+    "selfguided23 -> teachdist23": {
+      "diff": 6.02,
+      "ci95": [
+        2.81,
+        9.24
+      ],
+      "p": 0.00041
+    }
+  },
+  "seed_averaged": {
+    "selfguided -> teachdist": {
+      "diff": 6.16,
+      "ci95": [
+        3.57,
+        8.75
+      ],
+      "p": 0.0001,
+      "n": 747,
+      "a": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "b": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ],
+      "holm": 0.0001
+    }
+  }
+}

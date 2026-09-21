@@ -1,0 +1,42 @@
+{
+  "base student alone": {
+    "n": 747,
+    "judged": 747,
+    "judge_correct": 27.31,
+    "answered_pct": 45.8,
+    "steps": 2.97,
+    "tokens": 0
+  },
+  "base student + self-critique": {
+    "n": 747,
+    "judged": 747,
+    "judge_correct": 62.78,
+    "answered_pct": 100.0,
+    "steps": 2.99,
+    "tokens": 10085
+  },
+  "base student + teacher critique": {
+    "n": 747,
+    "judged": 747,
+    "judge_correct": 56.22,
+    "answered_pct": 99.6,
+    "steps": 2.95,
+    "tokens": 10972
+  },
+  "teacher alone": {
+    "n": 747,
+    "judged": 747,
+    "judge_correct": 82.73,
+    "answered_pct": 98.9,
+    "steps": 2.89,
+    "tokens": 5980
+  },
+  "teacher + self-critique": {
+    "n": 747,
+    "judged": 747,
+    "judge_correct": 81.66,
+    "answered_pct": 99.2,
+    "steps": 2.89,
+    "tokens": 24035
+  }
+}

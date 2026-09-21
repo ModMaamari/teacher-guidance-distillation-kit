@@ -1,0 +1,14 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        27.3    27.3     -   2.97   5,067     3.2    1.0
+  selfguided    66.7 / 64.9 / 63.2    64.9   1.7   2.89   5,175    11.1   19.7
+  teachdist     71.8 / 72.3 / 69.2    71.1   1.6   2.89   5,026    10.9   13.7
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+  selfguided13 -> teachdist13    +5.1  [+1.7, +8.4]  p 0.0039
+  selfguided17 -> teachdist17    +7.4  [+4.2, +10.6]  p 0.0000
+  selfguided23 -> teachdist23    +6.0  [+2.8, +9.2]  p 0.0004
+
+seed-averaged (each question averaged over the seeds of each family):
+  selfguided -> teachdist    +6.2  [+3.6, +8.8]  p 0.0001  Holm 0.0001  (n 747, seeds 3 vs 3)

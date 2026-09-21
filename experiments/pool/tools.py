@@ -82,17 +82,31 @@ def view(a) -> int:
         shutil.rmtree(root)
     root.mkdir(parents=True)
     ok = True
+    # With --tests, link only those test directories. An arm directory accumulates every test it
+    # was ever evaluated on, so linking the whole directory silently pools unrelated benchmarks
+    # into one result (it did: E24 once pooled the held-out questions with a new benchmark).
+    tests = [t for t in (a.tests or "").replace(",", " ").split() if t]
     for spec in a.arms:
         arm, _, src = spec.partition("=")
         if not (KIT / src).is_dir():
             print(f"!! {src} does not exist (arm {arm})")
             ok = False
             continue
-        os.symlink(KIT / src, root / arm)
+        if not tests:
+            os.symlink(KIT / src, root / arm)
+            continue
+        (root / arm).mkdir()
+        for t in tests:
+            if (KIT / src / t).is_dir():
+                os.symlink(KIT / src / t, root / arm / t)
+            else:
+                print(f"!! {src}/{t} missing (arm {arm})")
+                ok = False
     with open(root / "verdicts.jsonl", "w", encoding="utf-8") as out:
         for f in sorted((KIT / "runs" / "judge").glob("*/verdicts.jsonl")):
             out.write(f.read_text(encoding="utf-8"))
-    print(f"view {root.relative_to(KIT)}: {len(a.arms)} arms")
+    print(f"view {root.relative_to(KIT)}: {len(a.arms)} arms"
+          + (f", tests: {' '.join(tests)}" if tests else ", all tests"))
     return 0 if ok else 1
 
 
@@ -197,6 +211,7 @@ def main() -> int:
     p.add_argument("--tolerance", type=float, default=0.001, help="fraction of episodes allowed to stay unjudged")
     p = sub.add_parser("view")
     p.add_argument("--name", required=True)
+    p.add_argument("--tests", default="", help="link only these test sets, space separated (default: every test the arm has)")
     p.add_argument("arms", nargs="+", metavar="ARM=DIR")
     p = sub.add_parser("publish")
     p.add_argument("src")

@@ -1,0 +1,4 @@
+training questions contribute 30,080 distinct 8-grams (1,855 rare)
+
+multihoprag: 0/600 questions share a rare 8-gram with a training question (0.0%)
+framesqa: not built yet

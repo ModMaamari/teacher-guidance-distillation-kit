@@ -1,0 +1,144 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        7.02
+      ],
+      "mean": 7.02,
+      "sd": null,
+      "steps": 2.99,
+      "tokens": 5091,
+      "voluntary_finish": 0.8,
+      "median_words": 1.0
+    },
+    "self": {
+      "arms": [
+        "self13",
+        "self17",
+        "self23",
+        "self29",
+        "self31",
+        "self37"
+      ],
+      "acc": [
+        30.43,
+        28.43,
+        30.1,
+        30.43,
+        28.6,
+        30.27
+      ],
+      "mean": 29.71,
+      "sd": 0.94,
+      "steps": 2.96,
+      "tokens": 5399,
+      "voluntary_finish": 3.8,
+      "median_words": 18.333333333333332
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "acc": [
+        29.26,
+        29.26,
+        30.27,
+        29.26,
+        27.09,
+        30.27
+      ],
+      "mean": 29.23,
+      "sd": 1.16,
+      "steps": 2.98,
+      "tokens": 4914,
+      "voluntary_finish": 1.9,
+      "median_words": 20.25
+    }
+  },
+  "per_seed": {
+    "unguided13 -> self13": {
+      "diff": 1.17,
+      "ci95": [
+        -1.8399999999999999,
+        4.18
+      ],
+      "p": 0.515426
+    },
+    "unguided17 -> self17": {
+      "diff": -0.84,
+      "ci95": [
+        -3.85,
+        2.17
+      ],
+      "p": 0.668285
+    },
+    "unguided23 -> self23": {
+      "diff": -0.17,
+      "ci95": [
+        -3.01,
+        2.68
+      ],
+      "p": 1.0
+    },
+    "unguided29 -> self29": {
+      "diff": 1.17,
+      "ci95": [
+        -1.67,
+        4.01
+      ],
+      "p": 0.488683
+    },
+    "unguided31 -> self31": {
+      "diff": 1.51,
+      "ci95": [
+        -1.51,
+        4.52
+      ],
+      "p": 0.385669
+    },
+    "unguided37 -> self37": {
+      "diff": -0.0,
+      "ci95": [
+        -3.01,
+        3.01
+      ],
+      "p": 1.0
+    }
+  },
+  "seed_averaged": {
+    "unguided -> self": {
+      "diff": 0.47,
+      "ci95": [
+        -1.14,
+        2.09
+      ],
+      "p": 0.5808,
+      "n": 598,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "self13",
+        "self17",
+        "self23",
+        "self29",
+        "self31",
+        "self37"
+      ],
+      "holm": 0.5808
+    }
+  }
+}

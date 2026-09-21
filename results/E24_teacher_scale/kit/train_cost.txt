@@ -1,0 +1,10 @@
+  arm           examples      tokens   PFLOPs   GPU-h  peak GiB  gpu
+  teachdist13     15,805  35,484,647    723.9    4.23      11.0  NVIDIA A100-SXM4-80GB  (resumed 1x)
+  teachdist17     15,805  35,484,647    723.9    0.97      10.9  NVIDIA A100-SXM4-80GB  (resumed 1x)
+  teachdist23     15,805  35,484,647    723.9    0.98      10.9  NVIDIA A100-SXM4-80GB  (resumed 1x)
+  selfguided13    13,825  33,524,882    683.9    5.35      18.1  NVIDIA A100-SXM4-80GB
+  selfguided17    13,825  33,524,882    683.9    2.90      18.1  NVIDIA L40S
+  selfguided23    13,825  33,524,882    683.9    2.90      18.1  NVIDIA L40S
+
+PFLOPs: the trainer's own counter (6 x parameters x tokens; an upper bound for LoRA).
+GPU-h: wall-clock on the worker's GPU, summed over chunks; some runs shared a GPU.

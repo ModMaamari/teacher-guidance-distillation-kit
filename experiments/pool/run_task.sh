@@ -76,8 +76,10 @@ judge() {   # judge <out-dir> "<episodes glob>" <judge chain> [judge.py args]
 }
 
 results() {  # results <view-name> <results-dir> <arm=runs/eval-dir> ...: table + publish
+  # VIEW_TESTS scopes the view to a set of test directories (default: the held-out four). Without
+  # it a view picks up every test an arm was ever evaluated on, including other benchmarks.
   local name=$1 dest=$2; shift 2
-  $TOOLS view --name "$name" "$@" || return 1
+  $TOOLS view --name "$name" --tests "${VIEW_TESTS:-$HELDOUT}" "$@" || return 1
   $PY_BASE scripts/collect_results.py --runs "runs/views/$name" --judge "runs/views/$name/verdicts.jsonl" \
       --out "runs/results/$name" || return 1
   $TOOLS publish "runs/results/$name" "$dest" || return 1
@@ -197,6 +199,8 @@ case "$TASK" in
                  for sd in 17 23 29 31 37; do specs="$specs selftaught_s$sd=selftaught_s$sd:runs/train/selftaught_s$sd/adapter"; done ;;
       unguided)  specs="selfdist_full=selfdist_full:runs/train/selfdist_full/adapter"
                  for sd in 17 23 29 31 37; do specs="$specs selfdist_full_s$sd=selfdist_full_s$sd:runs/train/selfdist_full_s$sd/adapter"; done ;;
+      teachdist) specs=""
+                 for sd in 13 17 23; do specs="$specs teachdist_full_s$sd=teachdist_full_s$sd:runs/train/teachdist_full_s$sd/adapter"; done ;;
       *) echo "!! unknown family $fam"; exit 2 ;;
     esac
     # shellcheck disable=SC2086
@@ -216,12 +220,17 @@ case "$TASK" in
           mkdir -p "$v/${fam}$sd" && ln -sfn "$KIT/$src/newtest_$ds" "$v/${fam}$sd/newtest_$ds"
         done
       done
+      for sd in 13 17 23; do    # the teacher's own rollouts, the strongest arm in domain
+        [ -d "runs/eval/teachdist_full_s$sd/newtest_$ds" ] &&
+          { mkdir -p "$v/teachdist$sd" && ln -sfn "$KIT/runs/eval/teachdist_full_s$sd/newtest_$ds" "$v/teachdist$sd/newtest_$ds"; }
+      done
       mkdir -p "$v/base" && ln -sfn "$KIT/runs/eval/base/newtest_$ds" "$v/base/newtest_$ds"
       cat runs/judge/new_$ds/verdicts.jsonl > "$v/verdicts.jsonl" || exit 1
       $PY_BASE scripts/collect_results.py --runs "$v" --judge "$v/verdicts.jsonl" \
           --out "runs/results/E27_$ds" || exit 1
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view "runs/views/E27_$ds" \
-          --results "runs/results/E27_$ds/results.json" --primary unguided:self --secondary - \
+          --results "runs/results/E27_$ds/results.json" --primary unguided:self \
+          --secondary self:teachdist unguided:teachdist \
           --json-out "runs/results/E27/summary_$ds.json" | tee "runs/results/E27/summary_$ds.txt" || exit 1
     done
     $TOOLS publish runs/results/E27 results/E27_new_benchmarks/kit \
@@ -543,6 +552,7 @@ PY
         --json-out runs/results/E19/seed_averaged.json | tee runs/results/E19/seed_averaged.txt &&
       $TOOLS publish runs/results/E19 results/E19_self_guided_robustness/kit --only seed_averaged.txt seed_averaged.json ;;
   results_E19lodo)   # transfer: self-guided leave-one-dataset-out folds against the base on the whole unseen sets
+    VIEW_TESTS="full_hotpotqa full_2wikimultihopqa full_musique full_strategyqa" \
     results E19lodo results/E19_self_guided_robustness/lodo basefull=runs/eval/basefull \
         fold_hotpotqa=runs/eval/selflodo_hotpotqa fold_2wikimultihopqa=runs/eval/selflodo_2wikimultihopqa \
         fold_musique=runs/eval/selflodo_musique fold_strategyqa=runs/eval/selflodo_strategyqa ;;

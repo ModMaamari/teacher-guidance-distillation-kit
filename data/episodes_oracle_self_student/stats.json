@@ -1,0 +1,30 @@
+{
+  "2wikimultihopqa": {
+    "episodes": 170,
+    "correct": 126,
+    "grounded": 152,
+    "errors": 0,
+    "steps": 509
+  },
+  "hotpotqa": {
+    "episodes": 189,
+    "correct": 117,
+    "grounded": 180,
+    "errors": 0,
+    "steps": 563
+  },
+  "musique": {
+    "episodes": 203,
+    "correct": 83,
+    "grounded": 145,
+    "errors": 0,
+    "steps": 608
+  },
+  "strategyqa": {
+    "episodes": 185,
+    "correct": 86,
+    "grounded": 93,
+    "errors": 0,
+    "steps": 555
+  }
+}

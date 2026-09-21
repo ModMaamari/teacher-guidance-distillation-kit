@@ -27,10 +27,12 @@ from tgd.splits import DEFAULT_SALT, pool_of  # noqa: E402
 EMPTY = {"", "unknown", "none", "n/a", "no answer"}
 
 
-def episode_files(spec: str):
+def episode_files(spec: str, tests: str = "heldout_*"):
+    """Episode files of one arm. An evaluation directory accumulates every test set the arm was
+    ever run on, so only the ones asked for are read; a consolidated collection is one file."""
     p = KIT / spec
     if p.is_dir():
-        return sorted(p.glob("*/episodes.jsonl"))
+        return sorted(f for t in tests.split() for f in p.glob(f"{t}/episodes.jsonl"))
     return [q for q in (Path(x) for x in glob.glob(str(KIT / spec))) if q.exists()]
 
 
@@ -45,6 +47,8 @@ def read(f: Path):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--arm", nargs="+", required=True, help="<label>=<episodes path or glob>:<verdicts.jsonl>")
+    ap.add_argument("--tests", default="heldout_hotpotqa heldout_2wikimultihopqa heldout_musique heldout_strategyqa",
+                    help="test directories to read from an evaluation arm")
     ap.add_argument("--json-out", default=None)
     a = ap.parse_args()
     rows = {}
@@ -62,7 +66,7 @@ def main() -> int:
                 src = src if src.is_absolute() else (KIT / src)
                 v[(str(src.resolve()), str(r["qid"]))] = int(bool((r.get("verdict") or {}).get("correct")))
         c = collections.Counter()
-        for f in episode_files(eps):
+        for f in episode_files(eps, a.tests):
             key = str(Path(f).resolve())
             for ep in read(f):
                 qid = str(ep.get("qid"))

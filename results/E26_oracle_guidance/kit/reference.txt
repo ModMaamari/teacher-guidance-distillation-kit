@@ -1,0 +1,9 @@
+  configuration                                n  judged  correct  answered  steps   tokens
+  base student alone                         747     747    27.3%     45.8%   2.97       --
+  base student + self-critique               747     747    62.8%    100.0%   2.99   10,085
+  base student + teacher critique            747     747    56.2%     99.6%   2.95   10,972
+  teacher alone                              747     747    82.7%     98.9%   2.89    5,980
+  teacher + self-critique                    747     747    81.7%     99.2%   2.89   24,035
+
+  'answered' is the share of episodes that ended with a non-empty final answer: an agent that
+  never commits is scored wrong, so this column says whether two rows are comparable at all.
