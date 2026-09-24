@@ -23,6 +23,7 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(KIT))
 from tgd.splits import DEFAULT_SALT, pool_of  # noqa: E402
+from tgd.stats import mcnemar_exact, paired_bootstrap  # noqa: E402
 
 EMPTY = {"", "unknown", "none", "n/a", "no answer"}
 
@@ -50,8 +51,12 @@ def main() -> int:
     ap.add_argument("--tests", default="heldout_hotpotqa heldout_2wikimultihopqa heldout_musique heldout_strategyqa",
                     help="test directories to read from an evaluation arm")
     ap.add_argument("--json-out", default=None)
+    ap.add_argument("--pair", nargs="*", default=[],
+                    help="<label a>|<label b>: paired difference b - a over the questions both arms judged")
+    ap.add_argument("--pairs-out", default=None)
     a = ap.parse_args()
     rows = {}
+    per_q = {}   # label -> {(dataset, qid): 0/1}, for the paired comparisons
     print(f"  {'configuration':<40}{'n':>6}{'judged':>8}{'correct':>9}{'answered':>10}{'steps':>7}{'tokens':>9}")
     for spec in a.arm:
         label, _, rest = spec.partition("=")
@@ -66,12 +71,16 @@ def main() -> int:
                 src = src if src.is_absolute() else (KIT / src)
                 v[(str(src.resolve()), str(r["qid"]))] = int(bool((r.get("verdict") or {}).get("correct")))
         c = collections.Counter()
+        by_ds = collections.defaultdict(collections.Counter)
+        per_q[label] = {}
         for f in episode_files(eps, a.tests):
             key = str(Path(f).resolve())
             for ep in read(f):
                 qid = str(ep.get("qid"))
                 if pool_of(qid, 0.10, DEFAULT_SALT) != "heldout_test":
                     continue
+                # a consolidated collection records the dataset; an evaluation arm's directory names it
+                ds = ep.get("dataset") or Path(f).parent.name.removeprefix("heldout_")
                 c["n"] += 1
                 ans = str(ep.get("final_answer") or "").strip().lower()
                 c["answered"] += ans not in EMPTY
@@ -83,11 +92,16 @@ def main() -> int:
                 if (key, qid) in v:
                     c["judged"] += 1
                     c["correct"] += v[(key, qid)]
+                    by_ds[ds]["judged"] += 1
+                    by_ds[ds]["correct"] += v[(key, qid)]
+                    per_q[label][(ds, qid)] = v[(key, qid)]
         n = max(c["n"], 1)
         acc = 100 * c["correct"] / c["judged"] if c["judged"] else float("nan")
         rows[label] = {"n": c["n"], "judged": c["judged"], "judge_correct": round(acc, 2),
                        "answered_pct": round(100 * c["answered"] / n, 1),
-                       "steps": round(c["steps"] / n, 2), "tokens": round(c["tok"] / n)}
+                       "steps": round(c["steps"] / n, 2), "tokens": round(c["tok"] / n),
+                       "by_dataset": {d: round(100 * x["correct"] / x["judged"], 2)
+                                      for d, x in sorted(by_ds.items()) if x["judged"]}}
         tok = f"{c['tok'] / n:,.0f}" if c["tok"] else "--"
         print(f"  {label:<40}{c['n']:>6}{c['judged']:>8}{acc:>8.1f}%{100 * c['answered'] / n:>9.1f}%"
               f"{c['steps'] / n:>7.2f}{tok:>9}")
@@ -95,6 +109,25 @@ def main() -> int:
     print("  never commits is scored wrong, so this column says whether two rows are comparable at all.")
     if a.json_out:
         Path(a.json_out).write_text(json.dumps(rows, indent=2), encoding="utf-8")
+    pairs = []
+    if a.pair:
+        print("\n  paired over the questions both arms judged (b - a, points; bootstrap 95% CI; exact McNemar):")
+    for spec in a.pair:
+        la, _, lb = spec.partition("|")
+        common = sorted(set(per_q.get(la, {})) & set(per_q.get(lb, {})))
+        if not common:
+            print(f"  {la} -> {lb}: no common questions"); continue
+        xa = [per_q[la][k] for k in common]
+        xb = [per_q[lb][k] for k in common]
+        bs, mc = paired_bootstrap(xa, xb), mcnemar_exact(xa, xb)
+        pairs.append({"a": la, "b": lb, "n": len(common), "diff": round(100 * bs["diff"], 1),
+                      "ci95": [round(100 * x, 1) for x in bs["ci95"]], "p": mc["p"],
+                      "b_wins": mc["b_wins"], "a_wins": mc["a_wins"]})
+        r = pairs[-1]
+        print(f"  {la} -> {lb}: {r['diff']:+.1f} [{r['ci95'][0]:+.1f}, {r['ci95'][1]:+.1f}]  "
+              f"p {r['p']:.4g}  (n {r['n']}, {r['b_wins']} / {r['a_wins']})")
+    if a.pairs_out:
+        Path(a.pairs_out).write_text(json.dumps(pairs, indent=2), encoding="utf-8")
     return 0
 
 

@@ -54,7 +54,8 @@ no external model at inference.
 
 **Caveats.** The live-critique arm gives the critic the gold answer: an upper bound, not a
 deployable system. The 71.1 teacher run used a 1,200-token output cap through a different
-provider; under this paper's protocol the teacher scores 82.7 (E08). One seed.
+provider; under this paper's protocol the teacher scores 82.7 (E08). One seed. The live-critique arm was
+rerun under the collection protocol in E26 and scores 64.8 there; 56.2 is superseded.
 
 ## E01 — Which ingredient matters, at matched supervision?
 
@@ -285,14 +286,22 @@ seeds of this comparison range from +0.1 to +4.4.
 |---|---|---|---|
 | Base student alone | 27.3 | 45.8 % | — |
 | **Base student + its own critique (sees gold)** | **62.8** | 100 % | 10,085 |
-| Base student + teacher critique (sees gold) | 56.2 | 99.6 % | 10,972 |
+| Base student + teacher critique (sees gold) | 64.8 | 100 % | 21,392 |
+| *Base student + teacher critique, E00 setup (superseded)* | *56.2* | *99.6 %* | *10,972* |
 | **Teacher alone** | **82.7** | 98.9 % | 5,980 |
 | Teacher + its own critique (sees gold) | 81.7 | 99.2 % | 24,035 |
 
-A small model's own privileged critique beats a 284B teacher's critique of it (+6.6) at fewer
-tokens; the same critique does nothing for the teacher (81.7 vs 82.7) at four times the tokens.
-Rows 2–5 need the gold answer, so they are upper bounds. Row 1 answers only 45.8 % of the time,
-so it is not directly comparable with the others.
+At inference the two critics of the base student cannot be told apart: its own privileged critique
+gives 62.8 against 64.8 for the teacher's, −2.0 (CI −5.1 to +1.1, McNemar p 0.23), with half the
+tokens. The same critique does nothing for the teacher (81.7 vs 82.7, p 0.44) at four times the
+tokens. Rows 2–6 need the gold answer, so they are upper bounds. Row 1 answers only 45.8 % of the
+time, so it is not directly comparable with the others.
+
+**Revised 2026-09-24.** The teacher-critique row first came from E00, run through another provider
+with the student served by a different stack, and read 56.2, which made self-critique look +6.6
+better. Rerun under E26's own protocol (vLLM student, harness defaults, one gateway for the whole
+arm), the same arm scores 64.8, +8.6 over the E00 run (p 4e-6). The inference-time advantage of
+self-critique does not survive a like-for-like comparison.
 
 ## E27 — Do the results hold on external benchmarks?
 

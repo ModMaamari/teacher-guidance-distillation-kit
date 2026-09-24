@@ -1,0 +1,41 @@
+[
+  {
+    "a": "base student + teacher critique",
+    "b": "base student + self-critique",
+    "n": 747,
+    "diff": -2.0,
+    "ci95": [
+      -5.1,
+      1.1
+    ],
+    "p": 0.234932,
+    "b_wins": 62,
+    "a_wins": 77
+  },
+  {
+    "a": "base student + teacher critique (E00 setup)",
+    "b": "base student + teacher critique",
+    "n": 747,
+    "diff": 8.6,
+    "ci95": [
+      5.1,
+      12.2
+    ],
+    "p": 4e-06,
+    "b_wins": 126,
+    "a_wins": 62
+  },
+  {
+    "a": "teacher alone",
+    "b": "teacher + self-critique",
+    "n": 747,
+    "diff": -1.1,
+    "ci95": [
+      -3.5,
+      1.3
+    ],
+    "p": 0.439705,
+    "b_wins": 37,
+    "a_wins": 45
+  }
+]

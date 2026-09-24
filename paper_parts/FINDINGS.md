@@ -1,6 +1,6 @@
 # What this project found, strongest first
 
-Status as of 2026-09-21, 09:00. Findings are ordered by how much they should change what a
+Status as of 2026-09-21, 09:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun. Findings are ordered by how much they should change what a
 practitioner or a reviewer believes: first what the evidence supports most strongly and most
 usefully, then mechanism, then the checks that make the numbers trustworthy.
 
@@ -33,12 +33,15 @@ finding that most constrains our own method's claim.
 **Evidence.** Over three seeds each, self-guided trajectories train a 64.9 ± 1.7 student against
 61.9 ± 0.3 for DeepSeek-guided ones: seed-averaged **+3.0** (CI +0.7 to +5.4, p 0.015), with every
 self-guided seed above every teacher-guided seed, and the gap holding under four graders (+3.9 to
-+4.6 at seed 13). The same ordering appears **at inference**: given the gold answer, the base
-student critiquing itself answers **62.8 %** against **56.2 %** critiqued by the teacher, using
-fewer tokens (10,085 vs 10,972) and no external model. A third critic, GLM-5.3-flash (320B), lands
-between them at 64.3.
++4.6 at seed 13). A third critic, GLM-5.3-flash (320B), lands between them at 64.3.
 
-**Supported by.** E06, E19, E02, E18, E12 (training); E26 (inference).
+**Revised 2026-09-24: not at inference.** This finding once added that the same ordering holds at
+inference (self-critique 62.8 against 56.2 under the teacher's critique). The 56.2 came from E00's
+different setup. Rerun under E26's protocol, the teacher-critiqued base student scores **64.8**, so
+at inference the two critics cannot be told apart (−2.0 for self-critique, CI −5.1 to +1.1, p 0.23),
+self-critique using half the tokens. The finding stands for training data only.
+
+**Supported by.** E06, E19, E02, E18, E12 (training); E26 (inference, where it does not hold).
 
 **Why it matters.** It contradicts the assumption behind teacher-based distillation pipelines that
 a better critic yields better supervision. What mattered was that the critic shares the student's
@@ -120,9 +123,10 @@ and predicts that cheap unfiltered trajectories already teach the agent loop.
 
 ## 8. Privileged critique helps a model that cannot act on what it knows — not one that already can
 
-**Evidence.** Given the gold answer, the base student's own critique lifts it from 27.3 to **62.8**.
-The same privileged self-critique applied to the teacher changes nothing: **81.7** against **82.7**
-alone, at four times the tokens (24,035 vs 5,980 per question).
+**Evidence.** Given the gold answer, the base student's own critique lifts it from 27.3 to **62.8**,
+and the teacher's critique to **64.8** (the two are indistinguishable, p 0.23). The same privileged
+self-critique applied to the teacher changes nothing: **81.7** against **82.7** alone (p 0.44), at
+four times the tokens (24,035 vs 5,980 per question).
 
 **Supported by.** E26.
 

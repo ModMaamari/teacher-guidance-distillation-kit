@@ -255,6 +255,22 @@ case "$TASK" in
         --questions data/questions_heldout --num-samples 2000 --shards "${TEACHDIST_SHARDS:-8}" \
         --out runs/oracle_self_teacher --tag oracteach \
         --student-max-tokens "${TEACHER_AGENT_MAX_TOKENS:-6000}" ;;
+  oracle_teacher_student)  # E26 rerun: the student answers while the teacher critiques it with the gold
+                           # answer, under E26's protocol (vLLM student, harness defaults), replacing the E00
+                           # run made with another provider and serving stack. TEACHCRIT_TEACHER picks the
+                           # gateway for the whole arm; one arm never mixes gateways.
+    TEACHER=${TEACHCRIT_TEACHER:-$TEACHER}
+    for i in $(seq 1 144); do
+      $TOOLS probe --model "$TEACHER" && break
+      echo "   teacher endpoint unavailable; probing again in 5 min ($i/144)"; sleep 300
+    done
+    MODEL=$STUDENT_MODEL OUT=runs/oracle_teacher_student TAG=oracteachcrit SHARDS=${TEACHCRIT_SHARDS:-8} N=2000 \
+      PORT=$(free_port) GPU_MEM=${TEACHCRIT_GPU_MEM:-$(gpu_frac 30)} TEACHER=$TEACHER \
+      bash slurm/collect_local.sbatch --questions data/questions_heldout ;;
+  cons_e26_teachcrit)      # E26 rerun: consolidate the teacher-critique arm
+    [ -s data/episodes_oracle_teacher_student/episodes.jsonl.gz ] ||
+      $PY_BASE scripts/consolidate_episodes.py --runs runs/oracle_teacher_student \
+          --out data/episodes_oracle_teacher_student --gzip ;;
   cons_e26)         # E26: consolidate both oracle runs and judge them with the primary judge
     for a in self_student self_teacher; do
       [ -s "data/episodes_oracle_$a/episodes.jsonl.gz" ] ||
@@ -267,11 +283,16 @@ case "$TASK" in
       $PY_BASE experiments/exp26_oracle_guidance/reference_table.py \
         --arm "base student alone=runs/eval/base:runs/judge/base/verdicts.jsonl" \
               "base student + self-critique=data/episodes_oracle_self_student/episodes.jsonl.gz:runs/judge/oracle_self_student/verdicts.jsonl" \
-              "base student + teacher critique=runs/e00/eval/guided:runs/judge/e00/verdicts.jsonl" \
+              "base student + teacher critique=data/episodes_oracle_teacher_student/episodes.jsonl.gz:runs/judge/oracle_teacher_student/verdicts.jsonl" \
+              "base student + teacher critique (E00 setup)=runs/e00/eval/guided:runs/judge/e00/verdicts.jsonl" \
               "teacher alone=runs/eval/teacher_b3:runs/judge/teacher_b3/verdicts.jsonl" \
               "teacher + self-critique=data/episodes_oracle_self_teacher/episodes.jsonl.gz:runs/judge/oracle_self_teacher/verdicts.jsonl" \
-        --json-out runs/results/E26/reference.json | tee runs/results/E26/reference.txt &&
-      $TOOLS publish runs/results/E26 results/E26_oracle_guidance/kit --only reference.txt reference.json ;;
+        --pair "base student + teacher critique|base student + self-critique" \
+               "base student + teacher critique (E00 setup)|base student + teacher critique" \
+               "teacher alone|teacher + self-critique" \
+        --json-out runs/results/E26/reference.json --pairs-out runs/results/E26/comparisons.json \
+        | tee runs/results/E26/reference.txt &&
+      $TOOLS publish runs/results/E26 results/E26_oracle_guidance/kit --only reference.txt reference.json comparisons.json ;;
   prep_e22)         # E22: the same self-guided episodes, filtered by the LLM judge instead of the string match
     [ -f data/splits_self_judge/stats.json ] && [ -s data/splits_self_judge/uniform/train.jsonl ] ||
       $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \
