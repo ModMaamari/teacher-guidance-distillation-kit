@@ -7,17 +7,25 @@ trajectories were collected from. Does that advantage appear on benchmarks no ar
 **Answer.** Only weakly. The same twelve students (six self-guided, six unguided) were evaluated,
 without retraining, on two external multi-hop benchmarks. Judge-correct accuracy (Gemma-4-31B-it):
 
-| Benchmark | Base | Unguided (6 seeds) | Self-guided (6 seeds) | Difference |
-|---|---|---|---|---|
-| In domain (the four training benchmarks, E25) | 27.3 | 62.5 ± 1.4 | **64.8 ± 1.2** | **+2.3** [+0.7, +4.0], p 0.008 |
-| MultiHop-RAG (news, 600 questions) | 23.7 | 62.2 ± 1.7 | 63.7 ± 0.8 | +1.5 [−0.1, +3.1], p 0.087 |
-| FRAMES (Wikipedia, 598 questions) | 7.0 | 29.2 ± 1.2 | 29.7 ± 0.9 | +0.5 [−1.1, +2.1], p 0.58 |
+| Benchmark | Base | Unguided (6 seeds) | Self-guided (6 seeds) | Teacher rollouts (3 seeds) | Self vs unguided |
+|---|---|---|---|---|---|
+| In domain (E25, E24) | 27.3 | 62.5 ± 1.4 | **64.8 ± 1.2** | **71.1 ± 1.6** | **+2.3** [+0.7, +4.0], p 0.008 |
+| MultiHop-RAG (news, 600 q) | 23.7 | 62.2 ± 1.7 | 63.7 ± 0.8 | **66.5 ± 2.0** | +1.5 [−0.1, +3.1], p 0.087 |
+| FRAMES (Wikipedia, 598 q) | 7.0 | 29.2 ± 1.2 | 29.7 ± 0.9 | 30.6 ± 0.8 | +0.5 [−1.1, +2.1], p 0.58 |
+
+Against the self-guided students, the teacher-rollout students gain **+2.8** on MultiHop-RAG
+(CI +0.0 to +5.6, p 0.045) and +0.9 on FRAMES (p 0.44); against the unguided ones, +4.3
+(p 0.0025) and +1.4 (p 0.25).
 
 **Reading.**
 - **The direction is consistent, the size is not.** Self-guided is ahead on both external
   benchmarks, but by +1.5 and +0.5 rather than +2.3, and neither reaches significance on ~600
   questions. The advantage of privileged self-critique over plain rejection sampling looks
   partly specific to the distribution the trajectories came from.
+- **The teacher-rollout advantage transfers better than the self-critique one.** It keeps its lead
+  over both other arms on MultiHop-RAG (+2.8 over self-guided, p 0.045; +4.3 over unguided,
+  p 0.0025) and points the same way on FRAMES, where all three arms sit within 1.4 points. The
+  ordering of the three data sources is the same out of domain as in it, only compressed.
 - **Training itself transfers very well.** Both trained arms lift the base student enormously on
   data they never saw: 23.7 → ~63 on MultiHop-RAG and 7.0 → ~29 on FRAMES. What transfers is the
   agent protocol, which both arms learn; what does not clearly transfer is the extra increment
@@ -28,8 +36,8 @@ without retraining, on two external multi-hop benchmarks. Judge-correct accuracy
 **Benchmarks and why.** MultiHop-RAG (2024, news; ships a 609-document corpus) and FRAMES (2024,
 Wikipedia, 824 questions). Both postdate our training sets, neither derives from HotpotQA,
 2WikiMultihopQA, MuSiQue or StrategyQA, and both are used as standard tests of multi-hop retrieval
-agents. `kit/leak_check.txt` runs E07's 8-gram contamination test of the new questions against our
-training questions.
+agents. `kit/leak_check.txt` runs E07's 8-gram contamination test: **0 of 600** MultiHop-RAG and
+**0 of 598** FRAMES questions share a rare 8-gram with any training question.
 
 **Conversion.** The harness retrieves with BM25 over each question's own candidate documents, which
 neither benchmark ships, so `build_datasets.py` builds them: the evidence documents a question
