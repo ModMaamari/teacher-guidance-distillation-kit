@@ -38,6 +38,24 @@
       "voluntary_finish": 9.8,
       "median_words": 55.5
     },
+    "teachdist": {
+      "arms": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ],
+      "acc": [
+        66.0,
+        64.83,
+        68.67
+      ],
+      "mean": 66.5,
+      "sd": 1.97,
+      "steps": 3.0,
+      "tokens": 5486,
+      "voluntary_finish": 0.1,
+      "median_words": 48.333333333333336
+    },
     "unguided": {
       "arms": [
         "unguided13",
@@ -111,6 +129,54 @@
         5.83
       ],
       "p": 0.121371
+    },
+    "self13 -> teachdist13": {
+      "diff": 2.0,
+      "ci95": [
+        -2.17,
+        6.17
+      ],
+      "p": 0.384567
+    },
+    "self17 -> teachdist17": {
+      "diff": 0.17,
+      "ci95": [
+        -3.83,
+        4.0
+      ],
+      "p": 1.0
+    },
+    "self23 -> teachdist23": {
+      "diff": 6.33,
+      "ci95": [
+        2.33,
+        10.17
+      ],
+      "p": 0.001943
+    },
+    "unguided13 -> teachdist13": {
+      "diff": 1.67,
+      "ci95": [
+        -2.5,
+        5.67
+      ],
+      "p": 0.474106
+    },
+    "unguided17 -> teachdist17": {
+      "diff": 2.5,
+      "ci95": [
+        -1.3299999999999998,
+        6.329999999999999
+      ],
+      "p": 0.228103
+    },
+    "unguided23 -> teachdist23": {
+      "diff": 5.0,
+      "ci95": [
+        1.17,
+        8.83
+      ],
+      "p": 0.013957
     }
   },
   "seed_averaged": {
@@ -139,6 +205,50 @@
         "self37"
       ],
       "holm": 0.0865
+    },
+    "self -> teachdist": {
+      "diff": 2.83,
+      "ci95": [
+        0.03,
+        5.56
+      ],
+      "p": 0.0451,
+      "n": 600,
+      "a": [
+        "self13",
+        "self17",
+        "self23",
+        "self29",
+        "self31",
+        "self37"
+      ],
+      "b": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ]
+    },
+    "unguided -> teachdist": {
+      "diff": 4.31,
+      "ci95": [
+        1.56,
+        7.08
+      ],
+      "p": 0.0025,
+      "n": 600,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ]
     }
   }
 }
