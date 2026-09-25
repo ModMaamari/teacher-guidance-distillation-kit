@@ -6,6 +6,10 @@
     "answered_pct": 45.8,
     "steps": 2.97,
     "tokens": 0,
+    "tokens_all_calls": {
+      "student": 0,
+      "large_model": 0
+    },
     "by_dataset": {
       "2wikimultihopqa": 35.29,
       "hotpotqa": 42.86,
@@ -20,6 +24,10 @@
     "answered_pct": 100.0,
     "steps": 2.99,
     "tokens": 10085,
+    "tokens_all_calls": {
+      "student": 13169,
+      "large_model": 0
+    },
     "by_dataset": {
       "2wikimultihopqa": 75.88,
       "hotpotqa": 65.08,
@@ -34,6 +42,10 @@
     "answered_pct": 100.0,
     "steps": 2.88,
     "tokens": 21392,
+    "tokens_all_calls": {
+      "student": 4979,
+      "large_model": 23362
+    },
     "by_dataset": {
       "2wikimultihopqa": 77.65,
       "hotpotqa": 65.08,
@@ -48,6 +60,10 @@
     "answered_pct": 99.6,
     "steps": 2.95,
     "tokens": 10972,
+    "tokens_all_calls": {
+      "student": 5389,
+      "large_model": 5583
+    },
     "by_dataset": {
       "2wikimultihopqa": 57.06,
       "hotpotqa": 60.32,
@@ -62,6 +78,10 @@
     "answered_pct": 98.9,
     "steps": 2.89,
     "tokens": 5980,
+    "tokens_all_calls": {
+      "student": 0,
+      "large_model": 7231
+    },
     "by_dataset": {
       "2wikimultihopqa": 91.18,
       "hotpotqa": 91.01,
@@ -76,6 +96,10 @@
     "answered_pct": 99.2,
     "steps": 2.89,
     "tokens": 24035,
+    "tokens_all_calls": {
+      "student": 0,
+      "large_model": 30753
+    },
     "by_dataset": {
       "2wikimultihopqa": 90.0,
       "hotpotqa": 89.95,

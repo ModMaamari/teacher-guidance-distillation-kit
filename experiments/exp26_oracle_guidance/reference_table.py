@@ -89,6 +89,19 @@ def main() -> int:
                     for call in (s.get("student_calls") or []) + (s.get("teacher_calls") or []):
                         u = call.get("usage") or {}
                         c["tok"] += int(u.get("prompt_tokens") or 0) + int(u.get("completion_tokens") or 0)
+                # Every call, plan review included, split by who made it (a locally served model is the
+                # student): what an inference-cost estimate needs. "tokens" above stays step calls only.
+                pr = ep.get("plan_review") or {}
+                calls = list(pr.get("initial_plan_calls") or [])
+                for r in pr.get("rounds") or []:
+                    calls += list(r.get("review_calls") or [])
+                for s in ep.get("steps") or []:
+                    calls += list(s.get("student_calls") or []) + list(s.get("teacher_calls") or [])
+                for call in calls:
+                    u = call.get("usage") or {}
+                    n_tok = int(u.get("prompt_tokens") or 0) + int(u.get("completion_tokens") or 0)
+                    local = str(call.get("model") or "").startswith(("vllm/", "hf-local"))
+                    c["tok_student_all" if local else "tok_other_all"] += n_tok
                 if (key, qid) in v:
                     c["judged"] += 1
                     c["correct"] += v[(key, qid)]
@@ -100,6 +113,8 @@ def main() -> int:
         rows[label] = {"n": c["n"], "judged": c["judged"], "judge_correct": round(acc, 2),
                        "answered_pct": round(100 * c["answered"] / n, 1),
                        "steps": round(c["steps"] / n, 2), "tokens": round(c["tok"] / n),
+                       "tokens_all_calls": {"student": round(c["tok_student_all"] / n),
+                                            "large_model": round(c["tok_other_all"] / n)},
                        "by_dataset": {d: round(100 * x["correct"] / x["judged"], 2)
                                       for d, x in sorted(by_ds.items()) if x["judged"]}}
         tok = f"{c['tok'] / n:,.0f}" if c["tok"] else "--"
