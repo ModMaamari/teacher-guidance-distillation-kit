@@ -1,0 +1,12 @@
+BUILD AS RUN  (collection measured call by call; training from the trainer's own counter)
+
+  route                                    collected held out   kept  examples  collect PF  train PF  total PF  seeds
+  student's own rollouts, unguided             7,999      747  3,753    13,510         258       602       859  6 (E25)
+  self-guided (ours)                           7,999      747  3,818    13,825         790       684     1,474  6 (E25)
+  teacher-guided (DeepSeek)                    7,999      747  3,959    14,458       2,271       720     2,991  3 (E19)
+  teacher-guided (GLM)                         7,999      747  4,189    13,556       2,157       660     2,817  1 (E06)
+  teacher's own rollouts, all questions        7,999      747  5,533    15,805       1,509       724     2,233  3 (E24)
+  teacher's own rollouts, 2,000 questions      2,000      180  1,412     4,189         373       194       567  3 (E21)
+
+  Every run of one route trains on the same split, so seeds share one training cost. 'held out'
+  counts collected episodes on held-out questions, which are priced but never trained on.

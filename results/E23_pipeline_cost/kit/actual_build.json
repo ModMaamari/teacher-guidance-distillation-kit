@@ -1,0 +1,108 @@
+{
+  "selfdist": {
+    "label": "student's own rollouts, unguided",
+    "experiment": "E25",
+    "episodes_collected": 7999,
+    "heldout_questions_collected": 747,
+    "pflops_per_episode": 0.03223744,
+    "collect_pflops": 257.86728256,
+    "kept_episodes": 3753,
+    "train_examples": 13510,
+    "train_pflops": 601.5,
+    "total_pflops": 859.3672825599999,
+    "runs": [
+      "selfdist_full",
+      "selfdist_full_s17",
+      "selfdist_full_s23",
+      "selfdist_full_s29",
+      "selfdist_full_s31",
+      "selfdist_full_s37"
+    ]
+  },
+  "self": {
+    "label": "self-guided (ours)",
+    "experiment": "E25",
+    "episodes_collected": 7999,
+    "heldout_questions_collected": 747,
+    "pflops_per_episode": 0.09875912,
+    "collect_pflops": 789.97420088,
+    "kept_episodes": 3818,
+    "train_examples": 13825,
+    "train_pflops": 683.9,
+    "total_pflops": 1473.87420088,
+    "runs": [
+      "selftaught",
+      "selftaught_s17",
+      "selftaught_s23",
+      "selftaught_s29",
+      "selftaught_s31",
+      "selftaught_s37"
+    ]
+  },
+  "deepseek": {
+    "label": "teacher-guided (DeepSeek)",
+    "experiment": "E19",
+    "episodes_collected": 7999,
+    "heldout_questions_collected": 747,
+    "pflops_per_episode": 0.28393784,
+    "collect_pflops": 2271.21878216,
+    "kept_episodes": 3959,
+    "train_examples": 14458,
+    "train_pflops": 719.6,
+    "total_pflops": 2990.81878216,
+    "runs": [
+      "seed13",
+      "seed17",
+      "seed23"
+    ]
+  },
+  "glm": {
+    "label": "teacher-guided (GLM)",
+    "experiment": "E06",
+    "episodes_collected": 7999,
+    "heldout_questions_collected": 747,
+    "pflops_per_episode": 0.26968968000000004,
+    "collect_pflops": 2157.2477503200003,
+    "kept_episodes": 4189,
+    "train_examples": 13556,
+    "train_pflops": 660.1,
+    "total_pflops": 2817.34775032,
+    "runs": [
+      "glmtaught"
+    ]
+  },
+  "teachdist_or": {
+    "label": "teacher's own rollouts, all questions",
+    "experiment": "E24",
+    "episodes_collected": 7999,
+    "heldout_questions_collected": 747,
+    "pflops_per_episode": 0.1887054,
+    "collect_pflops": 1509.4544946,
+    "kept_episodes": 5533,
+    "train_examples": 15805,
+    "train_pflops": 723.9,
+    "total_pflops": 2233.3544946,
+    "runs": [
+      "teachdist_full_s13",
+      "teachdist_full_s17",
+      "teachdist_full_s23"
+    ]
+  },
+  "teachdist": {
+    "label": "teacher's own rollouts, 2,000 questions",
+    "experiment": "E21",
+    "episodes_collected": 2000,
+    "heldout_questions_collected": 180,
+    "pflops_per_episode": 0.1866592,
+    "collect_pflops": 373.3184,
+    "kept_episodes": 1412,
+    "train_examples": 4189,
+    "train_pflops": 193.8,
+    "total_pflops": 567.1184000000001,
+    "runs": [
+      "sup_teachdist",
+      "sup_teachdist_s17",
+      "sup_teachdist_s23"
+    ]
+  }
+}

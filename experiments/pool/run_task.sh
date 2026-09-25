@@ -522,7 +522,10 @@ PY
     mkdir -p runs/results/E23 &&
       $PY_BASE experiments/exp23_pipeline_cost/pipeline_cost.py --json-out runs/results/E23/pipeline_cost.json \
           | tee runs/results/E23/pipeline_cost.txt &&
-      $TOOLS publish runs/results/E23 results/E23_pipeline_cost/kit --only pipeline_cost.txt pipeline_cost.json ;;
+      $PY_BASE experiments/exp23_pipeline_cost/actual_build.py --json-out runs/results/E23/actual_build.json \
+          | tee runs/results/E23/actual_build.txt &&
+      $TOOLS publish runs/results/E23 results/E23_pipeline_cost/kit \
+          --only pipeline_cost.txt pipeline_cost.json actual_build.txt actual_build.json ;;
   results_E20mm)     # E20 early: the size-matched mix (three seeds) and incorrect-only, before the all-episode arms finish
     results E20mm results/E20_correctness_filter/matched base=runs/eval/base \
         correct13=runs/eval/selftaught correct17=runs/eval/selftaught_s17 correct23=runs/eval/selftaught_s23 \
