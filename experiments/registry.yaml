@@ -256,10 +256,10 @@ experiments:
     folder: experiments/exp23_pipeline_cost
     question: What does each route cost end to end, from collection through filtering and training to inference?
     tier: 1
-    status: running
+    status: done
     results: results/E23_pipeline_cost
     paper: tab:cost
-    next: "Pool: e23_pipeline_cost (CPU)."
+    next: "none"
 
   - id: E24
     name: teacher_scale
@@ -304,6 +304,17 @@ experiments:
     results: results/E27_new_benchmarks
     paper: sec:matched
     next: "none (the self-guided advantage is +1.5 and +0.5 on external benchmarks, neither significant)"
+
+  - id: E28
+    name: critique_free
+    folder: experiments/exp28_critique_free
+    question: Does removing the critique from the self-guided training targets change the student?
+    tier: 1
+    status: done
+    judge: Gemma-4-31B-it
+    results: results/E28_critique_free
+    paper: sec:matched
+    next: "none (critique removed -> critique in targets +0.7, CI -0.8 to +2.1, p 0.42)"
 
   - id: E29
     name: retry_channel
