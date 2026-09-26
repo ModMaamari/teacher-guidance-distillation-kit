@@ -1,7 +1,7 @@
 # Writing the ICLR paper: where everything is
 
-Everything needed to write or revise the paper, as of 2026-09-24. All 254 experiment jobs are
-finished; no result is pending.
+Everything needed to write or revise the paper, as of 2026-09-26. 30 of 31 experiments are
+finished and in the paper; E30 (compute-matched unguided sampling) is running, due 2026-09-27.
 
 ## The two repositories
 
@@ -29,8 +29,10 @@ co-author or tool attribution lines.
 
 | Path | What it is |
 |---|---|
-| `main.tex` | The whole paper: 9 pages of main text, then the required statements and five appendices |
-| `main.pdf` | Current build (16 pages including appendices) |
+| `main.tex` | Preamble and the order of the parts below |
+| `sections/00-abstract.tex` … `07-statements.tex` | Abstract, the six main sections, the required statements |
+| `appendix/A-registry.tex` … `G-further.tex` | Appendices A–G (A is the experiment registry) |
+| `main.pdf` | Local build, not tracked (20 pages including appendices); Overleaf builds its own |
 | `references.bib` | Bibliography, including the verified model-card entries |
 | `make_tables.py` | **Regenerates every table and figure dataset from the kit's published results** |
 | `tables/*.tex` | The generated tables — never hand-edit: `main`, `seedpairs`, `matched`, `filter`, `lodo`, `robustness`, `forgetting`, `efficiency`, `judges`, `form` |
@@ -55,11 +57,13 @@ There are none at present.
 1. Complete and verify the AI-use statement (required by ICLR).
 2. Add the anonymous code link in the reproducibility statement.
 
-**Page budget:** the main text ends exactly on page 9 of the 9 allowed; the statements and
-appendices follow and do not count. Anything added needs a matching cut. Check with:
+**Page budget:** the main text now ends on page 10 (the conclusion is on page 10), about a
+third of a page over ICLR's nine; the statements and appendices follow and do not count. The
+target venue is not decided yet, so nothing was cut; the first candidate is the "Scope of the
+evidence" paragraph in §4. Check with:
 
 ```bash
-pdftotext -layout -f 9 -l 9 main.pdf - | tail -5     # the conclusion must still be here
+pdftotext -layout -f 10 -l 10 main.pdf - | grep -n "CONCLUSION"   # where the main text ends
 ```
 
 ---
@@ -68,7 +72,7 @@ pdftotext -layout -f 9 -l 9 main.pdf - | tail -5     # the conclusion must still
 
 | Path | What it is |
 |---|---|
-| `EXPERIMENTS.md` | All 28 experiments: question, numbers, caveats, and where a later experiment revised an earlier one |
+| `EXPERIMENTS.md` | All 31 experiments: question, numbers, caveats, and where a later experiment revised an earlier one |
 | `FINDINGS.md` | 16 findings ranked by strength, each with its supporting experiments and the numbers behind it |
 | `WRITING_GUIDE.md` | This file |
 
@@ -80,10 +84,10 @@ These are the best starting point: every number in them is traceable to a publis
 
 | Path | What it is |
 |---|---|
-| `results/E00_reference/` … `results/E27_new_benchmarks/` | One folder per experiment. Each has `README.md` (question, answer, protocol, caveats, history) and `kit/results.json`, `kit/RESULTS.md`, plus extras such as `summary.txt`, `train_cost.txt`, `provider_split.txt`, `reference.txt`, `leak_check.txt` |
-| `experiments/REGISTRY.md` | One-page table of all 28 experiments mapped to folder, status, judge and paper section |
+| `results/E00_reference/` … `results/E29_retry_channel/` | One folder per experiment. Each has `README.md` (question, answer, protocol, caveats, history) and `kit/results.json`, `kit/RESULTS.md`, plus extras such as `summary.txt`, `train_cost.txt`, `provider_split.txt`, `reference.txt`, `leak_check.txt` |
+| `experiments/REGISTRY.md` | One-page table of all 31 experiments mapped to folder, status, judge and paper section |
 | `experiments/registry.yaml` | Machine-readable source of that table (`python experiments/status.py` regenerates the Markdown) |
-| `experiments/exp00_reference/` … `exp27_new_benchmarks/` | Per-experiment design READMEs and analysis scripts |
+| `experiments/exp00_reference/` … `exp30_compute_matched/` | Per-experiment design READMEs and analysis scripts |
 | `results/README.md` | Index of published results |
 
 **Most-cited result files:**
@@ -99,6 +103,8 @@ These are the best starting point: every number in them is traceable to a publis
 | End-to-end cost of every route | `results/E23_pipeline_cost/kit/pipeline_cost.txt` |
 | Untrained reference configurations | `results/E26_oracle_guidance/kit/reference.txt` |
 | External benchmarks | `results/E27_new_benchmarks/kit/summary_multihoprag.txt`, `summary_framesqa.txt`, `leak_check.txt` |
+| Critique removed from the targets | `results/E28_critique_free/kit/summary.txt`, `target_verdicts.txt` |
+| Retry channel removed | `results/E29_retry_channel/kit/summary.txt`, `train_cost.txt` |
 | Step budget | `results/E08_step_budget/kit/budget.txt` |
 | Multiple-comparison correction | `results/E12_multiple_comparisons/kit/*.txt` |
 
@@ -136,9 +142,13 @@ These are the best starting point: every number in them is traceable to a publis
 
 ---
 
-## 6. State as of 2026-09-24
+## 6. State as of 2026-09-26, 23:00
 
-- All 28 experiments finished; nothing is running; no result is pending.
-- Paper builds cleanly, main text ends on page 9, no TBDs.
-- Last paper commit: `d755d20`. Last kit commit: `f5b212a`.
-- Deadline: ICLR 2027 full paper, Friday 25 September, 23:59 AoE (Saturday 26 September, 13:59 CEST).
+- 30 of 31 experiments finished and in the paper. E30 (self-guidance vs three unguided attempts
+  at the same collection compute) is training; results expected 2026-09-27. Its coverage numbers
+  are in `paper_parts/EXPERIMENTS.md`; the students are not in yet. When it publishes, the
+  conclusion's "whether unguided self-training at equal compute would match it is untested" must
+  be replaced with the answer.
+- Paper builds cleanly, no TBDs; the main text runs onto page 10 (see the page budget above).
+- Last paper commit: `af2b08a` (E29). Last kit commit: see `git log`.
+- The ICLR 2027 deadline has passed; the plan is a resubmission to another venue, not yet chosen.
