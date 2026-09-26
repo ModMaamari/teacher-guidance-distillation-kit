@@ -42,3 +42,6 @@ data/splits/test/newtest_*
 # episode sets the pool derives (large, rebuilt by consolidate_episodes.py)
 data/episodes_oracle_*/
 data/episodes_teachdist_or/
+data/episodes_k3_*/
+data/episodes_selfdist_a2/
+data/episodes_selfdist_a3/
