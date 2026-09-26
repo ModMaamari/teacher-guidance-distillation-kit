@@ -257,7 +257,13 @@ case "$TASK" in
           --results runs/results/E29/results.json --json-out runs/results/E29/summary.json \
           --primary full:noepisode full:notarget --secondary unguided:noepisode unguided:notarget \
           | tee runs/results/E29/summary.txt &&
-      $TOOLS publish runs/results/E29 results/E29_retry_channel/kit --only summary.txt summary.json ;;
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm full13=selftaught full17=selftaught_s17 full23=selftaught_s23 \
+          noepisode13=retry_episodes_s13 noepisode17=retry_episodes_s17 noepisode23=retry_episodes_s23 \
+          notarget13=retry_targets_s13 notarget17=retry_targets_s17 notarget23=retry_targets_s23 \
+          --json-out runs/results/E29/train_cost.json | tee runs/results/E29/train_cost.txt &&
+      $TOOLS publish runs/results/E29 results/E29_retry_channel/kit --only summary.txt summary.json \
+          train_cost.txt train_cost.json ;;
   collect_selfdist_a*)  # E30: further unguided attempts per question, sampled hotter than attempt 1
     n=${TASK#collect_selfdist_a}
     MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist_a$n TAG=selfdist_a$n SHARDS=${SELFDIST_SHARDS:-8} N=2000 \

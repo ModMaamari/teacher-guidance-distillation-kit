@@ -321,11 +321,11 @@ experiments:
     folder: experiments/exp29_retry_channel
     question: Does the self-guided gain survive removing the episodes and targets that follow a critic-rejected finish?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E29_retry_channel
     paper: sec:matched
-    next: "Pool: prep_e29, train_retry_*, then results_E29."
+    next: "none (removing the retry channel: -0.0 [-1.5, +1.4] and -0.5 [-2.0, +0.9]; the student stops finishing early)"
 
   - id: E30
     name: compute_matched

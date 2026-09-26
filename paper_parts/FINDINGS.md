@@ -1,7 +1,8 @@
 # What this project found, strongest first
 
-Status as of 2026-09-21, 09:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun. Findings are ordered by how much they should change what a
-practitioner or a reviewer believes: first what the evidence supports most strongly and most
+Status as of 2026-09-26, 23:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
+1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29. Findings are ordered
+by how much they should change what a practitioner or a reviewer believes: first what the evidence supports most strongly and most
 usefully, then mechanism, then the checks that make the numbers trustworthy.
 
 **Metric.** Judge-correct accuracy on the 747 held-out questions, graded by Gemma-4-31B-it.
@@ -19,10 +20,11 @@ to +8.9, p 0.0001) and 63.5 ± 1.2 for self-guided ones (+4.7, p 0.0004). Collec
 7,999 questions* rather than cut to the same size, the gap is identical: **71.1 ± 1.6** against
 64.9 ± 1.7 (**+6.2**, CI +3.6 to +8.8, p 0.0001). Every one of six seed pairs is positive. The
 teacher also wastes less collection: 76.4 % of its episodes pass the correctness filter against
-53.0 %.
+53.0 %. Out of domain the lead shrinks, like every other: +2.8 over self-guided on MultiHop-RAG
+(66.5 ± 2.0 vs 63.7 ± 0.8, p 0.045) and +0.9 on FRAMES (p 0.44).
 
 **Supported by.** E01 (single seed, +6.3), E21 (three seeds, matched), E24 (three seeds, full
-scale), E12 (survives Holm).
+scale), E12 (survives Holm), E27 (external benchmarks, smaller).
 
 **Why it matters.** It is the clearest practical recommendation in the project: if a capable model
 may generate training data, have it *solve* the tasks, not critique the student. It is also the
@@ -68,8 +70,17 @@ pairs. On two external benchmarks the same twelve students give **+1.5** (MultiH
 and **+0.5** (FRAMES, p 0.58), while both arms still transfer strongly over the base student
 (23.7 → ~63 and 7.0 → ~29).
 
+**What produces the increment — two explanations ruled out.** It is not the critique text the
+student learns to write: removing the critique from every target, same examples, gives 64.3 ± 1.2
+against 64.9 ± 1.7 (−0.7, CI −2.1 to +0.8, p 0.42). Nor is it the critic's retry channel, where a
+rejected `finish` lets the episode continue and can all but reveal a yes/no answer: dropping the
+507 episodes with such a rejection gives 64.9 ± 1.7 (−0.0, CI −1.5 to +1.4), dropping only the
+affected targets 64.4 (−0.5, CI −2.0 to +0.9). Both intervals exclude a loss the size of the whole
++2.3. What remains is *which* trajectories the critique leads the student into.
+
 **Supported by.** E17 (single seed, +3.2/+4.4), E21 (three seeds, inconclusive), E25 (six seeds,
-established), E27 (external benchmarks, weak).
+established), E27 (external benchmarks, weak), E28 (not the critique text), E29 (not the retry
+channel), E30 (running: the same compute spent on three unguided attempts).
 
 **Why it matters, and the caution.** The headline — a small model can improve itself with no
 teacher — stands. The specific claim that privileged self-critique adds signal *beyond* keeping its
@@ -216,6 +227,10 @@ where our own were not.
 - **Guidance flatters itself at collection time.** On the same held-out questions, episodes
   collected with the teacher's critique are correct 56.1 % of the time against 52.9 % unguided, yet
   the students trained on them are no better (finding 3).
+- **Training on a critic's rejected actions teaches those actions.** In the self-guided data, nine
+  in ten early `finish` targets are finishes the critic rejected (520 against 55 it accepted). The
+  trained student finishes early 11.1 % of the time; without those targets 1.6 %, with unchanged
+  accuracy and 4 % more tokens (E29).
 - **Evaluation directories accumulate test sets.** Aggregating an arm's whole directory silently
   pooled a new benchmark with the held-out questions in one result table (base read 20.0 instead of
   27.3) until the tooling was changed to select test sets explicitly.
@@ -224,9 +239,12 @@ where our own were not.
 
 ## Still running
 
-The three teacher-rollout students (E24) are being evaluated on MultiHop-RAG and FRAMES, to test
-whether finding 1 — the largest effect in the project — also transfers to benchmarks no arm was
-trained for. Expected within a few hours.
+**E30**, expected 2026-09-27: does self-guidance beat the same collection compute spent on three
+unguided attempts per question? Coverage is already known and favours sampling: three unguided
+attempts solve 61.2 % of the trainable questions at least once, one self-guided attempt 53.0 %
+(264 questions only self-guidance solves, 863 only the attempts do). If the students trained on
+the attempts match the self-guided ones, finding 4's increment is a use of compute, not an
+advantage over it, and the paper must say so.
 
 ## What is not claimed
 

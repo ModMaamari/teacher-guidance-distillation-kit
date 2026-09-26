@@ -1,0 +1,28 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        27.3    27.3     -   2.97   5,067     3.2    1.0
+  full          66.7 / 64.9 / 63.2    64.9   1.7   2.89   5,175    11.1   19.7
+  noepisode     63.3 / 64.7 / 66.7    64.9   1.7   2.98   5,373     1.6   21.0
+  notarget      64.4 / 64.4 / 64.4    64.4   0.0   2.98   5,373     1.8   20.7
+  unguided      62.3 / 64.8 / 62.6    63.2   1.4   2.93   4,870     6.5   21.0
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+        full13 -> noepisode13    -3.4  [-5.8, -0.9]  p 0.0088
+        full17 -> noepisode17    -0.3  [-2.8, +2.3]  p 0.9170
+        full23 -> noepisode23    +3.5  [+0.9, +6.0]  p 0.0088
+        full13 -> notarget13     -2.3  [-4.7, +0.1]  p 0.0821
+        full17 -> notarget17     -0.5  [-2.8, +1.7]  p 0.7407
+        full23 -> notarget23     +1.2  [-1.2, +3.6]  p 0.3966
+    unguided13 -> noepisode13    +1.1  [-1.7, +4.0]  p 0.5264
+    unguided17 -> noepisode17    -0.1  [-2.8, +2.5]  p 1.0000
+    unguided23 -> noepisode23    +4.0  [+1.3, +6.7]  p 0.0050
+    unguided13 -> notarget13     +2.1  [-0.7, +5.0]  p 0.1561
+    unguided17 -> notarget17     -0.4  [-3.2, +2.4]  p 0.8509
+    unguided23 -> notarget23     +1.7  [-0.9, +4.4]  p 0.2414
+
+seed-averaged (each question averaged over the seeds of each family):
+  full -> noepisode          -0.0  [-1.5, +1.4]  p 1.0000  Holm 1.0000  (n 747, seeds 3 vs 3)
+  full -> notarget           -0.5  [-2.0, +0.9]  p 0.5022  Holm 1.0000  (n 747, seeds 3 vs 3)
+  unguided -> noepisode      +1.6  [-0.2, +3.5]  p 0.0828  (n 747, seeds 3 vs 3)
+  unguided -> notarget       +1.2  [-0.7, +3.1]  p 0.2480  (n 747, seeds 3 vs 3)

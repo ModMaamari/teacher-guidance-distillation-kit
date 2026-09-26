@@ -1,0 +1,165 @@
+{
+  "full13": {
+    "run": "selftaught",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18589432556505148,
+    "eval_loss": 0.16768428683280945,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.35,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "full17": {
+    "run": "selftaught_s17",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18620958445389146,
+    "eval_loss": 0.16757377982139587,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.9,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "full23": {
+    "run": "selftaught_s23",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1861073413336208,
+    "eval_loss": 0.1676679104566574,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 2.9,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "noepisode13": {
+    "run": "retry_episodes_s13",
+    "flops": 5.950153625767834e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1869266103108724,
+    "eval_loss": 0.16235437989234924,
+    "split": "data/splits_self_retry_episodes/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 11985,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 4.92,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 29167420,
+    "pflops": 595.0
+  },
+  "noepisode17": {
+    "run": "retry_episodes_s17",
+    "flops": 5.950153625767834e+17,
+    "epochs": 2.0,
+    "train_loss": 0.1868785394827525,
+    "eval_loss": 0.16325287520885468,
+    "split": "data/splits_self_retry_episodes/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 11985,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.32,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 29167420,
+    "pflops": 595.0
+  },
+  "noepisode23": {
+    "run": "retry_episodes_s23",
+    "flops": 5.950153625767834e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18693111522992453,
+    "eval_loss": 0.16313549876213074,
+    "split": "data/splits_self_retry_episodes/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 11985,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.32,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 29167420,
+    "pflops": 595.0
+  },
+  "notarget13": {
+    "run": "retry_targets_s13",
+    "flops": 6.231805902645965e+17,
+    "epochs": 2.0,
+    "train_loss": 0.19118422218055348,
+    "eval_loss": 0.1690867394208908,
+    "split": "data/splits_self_retry_targets/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 12888,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.54,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 30548068,
+    "pflops": 623.2
+  },
+  "notarget17": {
+    "run": "retry_targets_s17",
+    "flops": 6.231805902645965e+17,
+    "epochs": 2.0,
+    "train_loss": 0.19137472301610647,
+    "eval_loss": 0.16976158320903778,
+    "split": "data/splits_self_retry_targets/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 12888,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.53,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 30548068,
+    "pflops": 623.2
+  },
+  "notarget23": {
+    "run": "retry_targets_s23",
+    "flops": 6.231805902645965e+17,
+    "epochs": 2.0,
+    "train_loss": 0.0,
+    "eval_loss": 0.16938771307468414,
+    "split": "data/splits_self_retry_targets/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 12888,
+    "peak_gib": 18.15,
+    "resumes": 1,
+    "gpu_hours": 3.91,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB",
+      "NVIDIA L40S"
+    ],
+    "tokens": 30548068,
+    "pflops": 623.2
+  }
+}

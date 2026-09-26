@@ -38,4 +38,5 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E26 | [`E26_oracle_guidance`](E26_oracle_guidance/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E27 | [`E27_new_benchmarks`](E27_new_benchmarks/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E28 | [`E28_critique_free`](E28_critique_free/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E29 | [`E29_retry_channel`](E29_retry_channel/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 <!-- index:end -->

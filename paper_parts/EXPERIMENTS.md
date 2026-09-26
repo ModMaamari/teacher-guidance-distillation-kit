@@ -1,6 +1,7 @@
 # Every experiment and what it found
 
-Status as of 2026-09-21, 09:00. Each entry gives the question, the result, and what limits it.
+Status as of 2026-09-26, 23:00 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
+2026-09-26; E30 running). Each entry gives the question, the result, and what limits it.
 
 **How to read the numbers.** The metric is **judge-correct accuracy**: the percentage of the 747
 held-out questions (HotpotQA 189, 2WikiMultihopQA 170, MuSiQue 203, StrategyQA 185) whose final
@@ -40,7 +41,10 @@ collection-time string match (`cover_match`), not a judge, unless stated.
 | E24 | What does plain teacher distillation reach at the same scale? | done |
 | E25 | Six seeds: does self-guidance beat plain self-distillation? | done |
 | E26 | How well does each untrained configuration answer? | done |
-| E27 | Does the self-guided advantage hold on external benchmarks? | mostly done |
+| E27 | Does the self-guided advantage hold on external benchmarks? | done |
+| E28 | Does the critique inside the training targets matter? | done |
+| E29 | Does the gain survive removing the critic's retry channel? | done |
+| E30 | Does self-guidance beat the same compute spent on more unguided attempts? | running |
 
 ---
 
@@ -305,22 +309,79 @@ self-critique does not survive a like-for-like comparison.
 
 ## E27 — Do the results hold on external benchmarks?
 
-The same twelve students (six self-guided, six unguided), no retraining, on two benchmarks no arm
-was trained for:
+The same fifteen students (six self-guided, six unguided, three trained on teacher rollouts), no
+retraining, on two benchmarks no arm was trained for:
 
-| Benchmark | Base | Unguided (6 seeds) | Self-guided (6 seeds) | Difference |
-|---|---|---|---|---|
-| In domain (E25) | 27.3 | 62.5 ± 1.4 | **64.8 ± 1.2** | **+2.3**, p 0.008 |
-| MultiHop-RAG (news, 600 q) | 23.7 | 62.2 ± 1.7 | 63.7 ± 0.8 | +1.5, p 0.087 |
-| FRAMES (Wikipedia, 598 q) | 7.0 | 29.2 ± 1.2 | 29.7 ± 0.9 | +0.5, p 0.58 |
+| Benchmark | Base | Unguided (6 seeds) | Self-guided (6 seeds) | Teacher rollouts (3 seeds) | Self vs unguided |
+|---|---|---|---|---|---|
+| In domain (E25, E24) | 27.3 | 62.5 ± 1.4 | **64.8 ± 1.2** | **71.1 ± 1.6** | **+2.3**, p 0.008 |
+| MultiHop-RAG (news, 600 q) | 23.7 | 62.2 ± 1.7 | 63.7 ± 0.8 | **66.5 ± 2.0** | +1.5, p 0.087 |
+| FRAMES (Wikipedia, 598 q) | 7.0 | 29.2 ± 1.2 | 29.7 ± 0.9 | 30.6 ± 0.8 | +0.5, p 0.58 |
 
 The direction is consistent, the size is not: the self-guided increment is largely in-domain. Both
 trained arms transfer strongly over the base student, so what transfers is the agent protocol.
 MultiHop-RAG shares a rare 8-gram with **0 of 600** training questions.
 
-**Still running:** the three teacher-rollout students (E24) on both new benchmarks, to test whether
-the +6.2 also transfers. **Caveats.** ~600 questions each (±1.6 points), evaluation only, one judge.
+The teacher-rollout lead shrinks out of domain too: +2.8 over self-guided on MultiHop-RAG (CI +0.0
+to +5.6, p 0.045) and +0.9 on FRAMES (p 0.44), against +6.2 in domain. **Caveats.** ~600 questions each (±1.6 points), evaluation only, one judge.
 Conversion details, and the two defects the smoke test caught, are in the experiment's README.
+
+## E28 — Does the critique inside the training targets matter?
+
+Self-guided targets open with the critic's guidance, then the student's thought and action. Same
+examples, same order, critique field removed (10,485 of 13,825 targets), three seeds:
+
+| Training targets | 13 | 17 | 23 | Mean |
+|---|---|---|---|---|
+| Self-guided, critique in targets | 66.7 | 64.9 | 63.2 | **64.9 ± 1.7** |
+| Same examples, critique removed | 64.8 | 62.9 | 65.1 | **64.3 ± 1.2** |
+| Unguided self-rollouts | 62.3 | 64.8 | 62.6 | 63.2 ± 1.4 |
+
+Seed-averaged, critique removed → critique in targets **+0.7** (CI −0.8 to +2.1, p 0.42). The
+critique text is not what the student learns from; the gain lives in *which* trajectories the
+critique produced. **Caveat.** Three seeds; the interval allows up to about two points.
+
+## E29 — Does the gain survive removing the critic's retry channel?
+
+The critic can reject a `finish` during collection and let the episode go on; at inference a finish
+always ends it. 507 kept self-guided episodes contain such a rejection. Two ways to remove it,
+three seeds each:
+
+| Training data | Examples | 13 | 17 | 23 | Mean | Train PFLOPs | Voluntary finish |
+|---|---|---|---|---|---|---|---|
+| Self-guided, full | 13,825 | 66.7 | 64.9 | 63.2 | **64.9 ± 1.7** | 684 | 11.1 % |
+| Episodes with a rejected finish dropped | 11,985 | 63.3 | 64.7 | 66.7 | **64.9 ± 1.7** | 595 | 1.6 % |
+| Rejected-finish target and the next dropped | 12,888 | 64.4 | 64.4 | 64.4 | **64.4 ± 0.0** | 623 | 1.8 % |
+| Unguided self-rollouts | 13,510 | 62.3 | 64.8 | 62.6 | 63.2 ± 1.4 | 602 | 6.5 % |
+
+Full → episodes dropped **−0.0** (CI −1.5 to +1.4, p 1.00); full → targets dropped **−0.5** (CI −2.0
+to +0.9, p 0.50). Both intervals exclude a loss the size of the whole six-seed gain (+2.3), so the
+retry channel does not produce it, and the clean variant trains on 13 % less compute. What changes
+is behaviour: nine in ten early-finish targets in the full data are finishes the critic rejected
+(520 against 55 accepted), and without them the student almost stops finishing early (11.1 % →
+1.6 %), using about 4 % more tokens. The identical 64.4 for three seeds is a coincidence (different
+adapters that disagree on 78–92 questions). **Caveat.** Three seeds; against unguided the variants
+give +1.6 (p 0.083) and +1.2 (p 0.25), as the full arm did at three seeds (+1.7, p 0.089).
+
+## E30 — Self-guidance against the same compute spent on more unguided attempts (running)
+
+Self-guided collection costs about three unguided rollouts per episode (0.099 vs 0.032 PFLOPs). Two
+more unguided attempts per question at temperature 0.7 match that compute to within 3 %. Coverage,
+over the 7,252 trainable questions:
+
+| Attempts | Questions solved at least once |
+|---|---|
+| 1 unguided | 3,753 (51.8 %) |
+| 2 unguided | 4,212 (58.1 %) |
+| 3 unguided | 4,440 (61.2 %) |
+| 1 self-guided | 3,841 (53.0 %) |
+
+264 questions are solved only by self-guidance, 863 only by the three unguided attempts: at equal
+collection compute, sampling covers more questions. Students are training on three variants:
+`first` (first correct attempt per question, 4,440 questions, six seeds), `all` (every correct
+attempt, three seeds) and `match` (`first` cut to 3,818 episodes, three seeds). One `first` student
+is finished (seed 37: 62.8, against 65.2 self-guided and 62.4 unguided at that seed) — too early to
+read. Expected 2026-09-27.
 
 ---
 

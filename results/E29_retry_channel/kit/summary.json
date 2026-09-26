@@ -1,0 +1,268 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "full": {
+      "arms": [
+        "full13",
+        "full17",
+        "full23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "noepisode": {
+      "arms": [
+        "noepisode13",
+        "noepisode17",
+        "noepisode23"
+      ],
+      "acc": [
+        63.32,
+        64.66,
+        66.67
+      ],
+      "mean": 64.88,
+      "sd": 1.69,
+      "steps": 2.98,
+      "tokens": 5373,
+      "voluntary_finish": 1.6,
+      "median_words": 21.0
+    },
+    "notarget": {
+      "arms": [
+        "notarget13",
+        "notarget17",
+        "notarget23"
+      ],
+      "acc": [
+        64.39,
+        64.39,
+        64.39
+      ],
+      "mean": 64.39,
+      "sd": 0.0,
+      "steps": 2.98,
+      "tokens": 5373,
+      "voluntary_finish": 1.8,
+      "median_words": 20.666666666666668
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "acc": [
+        62.25,
+        64.79,
+        62.65
+      ],
+      "mean": 63.23,
+      "sd": 1.37,
+      "steps": 2.93,
+      "tokens": 4870,
+      "voluntary_finish": 6.5,
+      "median_words": 21.0
+    }
+  },
+  "per_seed": {
+    "full13 -> noepisode13": {
+      "diff": -3.35,
+      "ci95": [
+        -5.76,
+        -0.9400000000000001
+      ],
+      "p": 0.008836
+    },
+    "full17 -> noepisode17": {
+      "diff": -0.27,
+      "ci95": [
+        -2.81,
+        2.2800000000000002
+      ],
+      "p": 0.917041
+    },
+    "full23 -> noepisode23": {
+      "diff": 3.48,
+      "ci95": [
+        0.9400000000000001,
+        6.02
+      ],
+      "p": 0.008781
+    },
+    "full13 -> notarget13": {
+      "diff": -2.28,
+      "ci95": [
+        -4.6899999999999995,
+        0.13
+      ],
+      "p": 0.082054
+    },
+    "full17 -> notarget17": {
+      "diff": -0.54,
+      "ci95": [
+        -2.81,
+        1.7399999999999998
+      ],
+      "p": 0.740653
+    },
+    "full23 -> notarget23": {
+      "diff": 1.2,
+      "ci95": [
+        -1.2,
+        3.61
+      ],
+      "p": 0.39657
+    },
+    "unguided13 -> noepisode13": {
+      "diff": 1.07,
+      "ci95": [
+        -1.7399999999999998,
+        4.02
+      ],
+      "p": 0.526416
+    },
+    "unguided17 -> noepisode17": {
+      "diff": -0.13,
+      "ci95": [
+        -2.81,
+        2.54
+      ],
+      "p": 1.0
+    },
+    "unguided23 -> noepisode23": {
+      "diff": 4.02,
+      "ci95": [
+        1.34,
+        6.69
+      ],
+      "p": 0.005024
+    },
+    "unguided13 -> notarget13": {
+      "diff": 2.14,
+      "ci95": [
+        -0.67,
+        4.95
+      ],
+      "p": 0.156066
+    },
+    "unguided17 -> notarget17": {
+      "diff": -0.4,
+      "ci95": [
+        -3.2099999999999995,
+        2.41
+      ],
+      "p": 0.85087
+    },
+    "unguided23 -> notarget23": {
+      "diff": 1.74,
+      "ci95": [
+        -0.9400000000000001,
+        4.42
+      ],
+      "p": 0.241432
+    }
+  },
+  "seed_averaged": {
+    "full -> noepisode": {
+      "diff": -0.04,
+      "ci95": [
+        -1.47,
+        1.38
+      ],
+      "p": 1.0,
+      "n": 747,
+      "a": [
+        "full13",
+        "full17",
+        "full23"
+      ],
+      "b": [
+        "noepisode13",
+        "noepisode17",
+        "noepisode23"
+      ],
+      "holm": 1.0
+    },
+    "full -> notarget": {
+      "diff": -0.54,
+      "ci95": [
+        -1.96,
+        0.89
+      ],
+      "p": 0.5022,
+      "n": 747,
+      "a": [
+        "full13",
+        "full17",
+        "full23"
+      ],
+      "b": [
+        "notarget13",
+        "notarget17",
+        "notarget23"
+      ],
+      "holm": 1.0
+    },
+    "unguided -> noepisode": {
+      "diff": 1.65,
+      "ci95": [
+        -0.18,
+        3.48
+      ],
+      "p": 0.0828,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "noepisode13",
+        "noepisode17",
+        "noepisode23"
+      ]
+    },
+    "unguided -> notarget": {
+      "diff": 1.16,
+      "ci95": [
+        -0.71,
+        3.12
+      ],
+      "p": 0.248,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "notarget13",
+        "notarget17",
+        "notarget23"
+      ]
+    }
+  }
+}
