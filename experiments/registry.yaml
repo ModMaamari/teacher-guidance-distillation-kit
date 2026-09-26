@@ -305,3 +305,25 @@ experiments:
     paper: sec:matched
     next: "none (the self-guided advantage is +1.5 and +0.5 on external benchmarks, neither significant)"
 
+  - id: E29
+    name: retry_channel
+    folder: experiments/exp29_retry_channel
+    question: Does the self-guided gain survive removing the episodes and targets that follow a critic-rejected finish?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E29_retry_channel
+    paper: sec:matched
+    next: "Pool: prep_e29, train_retry_*, then results_E29."
+
+  - id: E30
+    name: compute_matched
+    folder: experiments/exp30_compute_matched
+    question: Does self-guidance beat the same collection compute spent on three unguided attempts per question?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E30_compute_matched
+    paper: sec:matched
+    next: "Pool: collect_selfdist_a{2,3}, prep_e30, train_k3_*, then results_E30."
+

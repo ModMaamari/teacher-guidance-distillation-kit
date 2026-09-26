@@ -156,6 +156,10 @@ def main() -> int:
                     help="episodes that become training examples: the cover-matched ones (the kit's filter), "
                          "all of them, only the incorrect ones (E20), or the ones an LLM judge accepts (E22)")
     ap.add_argument("--judge-verdicts", help="verdicts.jsonl from scripts/judge.py, for --keep judge")
+    ap.add_argument("--retry", choices=("keep", "drop-episodes", "drop-targets"), default="keep",
+                    help="what to do with episodes where the critic rejected a finish and the episode "
+                         "continued: keep them (default), drop the whole episode, or drop the "
+                         "rejected-finish target and the one after it (E29)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -195,6 +199,22 @@ def main() -> int:
         if norm(ep.get("query", "")) in heldout_text:
             counts[ds]["dropped_duplicate_of_heldout"] += 1
             continue
+        # A finish that is not the episode's last step is one the critic rejected. At inference a
+        # finish always ends the episode, so these targets describe states the deployed student
+        # never reaches, and the retry itself can leak the answer on yes/no questions.
+        steps = ep.get("steps") or []
+        rejected = {j for j, st in enumerate(steps)
+                    if ((st.get("student_action") or {}).get("action") or {}).get("tool") == "finish"
+                    and j < len(steps) - 1}
+        if rejected:
+            counts[ds]["episodes_with_rejected_finish"] += 1
+            if args.retry == "drop-episodes":
+                counts[ds]["dropped_retry_episode"] += 1
+                continue
+        # build_episode_examples labels a target with step["t"] (1-based), not the list index.
+        step_no = lambda j: (steps[j].get("t", j + 1) if 0 <= j < len(steps) else None)  # noqa: E731
+        drop_steps = ({step_no(j) for j in rejected} | {step_no(j + 1) for j in rejected}) - {None} \
+            if args.retry == "drop-targets" else set()
         gold = (ep.get("gold_answer") or "").strip()
         built = []
         for ex in build_episode_examples(ep, run="episodes"):
@@ -206,6 +226,9 @@ def main() -> int:
                 continue
             if PLACEHOLDER in _text(ex.get("prompt")) or PLACEHOLDER in _text(ex.get("completion")):
                 counts[ds]["dropped_placeholder"] += 1
+                continue
+            if (ex.get("metadata") or {}).get("step") in drop_steps:
+                counts[ds]["dropped_retry_target"] += 1
                 continue
             ex.setdefault("metadata", {})
             ex["metadata"]["dataset"] = ds
@@ -248,7 +271,8 @@ def main() -> int:
             f"lodo/fold_{k}", out, [d for d in datasets if d != k], examples,
             args.dev_fraction, args.dev_salt, test_qids, k)
     (out / "pools.json").write_text(json.dumps(pools, indent=0), encoding="utf-8")
-    stats["config"] = {k: getattr(args, k) for k in ("heldout_fraction", "dev_fraction", "salt", "dev_salt", "keep")}
+    stats["config"] = {k: getattr(args, k) for k in ("heldout_fraction", "dev_fraction", "salt",
+                                                     "dev_salt", "keep", "retry")}
     (out / "stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
     print("\nper dataset:")
     for ds in datasets:

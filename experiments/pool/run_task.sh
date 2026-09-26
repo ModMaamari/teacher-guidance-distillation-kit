@@ -235,6 +235,73 @@ case "$TASK" in
     done
     $TOOLS publish runs/results/E27 results/E27_new_benchmarks/kit \
         --only summary_multihoprag.txt summary_multihoprag.json summary_framesqa.txt summary_framesqa.json leak_check.txt ;;
+  prep_e29)         # E29: the self-guided split without the critic's rejected finishes
+    for v in episodes targets; do
+      d=data/splits_self_retry_$v
+      [ -f "$d/stats.json" ] && [ -s "$d/uniform/train.jsonl" ] ||
+        $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \
+            --out "$d" --retry "drop-$v" || exit 1
+    done ;;
+  train_retry_*)    a=${TASK#train_retry_}; v=${a%_s*}; s=${a##*_s}                    # E29
+                    train "retry_${v}_s$s" "data/splits_self_retry_$v/uniform" --seed "$s" ;;
+  results_E29)      # does the gain survive removing the retry channel?
+    results E29 results/E29_retry_channel/kit base=runs/eval/base \
+        full13=runs/eval/selftaught full17=runs/eval/selftaught_s17 full23=runs/eval/selftaught_s23 \
+        noepisode13=runs/eval/retry_episodes_s13 noepisode17=runs/eval/retry_episodes_s17 \
+        noepisode23=runs/eval/retry_episodes_s23 \
+        notarget13=runs/eval/retry_targets_s13 notarget17=runs/eval/retry_targets_s17 \
+        notarget23=runs/eval/retry_targets_s23 \
+        unguided13=runs/eval/selfdist_full unguided17=runs/eval/selfdist_full_s17 \
+        unguided23=runs/eval/selfdist_full_s23 &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E29 \
+          --results runs/results/E29/results.json --json-out runs/results/E29/summary.json \
+          --primary full:noepisode full:notarget --secondary unguided:noepisode unguided:notarget \
+          | tee runs/results/E29/summary.txt &&
+      $TOOLS publish runs/results/E29 results/E29_retry_channel/kit --only summary.txt summary.json ;;
+  collect_selfdist_a*)  # E30: further unguided attempts per question, sampled hotter than attempt 1
+    n=${TASK#collect_selfdist_a}
+    MODEL=$STUDENT_MODEL OUT=runs/collect_selfdist_a$n TAG=selfdist_a$n SHARDS=${SELFDIST_SHARDS:-8} N=2000 \
+      PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
+      bash slurm/collect_local.sbatch --no-teacher --student-temperature "${ATTEMPT_TEMPERATURE:-0.7}" ;;
+  prep_e30)         # E30: merge the attempts into the three compute-matched training sets
+    for n in 2 3; do
+      [ -s "data/episodes_selfdist_a$n/episodes.jsonl.gz" ] ||
+        $PY_BASE scripts/consolidate_episodes.py --runs "runs/collect_selfdist_a$n" \
+            --out "data/episodes_selfdist_a$n" --gzip || exit 1
+    done
+    mkdir -p runs/results/E30 &&
+      $PY_BASE experiments/exp30_compute_matched/pick_attempts.py | tee runs/results/E30/attempts.txt &&
+      for v in all first match; do
+        d=data/splits_k3_$v
+        [ -f "$d/stats.json" ] && [ -s "$d/uniform/train.jsonl" ] ||
+          $PY_BASE scripts/build_splits.py --episodes "data/episodes_k3_$v/episodes.jsonl.gz" --out "$d" || exit 1
+      done ;;
+  train_k3_*)       a=${TASK#train_k3_}; v=${a%_s*}; s=${a##*_s}                       # E30
+                    train "k3_${v}_s$s" "data/splits_k3_$v/uniform" --seed "$s" --save-steps 100 ;;
+  results_E30)      # self-guided vs the same collection compute spent on more unguided attempts
+    views="base=runs/eval/base"
+    for sd in 13 17 23 29 31 37; do
+      [ "$sd" = 13 ] && r=runs/eval/selftaught || r=runs/eval/selftaught_s$sd
+      views="$views selfguided$sd=$r"
+      [ "$sd" = 13 ] && u=runs/eval/selfdist_full || u=runs/eval/selfdist_full_s$sd
+      views="$views unguided$sd=$u"
+      [ -d "runs/eval/k3_first_s$sd" ] && views="$views first$sd=runs/eval/k3_first_s$sd"
+    done
+    for sd in 13 17 23; do
+      for v in all match; do
+        [ -d "runs/eval/k3_${v}_s$sd" ] && views="$views ${v}$sd=runs/eval/k3_${v}_s$sd"
+      done
+    done
+    # shellcheck disable=SC2086
+    results E30 results/E30_compute_matched/kit $views &&
+      cp runs/results/E30/attempts.txt runs/results/E30x_attempts.txt 2>/dev/null
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E30 \
+          --results runs/results/E30/results.json --json-out runs/results/E30/summary.json \
+          --primary unguided:selfguided first:selfguided \
+          --secondary all:selfguided match:selfguided unguided:first \
+          | tee runs/results/E30/summary.txt &&
+      $TOOLS publish runs/results/E30 results/E30_compute_matched/kit \
+          --only summary.txt summary.json attempts.txt ;;
   prep_e26)         # E26: a questions directory holding only the 747 held-out questions
     for ds in hotpotqa 2wikimultihopqa musique strategyqa; do
       mkdir -p "data/questions_heldout/$ds"
