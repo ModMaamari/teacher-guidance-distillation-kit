@@ -1,0 +1,10 @@
+  finish_targets                             3,784
+  negative                                     227
+  negative_answer_passes_cover                 227
+  negative_repeats_previous_answer             195
+  strategyqa_after_finish_negative              27
+  strategyqa_after_finish_negative_flips         0
+  strategyqa_after_finish_other                 49
+  strategyqa_after_finish_other_flips            0
+  strategyqa_finish_targets                    756
+  strategyqa_negative                           27

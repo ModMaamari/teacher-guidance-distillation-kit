@@ -1,0 +1,10 @@
+{
+  "train": {
+    "examples": 13825,
+    "critique_removed": 10485
+  },
+  "dev": {
+    "examples": 408,
+    "critique_removed": 305
+  }
+}

@@ -293,6 +293,8 @@ case "$TASK" in
         --json-out runs/results/E26/reference.json --pairs-out runs/results/E26/comparisons.json \
         | tee runs/results/E26/reference.txt &&
       $TOOLS publish runs/results/E26 results/E26_oracle_guidance/kit --only reference.txt reference.json comparisons.json ;;
+  prep_e28)         # E28: the self-guided split with the critique removed from every target
+    $PY_BASE experiments/exp28_critique_free/make_split.py --src data/splits_self --out data/splits_self_nocrit ;;
   prep_e22)         # E22: the same self-guided episodes, filtered by the LLM judge instead of the string match
     [ -f data/splits_self_judge/stats.json ] && [ -s data/splits_self_judge/uniform/train.jsonl ] ||
       $PY_BASE scripts/build_splits.py --episodes data/episodes_self/episodes.jsonl.gz \
@@ -366,6 +368,8 @@ PY
   train_selfdist_full) train selfdist_full data/splits_selfdist/uniform ;;   # E17: unguided self-rollouts, all of them
   train_selfdist_full_s*) s=${TASK#train_selfdist_full_s}                                                # E21: more seeds
                     train "selfdist_full_s$s" data/splits_selfdist/uniform --seed "$s" --save-steps 100 ;;
+  train_nocrit_s*)  s=${TASK#train_nocrit_s}                                                          # E28: critique-free targets
+                    train "nocrit_s$s" data/splits_self_nocrit/uniform --seed "$s" --save-steps 100 ;;
   train_judgefilt_s*) s=${TASK#train_judgefilt_s}                                                        # E22: judge-filtered
                     train "judgefilt_s$s" data/splits_self_judge/uniform --seed "$s" --save-steps 100 ;;
   train_teachdist_full_s*) s=${TASK#train_teachdist_full_s}                                              # E24: teacher rollouts at scale
@@ -486,6 +490,16 @@ PY
           --primary unguided:selfguided unguided:teacherguided --secondary - \
           | tee runs/results/E21full/summary.txt &&
       $TOOLS publish runs/results/E21full results/E21_unguided_baselines/full --only summary.txt summary.json ;;
+  results_E28)       # the same self-guided examples with and without the critique in the targets
+    results E28 results/E28_critique_free/kit base=runs/eval/base \
+        selfguided13=runs/eval/selftaught selfguided17=runs/eval/selftaught_s17 selfguided23=runs/eval/selftaught_s23 \
+        nocrit13=runs/eval/nocrit_s13 nocrit17=runs/eval/nocrit_s17 nocrit23=runs/eval/nocrit_s23 \
+        unguided13=runs/eval/selfdist_full unguided17=runs/eval/selfdist_full_s17 unguided23=runs/eval/selfdist_full_s23 &&
+      cp data/splits_self_nocrit/uniform/critique_free.json runs/results/E28/critique_free.json &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E28 \
+          --results runs/results/E28/results.json --json-out runs/results/E28/summary.json \
+          --primary nocrit:selfguided unguided:nocrit --secondary - | tee runs/results/E28/summary.txt &&
+      $TOOLS publish runs/results/E28 results/E28_critique_free/kit --only summary.txt summary.json critique_free.json ;;
   results_E22)       # string filter vs LLM-judge filter on the same episodes
     results E22 results/E22_judge_filter/kit base=runs/eval/base \
         cover13=runs/eval/selftaught cover17=runs/eval/selftaught_s17 cover23=runs/eval/selftaught_s23 \

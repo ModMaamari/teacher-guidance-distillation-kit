@@ -1,0 +1,164 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "nocrit": {
+      "arms": [
+        "nocrit13",
+        "nocrit17",
+        "nocrit23"
+      ],
+      "acc": [
+        64.79,
+        62.92,
+        65.06
+      ],
+      "mean": 64.26,
+      "sd": 1.17,
+      "steps": 2.89,
+      "tokens": 4927,
+      "voluntary_finish": 11.2,
+      "median_words": 20.333333333333332
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "acc": [
+        66.67,
+        64.93,
+        63.19
+      ],
+      "mean": 64.93,
+      "sd": 1.74,
+      "steps": 2.89,
+      "tokens": 5175,
+      "voluntary_finish": 11.1,
+      "median_words": 19.666666666666668
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "acc": [
+        62.25,
+        64.79,
+        62.65
+      ],
+      "mean": 63.23,
+      "sd": 1.37,
+      "steps": 2.93,
+      "tokens": 4870,
+      "voluntary_finish": 6.5,
+      "median_words": 21.0
+    }
+  },
+  "per_seed": {
+    "nocrit13 -> selfguided13": {
+      "diff": 1.87,
+      "ci95": [
+        -0.67,
+        4.42
+      ],
+      "p": 0.170242
+    },
+    "nocrit17 -> selfguided17": {
+      "diff": 2.01,
+      "ci95": [
+        -0.4,
+        4.42
+      ],
+      "p": 0.132902
+    },
+    "nocrit23 -> selfguided23": {
+      "diff": -1.87,
+      "ci95": [
+        -4.42,
+        0.54
+      ],
+      "p": 0.165441
+    },
+    "unguided13 -> nocrit13": {
+      "diff": 2.54,
+      "ci95": [
+        -0.27,
+        5.35
+      ],
+      "p": 0.095673
+    },
+    "unguided17 -> nocrit17": {
+      "diff": -1.87,
+      "ci95": [
+        -4.82,
+        0.9400000000000001
+      ],
+      "p": 0.235203
+    },
+    "unguided23 -> nocrit23": {
+      "diff": 2.41,
+      "ci95": [
+        -0.54,
+        5.35
+      ],
+      "p": 0.123427
+    }
+  },
+  "seed_averaged": {
+    "nocrit -> selfguided": {
+      "diff": 0.67,
+      "ci95": [
+        -0.8,
+        2.14
+      ],
+      "p": 0.4153,
+      "n": 747,
+      "a": [
+        "nocrit13",
+        "nocrit17",
+        "nocrit23"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23"
+      ],
+      "holm": 0.6466
+    },
+    "unguided -> nocrit": {
+      "diff": 1.03,
+      "ci95": [
+        -0.89,
+        2.9
+      ],
+      "p": 0.3233,
+      "n": 747,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23"
+      ],
+      "b": [
+        "nocrit13",
+        "nocrit17",
+        "nocrit23"
+      ],
+      "holm": 0.6466
+    }
+  }
+}

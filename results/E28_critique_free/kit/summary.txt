@@ -1,0 +1,19 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        27.3    27.3     -   2.97   5,067     3.2    1.0
+  nocrit        64.8 / 62.9 / 65.1    64.3   1.2   2.89   4,927    11.2   20.3
+  selfguided    66.7 / 64.9 / 63.2    64.9   1.7   2.89   5,175    11.1   19.7
+  unguided      62.3 / 64.8 / 62.6    63.2   1.4   2.93   4,870     6.5   21.0
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+      nocrit13 -> selfguided13   +1.9  [-0.7, +4.4]  p 0.1702
+      nocrit17 -> selfguided17   +2.0  [-0.4, +4.4]  p 0.1329
+      nocrit23 -> selfguided23   -1.9  [-4.4, +0.5]  p 0.1654
+    unguided13 -> nocrit13       +2.5  [-0.3, +5.3]  p 0.0957
+    unguided17 -> nocrit17       -1.9  [-4.8, +0.9]  p 0.2352
+    unguided23 -> nocrit23       +2.4  [-0.5, +5.3]  p 0.1234
+
+seed-averaged (each question averaged over the seeds of each family):
+  nocrit -> selfguided       +0.7  [-0.8, +2.1]  p 0.4153  Holm 0.6466  (n 747, seeds 3 vs 3)
+  unguided -> nocrit         +1.0  [-0.9, +2.9]  p 0.3233  Holm 0.6466  (n 747, seeds 3 vs 3)

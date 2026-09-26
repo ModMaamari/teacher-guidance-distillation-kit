@@ -1,4 +1,15 @@
 # Pool tasks, highest priority first (worker.py re-reads this every 30 s; run_task.sh runs them).
+prep_e28	0	12	0.2	1	-
+train_nocrit_s13	72	32	4	1	done:prep_e28
+train_nocrit_s17	72	32	4	1	done:prep_e28
+train_nocrit_s23	72	32	4	1	done:prep_e28
+eval_nocrit_s13	25	16	0.6	1	done:train_nocrit_s13
+judge_nocrit_s13	0	1	0.3	1	done:eval_nocrit_s13
+eval_nocrit_s17	25	16	0.6	1	done:train_nocrit_s17
+judge_nocrit_s17	0	1	0.3	1	done:eval_nocrit_s17
+eval_nocrit_s23	25	16	0.6	1	done:train_nocrit_s23
+judge_nocrit_s23	0	1	0.3	1	done:eval_nocrit_s23
+results_E28	0	8	0.2	1	done:judge_nocrit_s13,done:judge_nocrit_s17,done:judge_nocrit_s23
 # name	vram_gb (0 = CPU/API task)	ram_gb	est_h	resumable	deps (- | done:<task> | file:<path>, comma-separated)
 evalnew_multihoprag_teachdist	28	24	1.5	1	done:e27_smoke_multihoprag,done:train_teachdist_full_s23
 evalnew_framesqa_teachdist	28	24	1.5	1	done:e27_smoke_framesqa,done:train_teachdist_full_s23
