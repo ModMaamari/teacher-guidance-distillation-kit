@@ -1,0 +1,102 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        27.31
+      ],
+      "mean": 27.31,
+      "sd": null,
+      "steps": 2.97,
+      "tokens": 5067,
+      "voluntary_finish": 3.2,
+      "median_words": 1.0
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "acc": [
+        63.59,
+        64.93,
+        65.19
+      ],
+      "mean": 64.57,
+      "sd": 0.86,
+      "steps": 2.89,
+      "tokens": 5176,
+      "voluntary_finish": 10.4,
+      "median_words": 20.333333333333332
+    },
+    "unguided": {
+      "arms": [
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "acc": [
+        61.98,
+        60.64,
+        62.38
+      ],
+      "mean": 61.67,
+      "sd": 0.91,
+      "steps": 2.94,
+      "tokens": 4864,
+      "voluntary_finish": 6.4,
+      "median_words": 21.0
+    }
+  },
+  "per_seed": {
+    "unguided29 -> selfguided29": {
+      "diff": 1.61,
+      "ci95": [
+        -1.34,
+        4.55
+      ],
+      "p": 0.323248
+    },
+    "unguided31 -> selfguided31": {
+      "diff": 4.28,
+      "ci95": [
+        1.6099999999999999,
+        6.959999999999999
+      ],
+      "p": 0.002209
+    },
+    "unguided37 -> selfguided37": {
+      "diff": 2.81,
+      "ci95": [
+        -0.13,
+        5.76
+      ],
+      "p": 0.075531
+    }
+  },
+  "seed_averaged": {
+    "unguided -> selfguided": {
+      "diff": 2.9,
+      "ci95": [
+        0.89,
+        4.91
+      ],
+      "p": 0.0059,
+      "n": 747,
+      "a": [
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "holm": 0.0059
+    }
+  }
+}
