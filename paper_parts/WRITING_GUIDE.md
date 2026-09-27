@@ -1,7 +1,7 @@
 # Writing the ICLR paper: where everything is
 
-Everything needed to write or revise the paper, as of 2026-09-26. 30 of 31 experiments are
-finished and in the paper; E30 (compute-matched unguided sampling) is running, due 2026-09-27.
+Everything needed to write or revise the paper, as of 2026-09-27. All 31 experiments are finished
+and in the paper; nothing is running.
 
 ## The two repositories
 
@@ -84,7 +84,7 @@ These are the best starting point: every number in them is traceable to a publis
 
 | Path | What it is |
 |---|---|
-| `results/E00_reference/` … `results/E29_retry_channel/` | One folder per experiment. Each has `README.md` (question, answer, protocol, caveats, history) and `kit/results.json`, `kit/RESULTS.md`, plus extras such as `summary.txt`, `train_cost.txt`, `provider_split.txt`, `reference.txt`, `leak_check.txt` |
+| `results/E00_reference/` … `results/E30_compute_matched/` | One folder per experiment. Each has `README.md` (question, answer, protocol, caveats, history) and `kit/results.json`, `kit/RESULTS.md`, plus extras such as `summary.txt`, `train_cost.txt`, `provider_split.txt`, `reference.txt`, `leak_check.txt` |
 | `experiments/REGISTRY.md` | One-page table of all 31 experiments mapped to folder, status, judge and paper section |
 | `experiments/registry.yaml` | Machine-readable source of that table (`python experiments/status.py` regenerates the Markdown) |
 | `experiments/exp00_reference/` … `exp30_compute_matched/` | Per-experiment design READMEs and analysis scripts |
@@ -105,6 +105,7 @@ These are the best starting point: every number in them is traceable to a publis
 | External benchmarks | `results/E27_new_benchmarks/kit/summary_multihoprag.txt`, `summary_framesqa.txt`, `leak_check.txt` |
 | Critique removed from the targets | `results/E28_critique_free/kit/summary.txt`, `target_verdicts.txt` |
 | Retry channel removed | `results/E29_retry_channel/kit/summary.txt`, `train_cost.txt` |
+| Same compute on three unguided attempts | `results/E30_compute_matched/kit/summary.txt`, `attempts.txt`, `collection_cost.txt`, `train_cost.txt` |
 | Step budget | `results/E08_step_budget/kit/budget.txt` |
 | Multiple-comparison correction | `results/E12_multiple_comparisons/kit/*.txt` |
 
@@ -142,13 +143,8 @@ These are the best starting point: every number in them is traceable to a publis
 
 ---
 
-## 6. State as of 2026-09-26, 23:00
+## 6. State as of 2026-09-27, 13:30
 
-- 30 of 31 experiments finished and in the paper. E30 (self-guidance vs three unguided attempts
-  at the same collection compute) is training; results expected 2026-09-27. Its coverage numbers
-  are in `paper_parts/EXPERIMENTS.md`; the students are not in yet. When it publishes, the
-  conclusion's "whether unguided self-training at equal compute would match it is untested" must
-  be replaced with the answer.
+- All 31 experiments finished and in the paper; the job pool is idle.
 - Paper builds cleanly, no TBDs; the main text runs onto page 10 (see the page budget above).
-- Last paper commit: `af2b08a` (E29). Last kit commit: see `git log`.
 - The ICLR 2027 deadline has passed; the plan is a resubmission to another venue, not yet chosen.

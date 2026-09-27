@@ -1,7 +1,8 @@
 # What this project found, strongest first
 
-Status as of 2026-09-26, 23:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
-1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29. Findings are ordered
+Status as of 2026-09-27, 13:30; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
+1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29; finding 4 with E30 on
+2026-09-27. Findings are ordered
 by how much they should change what a practitioner or a reviewer believes: first what the evidence supports most strongly and most
 usefully, then mechanism, then the checks that make the numbers trustworthy.
 
@@ -78,16 +79,24 @@ rejected `finish` lets the episode continue and can all but reveal a yes/no answ
 affected targets 64.4 (−0.5, CI −2.0 to +0.9). Both intervals exclude a loss the size of the whole
 +2.3. What remains is *which* trajectories the critique leads the student into.
 
+**Not bought by compute alone.** Self-guided collection costs about three unguided rollouts per
+episode. Spending that compute on three unguided attempts per question instead (768 against 790
+PFLOPs; 1,478 against 1,474 with training) and keeping the first correct attempt trains a 62.8 ±
+0.5 student over six seeds: self-guided leads by **+2.0** (CI +0.4 to +3.6, **p 0.017**, Welch over
+seeds p 0.010). The attempts solve more questions (61.2 % against 53.0 %), but the extra ones add
++0.3 points (p 0.61); keeping every correct attempt, three times the data, reaches 63.4.
+
 **Supported by.** E17 (single seed, +3.2/+4.4), E21 (three seeds, inconclusive), E25 (six seeds,
 established), E27 (external benchmarks, weak), E28 (not the critique text), E29 (not the retry
-channel), E30 (running: the same compute spent on three unguided attempts).
+channel), E30 (not compute: three unguided attempts at the same build compute, six seeds).
 
 **Why it matters, and the caution.** The headline — a small model can improve itself with no
 teacher — stands. The specific claim that privileged self-critique adds signal *beyond* keeping its
 own correct episodes is established in domain and is small (about a third of the way to the
 teacher-rollout result), and it does not clearly transfer to new benchmarks. Self-guided collection
 also costs about three times plain self-rollouts (0.099 vs 0.032 PFLOPs per episode), so those 2.3
-points are bought, not free.
+points are bought, not free; but the same compute spent on more unguided sampling does not buy
+them.
 
 ## 5. Building a student this way costs 2–3× less end to end than any teacher-based route
 
@@ -239,12 +248,7 @@ where our own were not.
 
 ## Still running
 
-**E30**, expected 2026-09-27: does self-guidance beat the same collection compute spent on three
-unguided attempts per question? Coverage is already known and favours sampling: three unguided
-attempts solve 61.2 % of the trainable questions at least once, one self-guided attempt 53.0 %
-(264 questions only self-guidance solves, 863 only the attempts do). If the students trained on
-the attempts match the self-guided ones, finding 4's increment is a use of compute, not an
-advantage over it, and the paper must say so.
+Nothing. All 31 experiments are finished (2026-09-27).
 
 ## What is not claimed
 

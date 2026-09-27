@@ -1,0 +1,62 @@
+{
+ "rows": [
+  {
+   "set": "self-guided (ours)",
+   "dir": "data/episodes_self",
+   "episodes": 7999,
+   "actor_in": 5259.6,
+   "actor_out": 1239.3,
+   "critic_in": 6674.3,
+   "critic_out": 1350.2,
+   "actor_calls": 5.74,
+   "critic_calls": 5.17,
+   "tokens_per_ep": 14523.4,
+   "pflops_per_ep": 0.0988,
+   "pflops_total": 790.0
+  },
+  {
+   "set": "unguided attempt 1 (T 0.2)",
+   "dir": "data/episodes_selfdist",
+   "episodes": 7999,
+   "actor_in": 4012.9,
+   "actor_out": 727.9,
+   "critic_in": 0.0,
+   "critic_out": 0.0,
+   "actor_calls": 4.08,
+   "critic_calls": 0.0,
+   "tokens_per_ep": 4740.8,
+   "pflops_per_ep": 0.0322,
+   "pflops_total": 257.9
+  },
+  {
+   "set": "unguided attempt 2 (T 0.7)",
+   "dir": "data/episodes_selfdist_a2",
+   "episodes": 7999,
+   "actor_in": 3970.0,
+   "actor_out": 726.9,
+   "critic_in": 0.0,
+   "critic_out": 0.0,
+   "actor_calls": 4.06,
+   "critic_calls": 0.0,
+   "tokens_per_ep": 4696.9,
+   "pflops_per_ep": 0.0319,
+   "pflops_total": 255.5
+  },
+  {
+   "set": "unguided attempt 3 (T 0.7)",
+   "dir": "data/episodes_selfdist_a3",
+   "episodes": 7999,
+   "actor_in": 3962.4,
+   "actor_out": 724.5,
+   "critic_in": 0.0,
+   "critic_out": 0.0,
+   "actor_calls": 4.06,
+   "critic_calls": 0.0,
+   "tokens_per_ep": 4686.9,
+   "pflops_per_ep": 0.0319,
+   "pflops_total": 254.9
+  }
+ ],
+ "three_attempts_pf": 768.3,
+ "self_guided_pf": 790.0
+}

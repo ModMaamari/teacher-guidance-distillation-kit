@@ -1,7 +1,7 @@
 # Every experiment and what it found
 
-Status as of 2026-09-26, 23:00 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
-2026-09-26; E30 running). Each entry gives the question, the result, and what limits it.
+Status as of 2026-09-27, 13:30 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
+2026-09-26; E30 added 2026-09-27). All 31 experiments are finished. Each entry gives the question, the result, and what limits it.
 
 **How to read the numbers.** The metric is **judge-correct accuracy**: the percentage of the 747
 held-out questions (HotpotQA 189, 2WikiMultihopQA 170, MuSiQue 203, StrategyQA 185) whose final
@@ -44,7 +44,7 @@ collection-time string match (`cover_match`), not a judge, unless stated.
 | E27 | Does the self-guided advantage hold on external benchmarks? | done |
 | E28 | Does the critique inside the training targets matter? | done |
 | E29 | Does the gain survive removing the critic's retry channel? | done |
-| E30 | Does self-guidance beat the same compute spent on more unguided attempts? | running |
+| E30 | Does self-guidance beat the same compute spent on more unguided attempts? | done |
 
 ---
 
@@ -363,25 +363,27 @@ is behaviour: nine in ten early-finish targets in the full data are finishes the
 adapters that disagree on 78–92 questions). **Caveat.** Three seeds; against unguided the variants
 give +1.6 (p 0.083) and +1.2 (p 0.25), as the full arm did at three seeds (+1.7, p 0.089).
 
-## E30 — Self-guidance against the same compute spent on more unguided attempts (running)
+## E30 — Self-guidance against the same compute spent on more unguided attempts
 
-Self-guided collection costs about three unguided rollouts per episode (0.099 vs 0.032 PFLOPs). Two
-more unguided attempts per question at temperature 0.7 match that compute to within 3 %. Coverage,
-over the 7,252 trainable questions:
+Self-guided collection costs about three unguided rollouts per episode. Two more unguided attempts
+per question (temperature 0.7, over the same 7,999 questions) make three, for 768 PFLOPs of
+collection against self-guidance's 790; with training, the `first` build costs 1,478 against
+1,474. Correct episodes only, as always:
 
-| Attempts | Questions solved at least once |
-|---|---|
-| 1 unguided | 3,753 (51.8 %) |
-| 2 unguided | 4,212 (58.1 %) |
-| 3 unguided | 4,440 (61.2 %) |
-| 1 self-guided | 3,841 (53.0 %) |
+| Training data | Questions | Seeds | Mean | Self-guided lead |
+|---|---|---|---|---|
+| **Self-guided** | 3,818 | 6 | **64.8 ± 1.2** | — |
+| First correct of three attempts (`first`) | 4,440 | 6 | 62.8 ± 0.5 | **+2.0** (CI +0.4 to +3.6, **p 0.017**, Holm 0.017) |
+| `first` cut to 3,818 episodes (`match`) | 3,818 | 3 | 63.3 ± 0.6 | +1.5 (p 0.12) |
+| Every correct attempt, ~3× the data (`all`) | 4,440 | 3 | 63.4 ± 1.0 | +1.3 (p 0.15) |
+| One unguided attempt (E25) | 3,753 | 6 | 62.5 ± 1.4 | +2.3 (p 0.008) |
 
-264 questions are solved only by self-guidance, 863 only by the three unguided attempts: at equal
-collection compute, sampling covers more questions. Students are training on three variants:
-`first` (first correct attempt per question, 4,440 questions, six seeds), `all` (every correct
-attempt, three seeds) and `match` (`first` cut to 3,818 episodes, three seeds). One `first` student
-is finished (seed 37: 62.8, against 65.2 self-guided and 62.4 unguided at that seed) — too early to
-read. Expected 2026-09-27.
+Welch over the twelve per-seed accuracies of self-guided and `first`: p 0.010; self-guided leads at
+five of six seeds. Three attempts solve more trainable questions at least once (61.2 % against
+53.0 % for one self-guided episode; 863 questions only the attempts solve, 264 only self-guidance),
+yet the extra 687 solved questions add +0.3 points over one attempt (p 0.61). Self-guidance is
+better than the same compute spent on more self-samples; what it adds is different trajectories,
+not more solved questions. **Caveats.** In domain only; `match` and `all` have three seeds each.
 
 ---
 

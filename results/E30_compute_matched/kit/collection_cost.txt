@@ -1,0 +1,9 @@
+COLLECTION COMPUTE (PFLOPs ~ 2 x 3.4B x tokens, every recorded call)
+
+  set                            episodes  tokens/ep    PF/ep  total PF
+  self-guided (ours)                7,999     14,523   0.0988       790
+  unguided attempt 1 (T 0.2)        7,999      4,741   0.0322       258
+  unguided attempt 2 (T 0.7)        7,999      4,697   0.0319       256
+  unguided attempt 3 (T 0.7)        7,999      4,687   0.0319       255
+
+  three unguided attempts: 768 PF = 97.3 % of self-guided collection (790 PF)

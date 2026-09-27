@@ -332,9 +332,9 @@ experiments:
     folder: experiments/exp30_compute_matched
     question: Does self-guidance beat the same collection compute spent on three unguided attempts per question?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E30_compute_matched
-    paper: sec:matched
-    next: "Pool: collect_selfdist_a{2,3}, prep_e30, train_k3_*, then results_E30."
+    paper: sec:main
+    next: "none (self-guided beats the first correct of three unguided attempts at the same build compute: +2.0 [+0.4, +3.6], p 0.017)"
 

@@ -1,0 +1,15 @@
+data/episodes_selfdist/episodes.jsonl.gz: 7,999 episodes, 4,148 correct
+data/episodes_selfdist_a2/episodes.jsonl.gz: 7,999 episodes, 4,075 correct
+data/episodes_selfdist_a3/episodes.jsonl.gz: 7,999 episodes, 4,040 correct
+
+pass@k over 7,252 trainable questions:
+  k=1: 3,753 solved at least once (51.8 %)
+  k=2: 4,212 solved at least once (58.1 %)
+  k=3: 4,440 solved at least once (61.2 %)
+  self-guided (k=1): 3,841 (53.0 %)
+  solved by self-guidance but not by 3 unguided attempts: 264
+  solved by unguided attempts but not by self-guidance: 863
+
+all:   23,997 episodes written (12,263 correct)
+first: 4,909 episodes written (one correct attempt per solved question)
+match: 4,287 episodes written (3,818 trainable correct, target 3,818)
