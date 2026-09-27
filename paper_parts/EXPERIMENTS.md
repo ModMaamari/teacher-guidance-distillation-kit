@@ -383,7 +383,9 @@ five of six seeds. Three attempts solve more trainable questions at least once (
 53.0 % for one self-guided episode; 863 questions only the attempts solve, 264 only self-guidance),
 yet the extra 687 solved questions add +0.3 points over one attempt (p 0.61). Self-guidance is
 better than the same compute spent on more self-samples; what it adds is different trajectories,
-not more solved questions. **Caveats.** In domain only; `match` and `all` have three seeds each.
+not more solved questions. Out of domain the lead keeps its direction but not its significance:
+self-guided over `first` +1.1 on MultiHop-RAG (p 0.19) and +0.6 on FRAMES (p 0.52), no primary
+contrast surviving Holm, as in E27. **Caveats.** `match` and `all` have three seeds each.
 
 ---
 

@@ -53,6 +53,33 @@ questions (`first` over one attempt) buy +0.3 points (p 0.61), and three times t
 (`all`) no significant gain either. What self-guidance adds is not more solved questions but
 different trajectories for them.
 
+**Out of domain: the same direction, not significant.** The twelve E30 students, without
+retraining, on E27's two external benchmarks (600 MultiHop-RAG, 598 FRAMES questions), against
+E27's self-guided and unguided students; judge-correct accuracy (Gemma-4-31B-it):
+
+| Training data | Seeds | MultiHop-RAG | FRAMES |
+|---|---|---|---|
+| Base student | — | 23.7 | 7.0 |
+| **Self-guided** | 6 | **63.7 ± 0.8** | **29.7 ± 0.9** |
+| First correct of three attempts (`first`) | 6 | 62.5 ± 0.9 | 29.1 ± 0.9 |
+| `first` cut to 3,818 episodes (`match`) | 3 | 61.7 ± 0.7 | 29.8 ± 0.7 |
+| Every correct attempt (`all`) | 3 | 62.0 ± 1.1 | 28.8 ± 1.4 |
+| One unguided attempt | 6 | 62.2 ± 1.7 | 29.2 ± 1.2 |
+
+| Contrast | MultiHop-RAG | FRAMES |
+|---|---|---|
+| **`first` → self-guided** (primary) | +1.1 [−0.5, +2.8], p 0.19 | +0.6 [−1.1, +2.2], p 0.52 |
+| one attempt → self-guided (primary) | +1.5 [−0.1, +3.1], p 0.087 | +0.5 [−1.1, +2.1], p 0.58 |
+| `match` → self-guided | +1.9 [+0.2, +3.8], p 0.039 | −0.1, p 0.98 |
+| `all` → self-guided | +1.6, p 0.098 | +0.9, p 0.32 |
+| one attempt → `first` | +0.3, p 0.60 | −0.1, p 0.93 |
+
+No primary contrast survives Holm on either benchmark. As with E27, self-guided is ahead of every
+unguided variant on MultiHop-RAG and level on FRAMES; the lone p < 0.05 (`match`, MultiHop-RAG) is
+a secondary contrast without correction. Extra attempts add nothing out of domain either (+0.3 and
+−0.1 over one attempt). The self-guided and unguided rows reproduce E27's published numbers,
+which confirms the views are scoped to the new benchmark only.
+
 **Protocol.** Attempts 2 and 3 are fresh unguided collections over the same 7,999 questions with
 the student at temperature 0.7 (`collect_selfdist_a{2,3}`); attempt 1 is E25's temperature-0.2
 collection, reused. `pick_attempts.py` builds the three variants (`match` samples with seed 30).
@@ -60,11 +87,14 @@ Same LoRA recipe as every other student. Pool tasks `collect_selfdist_a{2,3}`, `
 `train_k3_{first,all,match}_s*`, `eval_*`, `judge_*`, `results_E30`.
 
 **Files.** `kit/summary.txt`/`.json` (accuracy, steps, tokens, voluntary finish, every test),
+`kit/summary_multihoprag.txt`/`.json` and `kit/summary_framesqa.txt`/`.json` (external benchmarks;
+pool tasks `evalnew_<ds>_k3{firstA,firstB,match,all}`, `judgenew30_<ds>`, `results_E30new`),
 `kit/results.json`/`RESULTS.md`, `kit/attempts.txt` (coverage), `kit/collection_cost.txt`/`.json`,
 `kit/train_cost.txt`/`.json`.
 
-**Caveats.** In domain only; the external benchmarks (E27) were not rerun for these students.
-`match` and `all` have three seeds each, so their contrasts are underpowered. Attempts 2 and 3 are
+**Caveats.** The compute-matched advantage is established in domain only; out of domain it keeps
+its direction but not its significance (±1.6 points per ~600-question benchmark). `match` and `all`
+have three seeds each, so their contrasts are underpowered. Attempts 2 and 3 are
 sampled hotter than attempt 1, by design, so the three are not identically distributed. GPU-hours
 in `train_cost.txt` are unreliable for resumed runs (only the last chunk's clock was recorded for
 some of them); PFLOPs are the trainer's own count and are reliable.

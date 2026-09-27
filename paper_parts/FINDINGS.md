@@ -1,6 +1,6 @@
 # What this project found, strongest first
 
-Status as of 2026-09-27, 13:30; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
+Status as of 2026-09-27, 17:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
 1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29; finding 4 with E30 on
 2026-09-27. Findings are ordered
 by how much they should change what a practitioner or a reviewer believes: first what the evidence supports most strongly and most
@@ -84,7 +84,9 @@ episode. Spending that compute on three unguided attempts per question instead (
 PFLOPs; 1,478 against 1,474 with training) and keeping the first correct attempt trains a 62.8 ±
 0.5 student over six seeds: self-guided leads by **+2.0** (CI +0.4 to +3.6, **p 0.017**, Welch over
 seeds p 0.010). The attempts solve more questions (61.2 % against 53.0 %), but the extra ones add
-+0.3 points (p 0.61); keeping every correct attempt, three times the data, reaches 63.4.
++0.3 points (p 0.61); keeping every correct attempt, three times the data, reaches 63.4. Out of
+domain the same students give +1.1 (MultiHop-RAG, p 0.19) and +0.6 (FRAMES, p 0.52): the same
+direction, not significant, like the rest of this finding.
 
 **Supported by.** E17 (single seed, +3.2/+4.4), E21 (three seeds, inconclusive), E25 (six seeds,
 established), E27 (external benchmarks, weak), E28 (not the critique text), E29 (not the retry

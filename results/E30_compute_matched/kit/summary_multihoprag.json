@@ -1,0 +1,443 @@
+{
+  "families": {
+    "all": {
+      "arms": [
+        "all13",
+        "all17",
+        "all23"
+      ],
+      "acc": [
+        62.33,
+        63.0,
+        60.83
+      ],
+      "mean": 62.05,
+      "sd": 1.11,
+      "steps": 2.83,
+      "tokens": 4998,
+      "voluntary_finish": 17.1,
+      "median_words": 52.0
+    },
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        23.67
+      ],
+      "mean": 23.67,
+      "sd": null,
+      "steps": 2.93,
+      "tokens": 5449,
+      "voluntary_finish": 7.2,
+      "median_words": 1.0
+    },
+    "first": {
+      "arms": [
+        "first13",
+        "first17",
+        "first23",
+        "first29",
+        "first31",
+        "first37"
+      ],
+      "acc": [
+        62.5,
+        63.0,
+        62.33,
+        61.83,
+        64.0,
+        61.5
+      ],
+      "mean": 62.53,
+      "sd": 0.89,
+      "steps": 2.83,
+      "tokens": 4992,
+      "voluntary_finish": 17.1,
+      "median_words": 50.333333333333336
+    },
+    "match": {
+      "arms": [
+        "match13",
+        "match17",
+        "match23"
+      ],
+      "acc": [
+        61.17,
+        61.5,
+        62.5
+      ],
+      "mean": 61.72,
+      "sd": 0.69,
+      "steps": 2.85,
+      "tokens": 5055,
+      "voluntary_finish": 14.9,
+      "median_words": 53.333333333333336
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "acc": [
+        64.0,
+        64.67,
+        62.33,
+        63.5,
+        64.33,
+        63.17
+      ],
+      "mean": 63.67,
+      "sd": 0.85,
+      "steps": 2.9,
+      "tokens": 5584,
+      "voluntary_finish": 9.8,
+      "median_words": 55.5
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "acc": [
+        64.33,
+        62.33,
+        63.67,
+        60.0,
+        62.33,
+        60.5
+      ],
+      "mean": 62.19,
+      "sd": 1.7,
+      "steps": 2.84,
+      "tokens": 5020,
+      "voluntary_finish": 15.7,
+      "median_words": 51.5
+    }
+  },
+  "per_seed": {
+    "unguided13 -> selfguided13": {
+      "diff": -0.33,
+      "ci95": [
+        -3.17,
+        2.5
+      ],
+      "p": 0.912157
+    },
+    "unguided17 -> selfguided17": {
+      "diff": 2.33,
+      "ci95": [
+        -0.67,
+        5.33
+      ],
+      "p": 0.150675
+    },
+    "unguided23 -> selfguided23": {
+      "diff": -1.33,
+      "ci95": [
+        -4.5,
+        1.83
+      ],
+      "p": 0.475152
+    },
+    "unguided29 -> selfguided29": {
+      "diff": 3.5,
+      "ci95": [
+        0.5,
+        6.5
+      ],
+      "p": 0.029456
+    },
+    "unguided31 -> selfguided31": {
+      "diff": 2.0,
+      "ci95": [
+        -1.17,
+        5.17
+      ],
+      "p": 0.251322
+    },
+    "unguided37 -> selfguided37": {
+      "diff": 2.67,
+      "ci95": [
+        -0.5,
+        5.83
+      ],
+      "p": 0.121371
+    },
+    "first13 -> selfguided13": {
+      "diff": 1.5,
+      "ci95": [
+        -1.67,
+        4.67
+      ],
+      "p": 0.41191
+    },
+    "first17 -> selfguided17": {
+      "diff": 1.67,
+      "ci95": [
+        -1.67,
+        4.83
+      ],
+      "p": 0.368202
+    },
+    "first23 -> selfguided23": {
+      "diff": 0.0,
+      "ci95": [
+        -3.17,
+        3.17
+      ],
+      "p": 1.0
+    },
+    "first29 -> selfguided29": {
+      "diff": 1.67,
+      "ci95": [
+        -1.5,
+        4.83
+      ],
+      "p": 0.358398
+    },
+    "first31 -> selfguided31": {
+      "diff": 0.33,
+      "ci95": [
+        -3.0,
+        3.6700000000000004
+      ],
+      "p": 0.920411
+    },
+    "first37 -> selfguided37": {
+      "diff": 1.67,
+      "ci95": [
+        -1.3299999999999998,
+        4.67
+      ],
+      "p": 0.326134
+    },
+    "all13 -> selfguided13": {
+      "diff": 1.67,
+      "ci95": [
+        -1.5,
+        4.83
+      ],
+      "p": 0.353328
+    },
+    "all17 -> selfguided17": {
+      "diff": 1.67,
+      "ci95": [
+        -1.5,
+        4.67
+      ],
+      "p": 0.337399
+    },
+    "all23 -> selfguided23": {
+      "diff": 1.5,
+      "ci95": [
+        -1.83,
+        4.67
+      ],
+      "p": 0.416775
+    },
+    "match13 -> selfguided13": {
+      "diff": 2.83,
+      "ci95": [
+        -0.33,
+        6.0
+      ],
+      "p": 0.100173
+    },
+    "match17 -> selfguided17": {
+      "diff": 3.17,
+      "ci95": [
+        0.33,
+        6.0
+      ],
+      "p": 0.044829
+    },
+    "match23 -> selfguided23": {
+      "diff": -0.17,
+      "ci95": [
+        -3.3300000000000005,
+        3.17
+      ],
+      "p": 1.0
+    },
+    "unguided13 -> first13": {
+      "diff": -1.83,
+      "ci95": [
+        -4.67,
+        1.0
+      ],
+      "p": 0.254305
+    },
+    "unguided17 -> first17": {
+      "diff": 0.67,
+      "ci95": [
+        -2.0,
+        3.3300000000000005
+      ],
+      "p": 0.720203
+    },
+    "unguided23 -> first23": {
+      "diff": -1.33,
+      "ci95": [
+        -4.33,
+        1.67
+      ],
+      "p": 0.439705
+    },
+    "unguided29 -> first29": {
+      "diff": 1.83,
+      "ci95": [
+        -1.17,
+        4.83
+      ],
+      "p": 0.266412
+    },
+    "unguided31 -> first31": {
+      "diff": 1.67,
+      "ci95": [
+        -1.17,
+        4.67
+      ],
+      "p": 0.320293
+    },
+    "unguided37 -> first37": {
+      "diff": 1.0,
+      "ci95": [
+        -2.0,
+        3.83
+      ],
+      "p": 0.576431
+    }
+  },
+  "seed_averaged": {
+    "unguided -> selfguided": {
+      "diff": 1.47,
+      "ci95": [
+        -0.11,
+        3.11
+      ],
+      "p": 0.0865,
+      "n": 600,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "holm": 0.173
+    },
+    "first -> selfguided": {
+      "diff": 1.14,
+      "ci95": [
+        -0.5,
+        2.78
+      ],
+      "p": 0.1934,
+      "n": 600,
+      "a": [
+        "first13",
+        "first17",
+        "first23",
+        "first29",
+        "first31",
+        "first37"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "holm": 0.1934
+    },
+    "all -> selfguided": {
+      "diff": 1.61,
+      "ci95": [
+        -0.25,
+        3.47
+      ],
+      "p": 0.0979,
+      "n": 600,
+      "a": [
+        "all13",
+        "all17",
+        "all23"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ]
+    },
+    "match -> selfguided": {
+      "diff": 1.94,
+      "ci95": [
+        0.19,
+        3.78
+      ],
+      "p": 0.0388,
+      "n": 600,
+      "a": [
+        "match13",
+        "match17",
+        "match23"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ]
+    },
+    "unguided -> first": {
+      "diff": 0.33,
+      "ci95": [
+        -0.78,
+        1.5
+      ],
+      "p": 0.5955,
+      "n": 600,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "first13",
+        "first17",
+        "first23",
+        "first29",
+        "first31",
+        "first37"
+      ]
+    }
+  }
+}
