@@ -300,14 +300,23 @@ case "$TASK" in
     done
     # shellcheck disable=SC2086
     results E30 results/E30_compute_matched/kit $views &&
-      cp runs/results/E30/attempts.txt runs/results/E30x_attempts.txt 2>/dev/null
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E30 \
           --results runs/results/E30/results.json --json-out runs/results/E30/summary.json \
           --primary unguided:selfguided first:selfguided \
           --secondary all:selfguided match:selfguided unguided:first \
           | tee runs/results/E30/summary.txt &&
+      $PY_BASE experiments/exp30_compute_matched/collection_cost.py \
+          --json-out runs/results/E30/collection_cost.json | tee runs/results/E30/collection_cost.txt &&
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm selfguided13=selftaught selfguided17=selftaught_s17 selfguided23=selftaught_s23 \
+          unguided13=selfdist_full unguided17=selfdist_full_s17 unguided23=selfdist_full_s23 \
+          first13=k3_first_s13 first17=k3_first_s17 first23=k3_first_s23 \
+          all13=k3_all_s13 all17=k3_all_s17 all23=k3_all_s23 \
+          match13=k3_match_s13 match17=k3_match_s17 match23=k3_match_s23 \
+          --json-out runs/results/E30/train_cost.json | tee runs/results/E30/train_cost.txt &&
       $TOOLS publish runs/results/E30 results/E30_compute_matched/kit \
-          --only summary.txt summary.json attempts.txt ;;
+          --only summary.txt summary.json attempts.txt collection_cost.txt collection_cost.json \
+          train_cost.txt train_cost.json ;;
   prep_e26)         # E26: a questions directory holding only the 747 held-out questions
     for ds in hotpotqa 2wikimultihopqa musique strategyqa; do
       mkdir -p "data/questions_heldout/$ds"
