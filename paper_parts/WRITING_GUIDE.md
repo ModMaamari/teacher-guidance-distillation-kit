@@ -57,8 +57,8 @@ There are none at present.
 1. Complete and verify the AI-use statement (required by ICLR).
 2. Add the anonymous code link in the reproducibility statement.
 
-**Page budget:** the main text now ends on page 10 (the conclusion is on page 10), about a
-third of a page over ICLR's nine; the statements and appendices follow and do not count. The
+**Page budget:** the main text now ends on page 10, with about 39 lines (three-quarters of a
+page) over ICLR's nine after E28–E30 were added; the statements and appendices follow and do not count. The
 target venue is not decided yet, so nothing was cut; the first candidate is the "Scope of the
 evidence" paragraph in §4. Check with:
 
