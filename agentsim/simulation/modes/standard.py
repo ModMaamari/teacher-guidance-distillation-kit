@@ -113,7 +113,7 @@ class StandardRunner:
                 "student_max_tokens", "student_max_repair_attempts",
                 "teacher_max_repair_attempts", "teacher_temperature", "student_temperature",
                 "teacher_router", "student_use_response_schema", "disclose_budget",
-                "wiki_enabled", "wiki_mode",
+                "wiki_enabled", "wiki_mode", "student_answer_hint",
             ):
                 if _k in mode_config:
                     initial_metadata[_k] = mode_config[_k]

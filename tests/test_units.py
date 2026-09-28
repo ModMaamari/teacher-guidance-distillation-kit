@@ -1521,3 +1521,50 @@ def test_append_jsonl_survives_a_storage_stall(tmp_path, monkeypatch):
     monkeypatch.setattr(builtins, "open", real_open)
     assert (tmp_path / "v.jsonl").read_text(encoding="utf-8") == '{"qid": "q1"}\n'
     assert stalls == [0]
+
+
+def test_answer_hint_is_shown_only_when_enabled_and_stripped_for_training():
+    """E31 (STaR rationalization): the hint reaches the student prompt only with
+    student_answer_hint set, training strips it, and a hinted step may name the answer only
+    once retrieved evidence does -- the student's own earlier outputs do not count."""
+    from types import SimpleNamespace
+    from agentsim.teacher_guidance.prompts import (ANSWER_HINT_PREFIX, build_student_prompt,
+                                                   build_student_visible_state)
+    from agentsim.teacher_guidance.schemas import GuidanceConfig
+    from agentsim.teacher_guidance.sft_internalize import has_answer_hint, strip_answer_hint_block
+    from tgd.episode_lib import build_step_example
+
+    md = {"gold": {"answer": "Lincoln County"}, "disclose_budget": False}
+    ctx = SimpleNamespace(query="Which county is the range in?", metadata=dict(md))
+    plain = build_student_prompt(build_student_visible_state(ctx, 1, 3), GuidanceConfig(), False)
+    assert "Lincoln County" not in plain and not has_answer_hint(plain)
+    ctx.metadata["student_answer_hint"] = True
+    hinted = build_student_prompt(build_student_visible_state(ctx, 1, 3), GuidanceConfig(), False)
+    assert ANSWER_HINT_PREFIX in hinted and "Lincoln County" in hinted and has_answer_hint(hinted)
+    assert strip_answer_hint_block(hinted) == plain
+
+    def act(tool, thought, **params):
+        return {"thought": thought, "decision": {"category": "x"},
+                "action": {"tool": tool, "params": params}, "new_facts_extracted": []}
+    ep = {"qid": "q", "query": "Which county is the range in?", "gold_answer": "Lincoln County",
+          "plan_review": {}, "steps": [
+              {"t": 1, "student_prompt": hinted, "student_raw": "the answer is Lincoln County",
+               "student_action": act("search", "look up the range", query="range county"),
+               "tool_observation": {"docs": ["The range lies in White Pine County."]}},
+              {"t": 2, "student_prompt": hinted, "student_raw": "",
+               "student_action": act("search", "check", query="Lincoln County range"),
+               "tool_observation": {"docs": ["The range is in Lincoln County, Nevada."]}},
+              {"t": 3, "student_prompt": hinted, "student_raw": "",
+               "student_action": act("finish", "evidence says so", answer="Lincoln County"),
+               "tool_observation": {}}]}
+    first = build_step_example(ep, 0)
+    assert first is not None and ANSWER_HINT_PREFIX not in first["prompt"][1]["content"]
+    assert first["metadata"]["answer_hint"] is True
+    # step 2 searches for the answer before any document mentioned it: dropped, although the
+    # student's own step-1 output named it
+    assert build_step_example(ep, 1) is None
+    # step 3 finishes with the answer after step 2 retrieved it: kept
+    assert build_step_example(ep, 2) is not None
+    # an unhinted step keeps the old metadata exactly (no answer_hint key)
+    ep_plain = {**ep, "steps": [{**ep["steps"][0], "student_prompt": plain}]}
+    assert "answer_hint" not in build_step_example(ep_plain, 0)["metadata"]

@@ -266,6 +266,116 @@ case "$TASK" in
     done
     $TOOLS publish runs/results/E30 results/E30_compute_matched/kit \
         --only summary_multihoprag.txt summary_multihoprag.json summary_framesqa.txt summary_framesqa.json ;;
+  # ---------- E31: STaR (the model's correct attempts + answer-hinted rationalizations) ----------
+  e31_smoke)        # a few answer-hinted episodes end to end, checked before any real collection
+    d=runs/e31_smoke; rm -rf "$d"; mkdir -p "$d"
+    $PY_BASE experiments/exp31_star/star_data.py questions --mode failed \
+        --episodes data/episodes_selfdist/episodes.jsonl.gz --out "$d/questions" || exit 1
+    PORT=$(free_port); export VLLM_ENDPOINT="http://127.0.0.1:$PORT" MAX_LEN=32768 LLM_TIMEOUT=300
+    export GPU_MEM=$(gpu_frac 24) MODEL=$STUDENT_MODEL
+    start_server "$PORT" || exit 1
+    trap stop_server EXIT
+    $PY_TRAIN scripts/collect_episodes.py --datasets hotpotqa strategyqa --num-samples 3 \
+        --questions "$d/questions" --no-teacher --answer-hint --student vllm/student \
+        --student-max-tokens 3000 --shards 1 --out "$d/collect" --tag e31_smoke || exit 1
+    $PY_BASE scripts/consolidate_episodes.py --runs "$d/collect" --out "$d/episodes" --gzip || exit 1
+    $PY_BASE experiments/exp31_star/check_smoke.py "$d/episodes/episodes.jsonl.gz" ;;
+  collect_star1_rat|collect_star2_att|collect_star2_rat)   # the three STaR collections
+    case "$TASK" in
+      collect_star1_rat) q=data/questions_star1_rat; model=$STUDENT_MODEL; hint=--answer-hint
+        [ -s "$q/hotpotqa/hotpotqa_questions.jsonl.gz" ] ||
+          $PY_BASE experiments/exp31_star/star_data.py questions --mode failed \
+              --episodes data/episodes_selfdist/episodes.jsonl.gz --out "$q" || exit 1 ;;
+      collect_star2_att) q=data/questions_star_all; model=runs/merged/star1_s13; hint=""
+        [ -s "$q/hotpotqa/hotpotqa_questions.jsonl.gz" ] ||
+          $PY_BASE experiments/exp31_star/star_data.py questions --mode all --out "$q" || exit 1 ;;
+      collect_star2_rat) q=data/questions_star2_rat; model=runs/merged/star1_s13; hint=--answer-hint ;;
+    esac
+    [ -s "$q/hotpotqa/hotpotqa_questions.jsonl.gz" ] || { echo "!! no question set $q"; exit 1; }
+    # shellcheck disable=SC2086
+    MODEL=$model OUT=runs/$TASK TAG=${TASK#collect_} SHARDS=${STAR_SHARDS:-8} N=2000 \
+      PORT=$(free_port) GPU_MEM=$(gpu_frac 30) TEACHER=vllm/student \
+      bash slurm/collect_local.sbatch --no-teacher --questions "$q" $hint ;;
+  merge_star1)      # STaR iteration 1's model (seed 13) as a plain model, to serve for iteration 2
+    [ -f runs/merged/star1_s13/.done ] && { echo "have runs/merged/star1_s13"; exit 0; }
+    $PY_TRAIN scripts/merge_adapter.py --base "$STUDENT_MODEL" --adapter runs/train/star1_s13/adapter \
+        --out runs/merged/star1_s13 && touch runs/merged/star1_s13/.done ;;
+  prep_star2q)      # iteration 2's attempts -> the questions it failed, to rationalize
+    [ -s data/episodes_star2_att/episodes.jsonl.gz ] ||
+      $PY_BASE scripts/consolidate_episodes.py --runs runs/collect_star2_att --out data/episodes_star2_att --gzip || exit 1
+    $PY_BASE experiments/exp31_star/star_data.py questions --mode failed \
+        --episodes data/episodes_star2_att/episodes.jsonl.gz --out data/questions_star2_rat ;;
+  prep_star1|prep_star2)   # attempts + rationalizations -> one episode set -> the training split
+    n=${TASK#prep_star}
+    [ "$n" = 1 ] && att=data/episodes_selfdist || att=data/episodes_star2_att
+    rat=data/episodes_star${n}_rat
+    [ -s "$rat/episodes.jsonl.gz" ] ||
+      $PY_BASE scripts/consolidate_episodes.py --runs "runs/collect_star${n}_rat" --out "$rat" --gzip || exit 1
+    [ -s "data/episodes_star$n/episodes.jsonl.gz" ] ||
+      $PY_BASE experiments/exp31_star/star_data.py merge --attempts "$att/episodes.jsonl.gz" \
+          --rationalized "$rat/episodes.jsonl.gz" --out "data/episodes_star$n" || exit 1
+    split_of "data/episodes_star$n" "data/splits_star$n" ;;
+  train_star1_s*|train_star2_s*)   a=${TASK#train_}; n=${a%%_s*}; s=${a##*_s}
+    train "$a" "data/splits_$n/uniform" --seed "$s" ;;
+  results_E31)      # STaR against self-guidance and the student's own filtered rollouts
+    views="base=runs/eval/base"
+    for sd in 13 17 23 29 31 37; do
+      [ "$sd" = 13 ] && r=runs/eval/selftaught || r=runs/eval/selftaught_s$sd
+      [ "$sd" = 13 ] && u=runs/eval/selfdist_full || u=runs/eval/selfdist_full_s$sd
+      views="$views selfguided$sd=$r unguided$sd=$u startwo$sd=runs/eval/star2_s$sd"
+    done
+    for sd in 13 17 23; do views="$views starone$sd=runs/eval/star1_s$sd"; done
+    # shellcheck disable=SC2086
+    results E31 results/E31_star/kit $views &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E31 \
+          --results runs/results/E31/results.json --json-out runs/results/E31/summary.json \
+          --primary startwo:selfguided unguided:startwo \
+          --secondary starone:selfguided unguided:starone starone:startwo \
+          | tee runs/results/E31/summary.txt &&
+      $PY_BASE experiments/exp20_correctness_filter/train_cost.py \
+          --arm selfguided13=selftaught unguided13=selfdist_full starone13=star1_s13 startwo13=star2_s13 \
+          --json-out runs/results/E31/train_cost.json | tee runs/results/E31/train_cost.txt &&
+      for f in data/episodes_star1/merge_stats.json data/episodes_star2/merge_stats.json; do
+        n=$(basename "$(dirname "$f")"); cp "$f" "runs/results/E31/${n}_merge_stats.json"; done &&
+      $TOOLS publish runs/results/E31 results/E31_star/kit --only summary.txt summary.json \
+          train_cost.txt train_cost.json episodes_star1_merge_stats.json episodes_star2_merge_stats.json ;;
+  # ---------- E32: outcome-reward RL (GRPO) from the base student ----------
+  e32_smoke|rl_s*)  # one GPU: vLLM serves the policy (adapters swapped at runtime), the driver trains
+    PORT=$(free_port); export VLLM_ENDPOINT="http://127.0.0.1:$PORT" MAX_LEN=32768 LLM_TIMEOUT=300
+    export ENABLE_LORA=1 MAX_LORAS=2 VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+    export GPU_MEM=$(gpu_frac 24) MODEL=$STUDENT_MODEL STUDENT_MODEL
+    start_server "$PORT" || exit 1
+    trap stop_server EXIT
+    if [ "$TASK" = e32_smoke ]; then
+      rm -rf runs/rl/rl_smoke
+      $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name rl_smoke --smoke --seed 13 &&
+        $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl_smoke
+    else
+      s=${TASK#rl_s}
+      # shellcheck disable=SC2086
+      $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name "rl_s$s" --seed "$s" \
+          --milestones ${RL_MILESTONES:-1474 2948} --lr "${RL_LR:-5e-5}"
+    fi ;;
+  results_E32)      # RL at self-guidance's build compute (c1) and at twice it (c2)
+    views="base=runs/eval/base"
+    for sd in 13 17 23 29 31 37; do
+      [ "$sd" = 13 ] && r=runs/eval/selftaught || r=runs/eval/selftaught_s$sd
+      [ "$sd" = 13 ] && u=runs/eval/selfdist_full || u=runs/eval/selfdist_full_s$sd
+      views="$views selfguided$sd=$r unguided$sd=$u"
+    done
+    for sd in 13 17 23; do views="$views rlequal$sd=runs/eval/rl_c1_s$sd rldouble$sd=runs/eval/rl_c2_s$sd"; done
+    # shellcheck disable=SC2086
+    results E32 results/E32_rl/kit $views &&
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E32 \
+          --results runs/results/E32/results.json --json-out runs/results/E32/summary.json \
+          --primary rlequal:selfguided unguided:rlequal \
+          --secondary rldouble:selfguided unguided:rldouble rlequal:rldouble \
+          | tee runs/results/E32/summary.txt &&
+      $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl_s13 runs/rl/rl_s17 runs/rl/rl_s23 \
+          --json-out runs/results/E32/rl_curves.json | tee runs/results/E32/rl_curves.txt &&
+      for sd in 13 17 23; do cp "runs/rl/rl_s$sd/rl_log.jsonl" "runs/results/E32/rl_log_s$sd.jsonl"; done &&
+      $TOOLS publish runs/results/E32 results/E32_rl/kit --only summary.txt summary.json \
+          rl_curves.txt rl_curves.json rl_log_s13.jsonl rl_log_s17.jsonl rl_log_s23.jsonl ;;
   prep_e29)         # E29: the self-guided split without the critic's rejected finishes
     for v in episodes targets; do
       d=data/splits_self_retry_$v

@@ -42,6 +42,9 @@ ARGS=(serve "$MODEL" --served-model-name student --port "$PORT" --dtype bfloat16
       --gpu-memory-utilization "$GPU_MEM" --max-model-len "$MAX_LEN")
 if [ ${#LORAS[@]} -gt 0 ]; then
   ARGS+=(--enable-lora --max-lora-rank 64 --max-loras "${#LORAS[@]}" --lora-modules "${LORAS[@]}")
+elif [ -n "${ENABLE_LORA:-}" ]; then
+  # adapters loaded at runtime (E32's RL policy): export VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
+  ARGS+=(--enable-lora --max-lora-rank 64 --max-loras "${MAX_LORAS:-2}")
 fi
 echo "[serve_vllm] $MODEL on :$PORT loras=${LORAS[*]:-none} log=$LOG"
 "$(dirname "$VLLM_PYTHON")/vllm" "${ARGS[@]}" > "$LOG" 2>&1 &

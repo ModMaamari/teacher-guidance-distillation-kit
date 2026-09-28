@@ -61,6 +61,21 @@ def strip_teacher_guidance_block(student_prompt: str) -> str:
     return "\n\n".join(kept)
 
 
+_ANSWER_HINT_PREFIX = "Answer hint (the known correct answer):"   # prompts.ANSWER_HINT_PREFIX
+
+
+def has_answer_hint(student_prompt: str) -> bool:
+    return any(b.lstrip().startswith(_ANSWER_HINT_PREFIX) for b in student_prompt.split("\n\n"))
+
+
+def strip_answer_hint_block(student_prompt: str) -> str:
+    """Remove the rationalization hint paragraph (E31), so the training input is the state the
+    student sees without the answer. A no-op on every prompt collected without the hint."""
+    blocks = student_prompt.split("\n\n")
+    kept = [b for b in blocks if not b.lstrip().startswith(_ANSWER_HINT_PREFIX)]
+    return "\n\n".join(kept)
+
+
 def _hint_sentence(hint: Any) -> str:
     if not isinstance(hint, dict):
         return ""

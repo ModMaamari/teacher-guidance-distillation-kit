@@ -338,3 +338,25 @@ experiments:
     paper: sec:main
     next: "none (self-guided beats the first correct of three unguided attempts at the same build compute: +2.0 [+0.4, +3.6], p 0.017)"
 
+
+  - id: E31
+    name: star
+    folder: experiments/exp31_star
+    question: Does STaR (correct attempts plus answer-hinted rationalizations) match self-guidance?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E31_star
+    paper: sec:main
+    next: "Pool: e31_smoke, collect_star1_rat, prep_star1, train_star1_s*, merge_star1, collect_star2_att, prep_star2q, collect_star2_rat, prep_star2, train_star2_s*, then results_E31."
+
+  - id: E32
+    name: rl
+    folder: experiments/exp32_rl
+    question: Does outcome-reward RL (GRPO) from the base student match self-guidance at equal compute?
+    tier: 1
+    status: running
+    judge: Gemma-4-31B-it
+    results: results/E32_rl
+    paper: sec:main
+    next: "Pool: e32_smoke, rl_s{13,17,23} (adapters at 1,474 and 2,948 PFLOPs), eval_rl_c*, then results_E32."

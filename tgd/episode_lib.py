@@ -38,7 +38,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from agentsim.teacher_guidance.leakage import _contains  # noqa: E402
-from agentsim.teacher_guidance.sft_internalize import strip_teacher_guidance_block  # noqa: E402
+from agentsim.teacher_guidance.sft_internalize import (  # noqa: E402
+    has_answer_hint, strip_answer_hint_block, strip_teacher_guidance_block)
 from agentsim.teacher_guidance.sft_export import DEFAULT_SYSTEM  # noqa: E402
 
 PLACEHOLDER = "[answer hidden]"
@@ -82,6 +83,16 @@ def visible_context_through_step(episode: Dict[str, Any], step_idx: int) -> str:
             parts.append(str(pr[key]))
     for s in (episode.get("steps") or [])[: step_idx + 1]:
         parts.append(json.dumps(s.get("student_raw") or "", ensure_ascii=False))
+        parts.append(json.dumps(s.get("tool_observation") or {}, ensure_ascii=False))
+    return "\n".join(parts)
+
+
+def evidence_context_through_step(episode: Dict[str, Any], step_idx: int) -> str:
+    """The question and the tool observations through step ``step_idx`` (0-based), without the
+    student's own outputs. For hinted (STaR rationalization) steps the student's outputs can repeat
+    the answer it was shown, so only retrieved evidence may make the answer safe to mention."""
+    parts = [episode.get("query") or ""]
+    for s in (episode.get("steps") or [])[: step_idx + 1]:
         parts.append(json.dumps(s.get("tool_observation") or {}, ensure_ascii=False))
     return "\n".join(parts)
 
@@ -167,7 +178,9 @@ def build_step_example(
 
     gold = episode.get("gold_answer") or ""
     question = episode.get("query") or ""
-    prompt = strip_teacher_guidance_block(step.get("student_prompt") or "")
+    raw_prompt = step.get("student_prompt") or ""
+    hinted = has_answer_hint(raw_prompt)          # a STaR rationalization step (E31)
+    prompt = strip_answer_hint_block(strip_teacher_guidance_block(raw_prompt))
     if not prompt:
         return None
 
@@ -189,7 +202,12 @@ def build_step_example(
 
     # Leakage gate on the parts the model must generate unprompted: guidance + thought.
     gate_text = json.dumps(clean_guidance or {}, ensure_ascii=False) + "\n" + str(action.get("thought") or "")
-    if not leak_gate_ok(gate_text, gold, question, ctx):
+    if hinted:
+        # The student saw the answer, so everything it wrote -- queries, extracted facts and the
+        # final answer too -- may name it only once the retrieved evidence does. A hinted step
+        # that searches for the answer, or finishes with it ungrounded, is not trained on.
+        gate_text += "\n" + json.dumps(action, ensure_ascii=False)
+    if not leak_gate_ok(gate_text, gold, question, evidence_context_through_step(episode, i - 1) if hinted else ctx):
         return None
 
     target = _ordered_target(clean_guidance, action)
@@ -215,6 +233,7 @@ def build_step_example(
             "restored": restore_stats["restored"],
             "dropped_sentences": restore_stats["dropped_sentences"],
             "had_guidance": clean_guidance is not None,
+            **({"answer_hint": True} if hinted else {}),
         },
     }
 

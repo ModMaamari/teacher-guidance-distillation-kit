@@ -17,6 +17,11 @@ from typing import Any, Dict, List, Optional
 
 from agentsim.teacher_guidance.schemas import GuidanceConfig, PlanReviewConfig
 
+# STaR-style rationalization (E31): the student is shown the gold answer as a hint and asked to
+# find the evidence for it. Only runs that set mode_config.student_answer_hint see this block;
+# training strips it (sft_internalize.strip_answer_hint_block), so the trained student never does.
+ANSWER_HINT_PREFIX = "Answer hint (the known correct answer):"
+
 
 _TOOL_REFERENCE = """Available tools (action.tool) and their params:
 - decompose: {"sub_questions": ["..."]}
@@ -115,6 +120,9 @@ def build_student_visible_state(context: Any, step_index: int, budget: int) -> D
     }
     if md.get("revised_plan") is not None:
         state["revised_plan"] = md.get("revised_plan")
+    if md.get("student_answer_hint"):
+        # Rationalization runs only (E31): the one deliberate exception to "no gold metadata".
+        state["answer_hint"] = (md.get("gold") or {}).get("answer") or md.get("gold_answer") or ""
     if md.get("wiki_enabled"):
         state["wiki_enabled"] = True
         state["wiki_mode"] = md.get("wiki_mode", "tools")
@@ -153,6 +161,11 @@ def build_student_prompt(
             parts.append(_WIKI_AUTO_NOTE)
     parts.append("Retrieval backend is 'hotpot_local' (search only the current question's documents).")
     parts.append(f"Question: {state.get('question', '')}")
+    if state.get("answer_hint"):
+        parts.append(
+            f"{ANSWER_HINT_PREFIX} \"{state['answer_hint']}\". Use the tools to find the documents "
+            "that support this answer, reason from that evidence, and give this answer when you finish."
+        )
     # Budget disclosure: in the default mode the student sees its exact step budget; in the
     # hidden-budget mode it only sees the current step number and is told to be efficient
     # and answer as soon as it can (the budget is revealed only on the forced final step).

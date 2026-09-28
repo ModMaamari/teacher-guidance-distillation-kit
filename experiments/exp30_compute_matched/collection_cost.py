@@ -48,7 +48,7 @@ def main() -> int:
     print(f"\n  three unguided attempts: {three:,.0f} PF = {100 * three / self_pf:.1f} % of self-guided collection ({self_pf:,.0f} PF)")
     if a.json_out:
         Path(a.json_out).write_text(json.dumps({"rows": rows, "three_attempts_pf": three,
-                                                "self_guided_pf": self_pf}, indent=1))
+                                                "self_guided_pf": self_pf}, indent=1), encoding="utf-8")
     return 0
 
 
