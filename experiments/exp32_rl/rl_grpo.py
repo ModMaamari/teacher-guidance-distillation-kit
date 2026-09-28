@@ -83,8 +83,10 @@ def batch_for_round(pool, rnd: int, size: int, seed: int):
 
 
 def write_round_questions(batch, group: int, qdir: Path, root: str):
-    """One question file per dataset with ``group`` renamed copies of each question; the
-    retrieval scope and gold are untouched, only the id changes so episodes do not collide."""
+    """One question file per dataset with ``group`` renamed copies of each question. The copy's
+    id goes into ``id`` (the harness's task id) and ``gold.qid`` (what the exporter records as the
+    episode's qid), so the copies do not collide; ``retrieval_scope.qid`` keeps the original,
+    because the retriever scopes search by it."""
     by_ds = {}
     for ds, r in batch:
         by_ds.setdefault(ds, []).append(r)
@@ -95,7 +97,9 @@ def write_round_questions(batch, group: int, qdir: Path, root: str):
             for r in rows:
                 qid = str(r.get("qid") or r["id"])
                 for g in range(group):
-                    fh.write(json.dumps({**r, "id": f"{qid}{SEP}{g}"}, ensure_ascii=False) + "\n")
+                    new = f"{qid}{SEP}{g}"
+                    row = {**r, "id": new, "gold": {**(r.get("gold") or {}), "qid": new}}
+                    fh.write(json.dumps(row, ensure_ascii=False) + "\n")
         link = d / f"{ds}_corpus.jsonl.gz"
         if not link.exists():
             os.symlink(corpus_file(root, ds).resolve(), link)
