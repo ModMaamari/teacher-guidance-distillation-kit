@@ -221,47 +221,37 @@ def build_sequences(tok, weighted, max_tokens):
     return seqs
 
 
-def pg_step(model, opt, seqs, a, torch):
-    """One policy-gradient step over ``seqs``; token-level normalisation across the batch."""
+def pg_step(model, opt, seqs, a, torch, check=False):
+    """One policy-gradient step over ``seqs``; token-level normalisation across the batch.
+
+    One sequence per forward pass, and logits only at the positions that predict a sampled
+    completion token (``logits_to_keep``, which runs the model's own head and logit scaling on
+    those positions). Full-sequence logits for a 100k vocabulary do not fit next to vLLM on a
+    45 GB card. ``check`` compares this path with a full forward on the first sequence."""
     model.train()
     total_c = sum(len(c) for _, c, _ in seqs)
-    order = sorted(range(len(seqs)), key=lambda i: len(seqs[i][0]) + len(seqs[i][1]))
-    micro, cur, cur_len = [], [], 0
-    for i in order:
-        n = len(seqs[i][0]) + len(seqs[i][1])
-        if cur and cur_len + n > a.micro_tokens:
-            micro.append(cur)
-            cur, cur_len = [], 0
-        cur.append(i)
-        cur_len += n
-    if cur:
-        micro.append(cur)
     opt.zero_grad(set_to_none=True)
-    pad = 0
     loss_sum, trained_tokens = 0.0, 0
-    for mb in micro:
-        L = max(len(seqs[i][0]) + len(seqs[i][1]) for i in mb)
-        ids = torch.full((len(mb), L), pad, dtype=torch.long)
-        att = torch.zeros((len(mb), L), dtype=torch.long)
-        wts = torch.zeros((len(mb), L), dtype=torch.float32)       # advantage on completion tokens
-        for row, i in enumerate(mb):
-            p, c, adv = seqs[i]
-            x = p + c
-            ids[row, :len(x)] = torch.tensor(x)
-            att[row, :len(x)] = 1
-            wts[row, len(p):len(x)] = adv
-            trained_tokens += len(x)
-        ids, att, wts = ids.cuda(), att.cuda(), wts.cuda()
-        logits = model(input_ids=ids, attention_mask=att).logits      # the model's own scaling
-        # log-softmax only where a sampled completion token is scored, not over whole prompts
-        sel = wts[:, 1:] != 0
-        lp = torch.log_softmax(logits[:, :-1][sel].float(), dim=-1)
-        tok_logp = lp.gather(-1, ids[:, 1:][sel].unsqueeze(-1)).squeeze(-1)
-        loss = -(tok_logp * wts[:, 1:][sel]).sum() / total_c
+    for k, (p, c, adv) in enumerate(seqs):
+        x = p + c
+        ids = torch.tensor([x], device="cuda")
+        keep = torch.arange(len(p) - 1, len(x) - 1, device="cuda")    # positions predicting c
+        logits = model(input_ids=ids, logits_to_keep=keep).logits[0]    # [len(c), vocab]
+        tgt = ids[0, len(p):]
+        tok_logp = torch.log_softmax(logits.float(), dim=-1).gather(-1, tgt.unsqueeze(-1)).squeeze(-1)
+        if check and k == 0:
+            with torch.no_grad():
+                full = model(input_ids=ids).logits[0, len(p) - 1:len(x) - 1].float()
+                ref = torch.log_softmax(full, dim=-1).gather(-1, tgt.unsqueeze(-1)).squeeze(-1)
+            diff = float((ref - tok_logp.detach()).abs().max())
+            log(f"   loss-path check: max |log p| difference, selected vs full logits = {diff:.2e}")
+            assert diff < 5e-2, f"logits_to_keep path disagrees with the full forward ({diff})"
+        loss = -(tok_logp * adv).sum() / total_c
         loss.backward()
         loss_sum += float(loss)
-        del logits, lp, tok_logp, loss
-    gn = float(torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad],
+        trained_tokens += len(x)
+        del logits, tok_logp, loss
+    gn = float(torch.nn.utils.clip_grad_norm_([q for q in model.parameters() if q.requires_grad],
                                               a.max_grad_norm))
     opt.step()
     opt.zero_grad(set_to_none=True)
@@ -291,7 +281,6 @@ def main() -> int:
     ap.add_argument("--max-grad-norm", type=float, default=1.0)
     ap.add_argument("--lora-r", type=int, default=32)
     ap.add_argument("--lora-alpha", type=int, default=64)
-    ap.add_argument("--micro-tokens", type=int, default=8000, help="tokens per forward micro-batch")
     ap.add_argument("--milestones", type=float, nargs="+", default=[1474.0, 2948.0],
                     help="cumulative PFLOPs at which to publish the adapter; the last one ends the run")
     ap.add_argument("--max-rounds", type=int, default=10_000)
@@ -347,6 +336,7 @@ def main() -> int:
         policy = f"{a.name}_r{state['round']}"
         register_adapter(policy, KIT / state["adapter"], keep=set())
 
+    state_round0 = state["round"]
     while state["round"] < a.max_rounds:
         rnd = state["round"] + 1
         t0 = time.time()
@@ -368,7 +358,7 @@ def main() -> int:
         seqs = build_sequences(tok, weighted, a.max_tokens)
         loss, gn, t_tokens = (0.0, 0.0, 0)
         if seqs:
-            loss, gn, t_tokens = pg_step(model, opt, seqs, a, torch)
+            loss, gn, t_tokens = pg_step(model, opt, seqs, a, torch, check=a.smoke or rnd == state_round0 + 1)
         if a.smoke:
             assert seqs and math.isfinite(loss) and math.isfinite(gn) and gn > 0, (len(seqs), loss, gn)
         # adapter and optimizer are written under round-specific names and only then referenced
