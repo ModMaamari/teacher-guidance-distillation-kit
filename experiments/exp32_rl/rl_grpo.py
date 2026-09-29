@@ -4,8 +4,8 @@
 Each round samples a batch of trainable questions, runs ``--group`` unguided episodes per
 question with the current policy through the same agent harness every other collection uses
 (``scripts/collect_episodes.py --no-teacher``, the policy served by vLLM as a LoRA adapter),
-rewards an episode 1 when its final answer passes the cover match -- the correctness test every
-SFT route in this kit filters on -- and takes one policy-gradient step:
+rewards it by the token F1 of its final answer against the gold answer (``--reward f1``, the
+default), and takes one policy-gradient step:
 
     loss = - sum_i sum_t A_i * log pi(y_it) / sum_i |y_i|,   A_i = (r_i - mean_g) / (std_g + eps)
 
@@ -13,7 +13,15 @@ over every student call of every episode (plan and step calls, including repairs
 the prompt the policy saw (one user message, the model's chat template) and the text it sampled.
 One update per batch keeps it on-policy, so no importance ratio or clipping is needed; no KL
 term (as in DAPO / Dr. GRPO). Groups whose episodes all score the same carry no signal and are
-not trained on.
+not trained on, and calls cut off at ``--max-tokens`` are left out of the loss (overlong
+filtering, as in DAPO).
+
+Why F1 and not the cover match the SFT routes filter on: a policy optimised against the cover
+match learns to answer at length until some phrase contains the gold string. The first E32 runs
+(``--reward cover``, kept in ``runs/rl/rlcover_s*``) did exactly that -- exact match fell from
+0.24 to 0.00 while the cover reward held, and all three collapsed (0.0, 0.0 and 9.1 % judge-correct
+at the equal-compute checkpoint). Filtering a fixed sample on a lenient test is safe; optimising
+against it is not. F1 rewards the answer, not the verbosity.
 
 Compute is counted as everywhere in the kit: collection 2 x 3.4B x tokens of every recorded call,
 training 6 x 3.4B x trained tokens (the trainer's convention). When the running total passes a
@@ -183,12 +191,30 @@ def call_tokens(ep) -> int:
     return n
 
 
-def advantages(episodes, group: int):
+def reward_of(ep, kind: str) -> float:
+    fm = ep.get("final_metrics") or {}
+    if kind == "cover":
+        return 1.0 if fm.get("answer_correct") else 0.0
+    if kind == "em":
+        return 1.0 if fm.get("exact_match") else 0.0
+    return float(fm.get("f1") or 0.0)
+
+
+def answer_stats(episodes):
+    fm = [ep.get("final_metrics") or {} for ep in episodes]
+    words = sorted(len((ep.get("final_answer") or "").split()) for ep in episodes)
+    n = max(len(episodes), 1)
+    return {"cover": round(sum(bool(m.get("answer_correct")) for m in fm) / n, 4),
+            "em": round(sum(bool(m.get("exact_match")) for m in fm) / n, 4),
+            "f1": round(sum(float(m.get("f1") or 0) for m in fm) / n, 4),
+            "answer_words_median": words[len(words) // 2] if words else 0}
+
+
+def advantages(episodes, group: int, kind: str = "f1"):
     groups = {}
     for ep in episodes:
         base = str(ep["qid"]).rsplit(SEP, 1)[0]
-        r = 1.0 if (ep.get("final_metrics") or {}).get("answer_correct") else 0.0
-        groups.setdefault(base, []).append((ep, r))
+        groups.setdefault(base, []).append((ep, reward_of(ep, kind)))
     out, informative = [], 0
     for base, members in groups.items():
         rs = [r for _, r in members]
@@ -204,11 +230,14 @@ def advantages(episodes, group: int):
 # ------------------------------------------------------------------------------ training
 def build_sequences(tok, weighted, max_tokens):
     """Token ids for every student call of every weighted episode: prompt ids, completion ids
-    (the sampled text, plus the end token when the call was not cut off), and the advantage."""
+    (the sampled text plus the end token), and the advantage. A call cut off at ``max_tokens``
+    is left out: its text never ended, so neither sign of advantage says anything useful."""
     eos = tok.eos_token_id
     seqs = []
     for ep, adv in weighted:
         for prompt, response, usage in student_calls(ep):
+            if int(usage.get("completion_tokens") or 0) >= max_tokens:
+                continue
             # render to text, then tokenize -- what vLLM does with a chat request
             text = tok.apply_chat_template([{"role": "user", "content": prompt}],
                                            add_generation_prompt=True, tokenize=False)
@@ -277,7 +306,9 @@ def main() -> int:
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--max-tokens", type=int, default=3000, help="student max tokens per call")
     ap.add_argument("--shards", type=int, default=8, help="collection workers per dataset")
-    ap.add_argument("--lr", type=float, default=5e-5)
+    ap.add_argument("--reward", choices=["f1", "em", "cover"], default="f1",
+                    help="episode reward: answer token F1 (default), exact match, or the cover match")
+    ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--max-grad-norm", type=float, default=1.0)
     ap.add_argument("--lora-r", type=int, default=32)
     ap.add_argument("--lora-alpha", type=int, default=64)
@@ -350,8 +381,8 @@ def main() -> int:
             raise RuntimeError(f"round {rnd}: only {len(episodes)} of {expected} episodes")
         t_collect = time.time() - t0
         c_tokens = sum(call_tokens(ep) for ep in episodes)
-        reward = sum(bool((ep.get("final_metrics") or {}).get("answer_correct")) for ep in episodes) / len(episodes)
-        weighted, n_groups, informative = advantages(episodes, a.group)
+        reward = sum(reward_of(ep, a.reward) for ep in episodes) / len(episodes)
+        weighted, n_groups, informative = advantages(episodes, a.group, a.reward)
         if a.smoke and not weighted:          # exercise the gradient path even if no group varies
             weighted = [(ep, (1.0 if (ep.get("final_metrics") or {}).get("answer_correct") else 0.0) - 0.5)
                         for ep in episodes]
@@ -375,6 +406,7 @@ def main() -> int:
                      pflops=state["pflops"] + cp + tp, collect_pflops=state["collect_pflops"] + cp,
                      train_pflops=state["train_pflops"] + tp)
         row = {"round": rnd, "episodes": len(episodes), "reward": round(reward, 4),
+               "reward_kind": a.reward, **answer_stats(episodes),
                "groups": n_groups, "informative_groups": informative, "sequences": len(seqs),
                "loss": round(loss, 5), "grad_norm": round(gn, 4), "collect_tokens": c_tokens,
                "train_tokens": t_tokens, "collect_pflops": round(cp, 2), "train_pflops": round(tp, 2),
@@ -401,7 +433,8 @@ def main() -> int:
             (KIT / prev_opt).unlink(missing_ok=True)
         # the consolidated episodes stay; the harness's per-question traces are not needed again
         shutil.rmtree(rnd_dir / "collect", ignore_errors=True)
-        log(f"round {rnd}: reward {reward:.3f}, informative groups {informative}/{n_groups}, "
+        log(f"round {rnd}: reward ({a.reward}) {reward:.3f} | EM {row['em']:.3f} F1 {row['f1']:.3f} "
+            f"cover {row['cover']:.3f}, answer {row['answer_words_median']} words | informative groups {informative}/{n_groups}, "
             f"{len(seqs)} sequences, loss {loss:+.4f}, grad norm {gn:.3f}, "
             f"{cp + tp:.1f} PF (cum {state['pflops']:.0f}), {row['total_s']} s")
         if len(state["published"]) == len(a.milestones):

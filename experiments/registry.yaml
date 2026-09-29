@@ -359,4 +359,4 @@ experiments:
     judge: Gemma-4-31B-it
     results: results/E32_rl
     paper: sec:main
-    next: "Pool: e32_smoke, rl_s{13,17,23} (adapters at 1,474 and 2,948 PFLOPs), eval_rl_c*, then results_E32."
+    next: "Pool: e32b_smoke, rl2_s{13,17,23} (F1 reward; adapters at 1,474 and 2,948 PFLOPs), eval_rl2_c*, then results_E32. The first runs (cover reward) were reward-hacked and collapsed; kept as rlcover."
