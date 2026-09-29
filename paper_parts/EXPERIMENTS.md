@@ -1,7 +1,8 @@
 # Every experiment and what it found
 
-Status as of 2026-09-27, 13:30 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
-2026-09-26; E30 added 2026-09-27). All 31 experiments are finished. Each entry gives the question, the result, and what limits it.
+Status as of 2026-09-29, 18:00 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
+2026-09-26; E30 added 2026-09-27; E31 added and E32 restarted 2026-09-29). 32 of 33 experiments
+are finished; E32 (outcome-reward RL) is running. Each entry gives the question, the result, and what limits it.
 
 **How to read the numbers.** The metric is **judge-correct accuracy**: the percentage of the 747
 held-out questions (HotpotQA 189, 2WikiMultihopQA 170, MuSiQue 203, StrategyQA 185) whose final
@@ -45,6 +46,8 @@ collection-time string match (`cover_match`), not a judge, unless stated.
 | E28 | Does the critique inside the training targets matter? | done |
 | E29 | Does the gain survive removing the critic's retry channel? | done |
 | E30 | Does self-guidance beat the same compute spent on more unguided attempts? | done |
+| E31 | Does STaR (answer-hinted rationalization) match self-guidance? | done |
+| E32 | Does outcome-reward RL (GRPO) match self-guidance at equal compute? | running |
 
 ---
 
@@ -386,6 +389,36 @@ better than the same compute spent on more self-samples; what it adds is differe
 not more solved questions. Out of domain the lead keeps its direction but not its significance:
 self-guided over `first` +1.1 on MultiHop-RAG (p 0.19) and +0.6 on FRAMES (p 0.52), no primary
 contrast surviving Holm, as in E27. **Caveats.** `match` and `all` have three seeds each.
+
+## E31 — STaR: correct attempts plus answer-hinted rationalizations
+
+STaR keeps the model's correct attempts, retries every failed question with the gold answer as a
+hint, and trains on the hinted episodes that end correct with the hint removed. Here a hinted step
+is kept only if nothing it wrote names the answer before a retrieved document does.
+
+| Training data | Questions | Build PFLOPs | Seeds | Mean | Self-guided lead |
+|---|---|---|---|---|---|
+| **Self-guided** | 3,818 | 1,474 | 6 | **64.8 ± 1.2** | — |
+| STaR, 2 iterations | 7,000 | 2,725 | 6 | 64.0 ± 1.3 | +0.8 (CI −1.1 to +2.6, p 0.42) |
+| STaR, 1 iteration | 6,971 | 1,367 | 3 | 63.0 ± 0.6 | +1.7 (p 0.092; Welch over seeds 0.026) |
+| Unguided self-rollouts | 3,753 | 859 | 6 | 62.5 ± 1.4 | +2.3 (p 0.008) |
+
+At equal compute STaR trails by 1.7; at 1.85 times the compute by 0.8; neither is significant, and
+STaR-2 is not significantly above unguided rollouts either (+1.5, p 0.080). Rationalization solves
+97.8 % of the failed questions, so STaR trains on nearly twice the questions -- and, as in E30, more
+solved questions do not buy accuracy. **Caveats.** In domain only; STaR-1 has three seeds; the
+grounding gate is stricter than STaR's.
+
+## E32 — Outcome-reward RL (GRPO) at self-guidance's compute (running)
+
+GRPO from the base student through the same harness: 32 questions × 8 episodes per round, one
+on-policy step per round, adapters published at 1,474 PFLOPs (self-guidance's build) and 2,948.
+**First version failed, and that is itself a finding:** rewarded by the cover match, the policy
+learned to answer at length until some phrase contained the gold string (exact match 0.24 → 0.00
+while the cover reward held; median answer 10 → 30 words) and all three seeds collapsed; the
+equal-compute checkpoints score 0.0, 0.0 and 9.1 %, below the untrained student. The rerun rewards
+answer F1, drops calls cut off at the token limit and uses a lower learning rate. Expected
+2026-09-30/10-01.
 
 ---
 

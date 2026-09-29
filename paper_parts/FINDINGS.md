@@ -1,6 +1,6 @@
 # What this project found, strongest first
 
-Status as of 2026-09-27, 17:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
+Status as of 2026-09-29, 18:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
 1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29; finding 4 with E30 on
 2026-09-27. Findings are ordered
 by how much they should change what a practitioner or a reviewer believes: first what the evidence supports most strongly and most
@@ -88,9 +88,15 @@ seeds p 0.010). The attempts solve more questions (61.2 % against 53.0 %), but t
 domain the same students give +1.1 (MultiHop-RAG, p 0.19) and +0.6 (FRAMES, p 0.52): the same
 direction, not significant, like the rest of this finding.
 
+**Against STaR.** STaR hints the gold answer instead of critiquing and trains on the rationalized
+episodes. At equal build compute it trails self-guidance by 1.7 points (63.0 vs 64.8, p 0.092); at
+1.85 times the compute by 0.8 (64.0, p 0.42). Self-guidance is at least as good as STaR at lower
+compute; it is not shown to beat it.
+
 **Supported by.** E17 (single seed, +3.2/+4.4), E21 (three seeds, inconclusive), E25 (six seeds,
 established), E27 (external benchmarks, weak), E28 (not the critique text), E29 (not the retry
-channel), E30 (not compute: three unguided attempts at the same build compute, six seeds).
+channel), E30 (not compute: three unguided attempts at the same build compute, six seeds), E31
+(STaR: ahead, not significantly), E32 (outcome-reward RL: running).
 
 **Why it matters, and the caution.** The headline — a small model can improve itself with no
 teacher — stands. The specific claim that privileged self-critique adds signal *beyond* keeping its
@@ -242,6 +248,10 @@ where our own were not.
   in ten early `finish` targets are finishes the critic rejected (520 against 55 it accepted). The
   trained student finishes early 11.1 % of the time; without those targets 1.6 %, with unchanged
   accuracy and 4 % more tokens (E29).
+- **A filter that is safe for picking data is not safe as an RL reward.** The cover match picks
+  training episodes well (E20, E22), but a policy optimised against it learned verbose answers that
+  contain the gold string -- exact match 0.24 → 0.00 while the reward held -- and collapsed to 0-9 %
+  judge-correct (E32, first version). Rewarding answer F1 removes the incentive.
 - **Evaluation directories accumulate test sets.** Aggregating an arm's whole directory silently
   pooled a new benchmark with the held-out questions in one result table (base read 20.0 instead of
   27.3) until the tooling was changed to select test sets explicitly.
@@ -250,7 +260,8 @@ where our own were not.
 
 ## Still running
 
-Nothing. All 31 experiments are finished (2026-09-27).
+**E32**, outcome-reward RL (GRPO, F1 reward) at 1× and 2× self-guidance's build compute, three
+seeds; expected 2026-09-30/10-01. Until it reports, the paper says RL is not compared.
 
 ## What is not claimed
 

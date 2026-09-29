@@ -57,8 +57,8 @@ There are none at present.
 1. Complete and verify the AI-use statement (required by ICLR).
 2. Add the anonymous code link in the reproducibility statement.
 
-**Page budget:** the main text now ends on page 10, with about 39 lines (three-quarters of a
-page) over ICLR's nine after E28–E30 were added; the statements and appendices follow and do not count. The
+**Page budget:** the main text now fills page 10, about one full page over ICLR's nine after
+E28–E31 were added; the statements and appendices follow and do not count. The
 target venue is not decided yet, so nothing was cut; the first candidate is the "Scope of the
 evidence" paragraph in §4. Check with:
 
@@ -143,8 +143,10 @@ These are the best starting point: every number in them is traceable to a publis
 
 ---
 
-## 6. State as of 2026-09-27, 13:30
+## 6. State as of 2026-09-29, 18:00
 
-- All 31 experiments finished and in the paper; the job pool is idle.
-- Paper builds cleanly, no TBDs; the main text runs onto page 10 (see the page budget above).
+- 32 of 33 experiments finished and in the paper. E32 (outcome-reward RL, GRPO) is running; its
+  first version was reward-hacked and is documented in `experiments/exp32_rl/README.md`. Until it
+  reports, the paper's scope paragraph says RL is not compared.
+- Paper builds cleanly, no TBDs; the main text fills page 10 (one page over nine).
 - The ICLR 2027 deadline has passed; the plan is a resubmission to another venue, not yet chosen.
