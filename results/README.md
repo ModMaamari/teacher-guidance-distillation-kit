@@ -40,4 +40,5 @@ every experiment: `experiments/REGISTRY.md`. Rules: `docs/RESEARCH_WORKFLOW.md`.
 | E28 | [`E28_critique_free`](E28_critique_free/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E29 | [`E29_retry_channel`](E29_retry_channel/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 | E30 | [`E30_compute_matched`](E30_compute_matched/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
+| E31 | [`E31_star`](E31_star/README.md) | ✅ done | Gemma-4-31B-it | `kit/` |
 <!-- index:end -->

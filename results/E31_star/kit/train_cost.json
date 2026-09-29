@@ -1,0 +1,74 @@
+{
+  "selfguided13": {
+    "run": "selftaught",
+    "flops": 6.839075939635814e+17,
+    "epochs": 2.0,
+    "train_loss": 0.18589432556505148,
+    "eval_loss": 0.16768428683280945,
+    "split": "data/splits_self/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13825,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.35,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 33524882,
+    "pflops": 683.9
+  },
+  "unguided13": {
+    "run": "selfdist_full",
+    "flops": 6.015475675203994e+17,
+    "epochs": 2.0,
+    "train_loss": 0.07568685040318754,
+    "eval_loss": 0.06572507321834564,
+    "split": "data/splits_selfdist/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 13510,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 5.09,
+    "gpu": [
+      "NVIDIA A100-SXM4-80GB"
+    ],
+    "tokens": 29487626,
+    "pflops": 601.5
+  },
+  "starone13": {
+    "run": "star1_s13",
+    "flops": 9.938019412056269e+17,
+    "epochs": 2.0,
+    "train_loss": 0.08269039669993966,
+    "eval_loss": 0.07660087198019028,
+    "split": "data/splits_star1/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 23374,
+    "peak_gib": 18.15,
+    "resumes": 0,
+    "gpu_hours": 4.32,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 48715781,
+    "pflops": 993.8
+  },
+  "startwo13": {
+    "run": "star2_s13",
+    "flops": 1.0396623509724672e+18,
+    "epochs": 2.0,
+    "train_loss": 0.005434407192333359,
+    "eval_loss": 0.06487689912319183,
+    "split": "data/splits_star2/uniform/train.jsonl",
+    "batch": 16,
+    "examples": 23954,
+    "peak_gib": 18.15,
+    "resumes": 1,
+    "gpu_hours": 0.65,
+    "gpu": [
+      "NVIDIA L40S"
+    ],
+    "tokens": 50963841,
+    "pflops": 1039.7
+  }
+}

@@ -344,11 +344,11 @@ experiments:
     folder: experiments/exp31_star
     question: Does STaR (correct attempts plus answer-hinted rationalizations) match self-guidance?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E31_star
     paper: sec:main
-    next: "Pool: e31_smoke, collect_star1_rat, prep_star1, train_star1_s*, merge_star1, collect_star2_att, prep_star2q, collect_star2_rat, prep_star2, train_star2_s*, then results_E31."
+    next: "none (STaR-2 64.0 vs self-guided 64.8: +0.8, p 0.42; STaR-1 at equal compute trails by 1.7, p 0.092)"
 
   - id: E32
     name: rl

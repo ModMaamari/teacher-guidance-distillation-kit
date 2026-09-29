@@ -17,8 +17,8 @@ trainable ones), step budget and LoRA configuration (rank 32, alpha 64) as every
   token limit are left out; token-level loss normalisation, no KL term, AdamW lr 2e-5, gradient
   clipping 1.0.
 - Compute counted as in E23: collection 2 × 3.4B × tokens, training 6 × 3.4B × trained tokens.
-  The adapter is published at **1,474 PFLOPs** (`rl_c1`, Self-Guidance's whole build) and at
-  **2,948** (`rl_c2`, twice that), so RL is compared at equal compute and given a second chance
+  The adapter is published at **1,474 PFLOPs** (`rl2_c1`, Self-Guidance's whole build) and at
+  **2,948** (`rl2_c2`, twice that), so RL is compared at equal compute and given a second chance
   at double.
 
 Three seeds (13, 17, 23). Compared with the six self-guided and six unguided students of E25;
