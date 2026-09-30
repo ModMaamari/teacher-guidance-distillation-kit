@@ -44,6 +44,22 @@ and the design changed to the F1 reward above (verbosity lowers F1), with overlo
 lower learning rate. Every round now logs cover, exact match, F1 and answer length, so hacking would
 show immediately. The collapsed checkpoints are reported as a secondary arm (`rlcover`).
 
+**Second version: learned on the collection harness, failed on the evaluation loop
+(2026-09-29/30).** The F1-reward runs (`rl2_s*`) trained stably by their own measure: on the
+sampled episodes, F1 rose from 0.21 to 0.6-0.7 and exact match from 0.1 to 0.5-0.6, with short
+answers. Evaluated with the loop every other student is evaluated with, the equal-compute
+checkpoints score 0.4 % (seed 13): at the final step they keep searching instead of finishing
+(seed 17: no finish action in any of 747 episodes; the untrained student finishes in 197, the
+self-guided student in 746). The cause is a protocol mismatch: the collection harness forces the
+final step through a finish-only grammar, so every sampled final step was a finish whatever the
+policy preferred, and RL never learned to finish on its own; the evaluation loop, like deployment,
+has no such grammar. SFT routes are immune because they imitate the finish targets. Seed 23 also
+degenerated (85 % of calls running to the token cap in repeated braces): leaving truncated calls out
+of the loss removed any penalty for them. Both runs were stopped. Lessons for a third version: roll
+out under the evaluation protocol (no final-step grammar or collection-only fallback), keep
+truncated calls in the loss, and evaluate an early checkpoint with the evaluation loop before
+spending the budget.
+
 **Limits, stated up front.** One configuration (batch, group size, learning rate) was chosen from
 common practice, not tuned; RL typically needs more updates than SFT, which the 2× checkpoint
 partly addresses. Training starts from the base student, not from an SFT model.
