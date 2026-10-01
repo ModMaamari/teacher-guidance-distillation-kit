@@ -48,7 +48,7 @@ show immediately. The collapsed checkpoints are reported as a secondary arm (`rl
 (2026-09-29/30).** The F1-reward runs (`rl2_s*`) trained stably by their own measure: on the
 sampled episodes, F1 rose from 0.21 to 0.6-0.7 and exact match from 0.1 to 0.5-0.6, with short
 answers. Evaluated with the loop every other student is evaluated with, the equal-compute
-checkpoints score 0.4 % (seed 13): at the final step they keep searching instead of finishing
+checkpoints score 0.4 % (seed 13) and 5.5 % (seed 17): at the final step they keep searching instead of finishing
 (seed 17: no finish action in any of 747 episodes; the untrained student finishes in 197, the
 self-guided student in 746). The cause is a protocol mismatch: the collection harness forces the
 final step through a finish-only grammar, so every sampled final step was a finish whatever the
