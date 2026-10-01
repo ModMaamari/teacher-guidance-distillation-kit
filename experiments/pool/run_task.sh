@@ -340,9 +340,10 @@ case "$TASK" in
       $TOOLS publish runs/results/E31 results/E31_star/kit --only summary.txt summary.json \
           train_cost.txt train_cost.json episodes_star1_merge_stats.json episodes_star2_merge_stats.json ;;
   # ---------- E32: outcome-reward RL (GRPO) from the base student ----------
-  e32_smoke|e32b_smoke|rl_s*|rl2_s*)  # one GPU: vLLM serves the policy (adapters swapped at runtime), the driver trains
-    # rl_s*: the first runs, rewarded by the cover match -- reward-hacked and collapsed, kept for
-    # the record (runs/rl/rlcover_s*). rl2_s*: rewarded by answer F1, the runs the paper reports.
+  e32_smoke|e32b_smoke|e32c_smoke|rl_s*|rl2_s*|rl3_s*)  # one GPU: vLLM serves the policy (adapters swapped at runtime), the driver trains
+    # rl_s*: v1, cover-match reward, harness rollouts -- reward-hacked and collapsed (runs/rl/rlcover_s*).
+    # rl2_s*: v2, F1 reward, harness rollouts -- never learned to finish under the evaluation loop.
+    # rl3_s*: v3, F1 reward, rollouts under the evaluation protocol, with a dev gate at round 15.
     PORT=$(free_port); export VLLM_ENDPOINT="http://127.0.0.1:$PORT" MAX_LEN=32768 LLM_TIMEOUT=300
     export ENABLE_LORA=1 MAX_LORAS=2 VLLM_ALLOW_RUNTIME_LORA_UPDATING=True
     export GPU_MEM=$(gpu_frac 24) MODEL=$STUDENT_MODEL STUDENT_MODEL
@@ -351,14 +352,20 @@ case "$TASK" in
     case "$TASK" in
       e32_smoke|e32b_smoke)
         rm -rf runs/rl/rl_smoke
-        $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name rl_smoke --smoke --seed 13 \
+        $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name rl_smoke --smoke --seed 13 --rollout harness \
             --reward "$([ "$TASK" = e32_smoke ] && echo cover || echo f1)" &&
           $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl_smoke ;;
+      e32c_smoke)
+        rm -rf runs/rl/rl3_smoke
+        $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name rl3_smoke --smoke --seed 13 --rollout eval --reward f1 &&
+          $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl3_smoke ;;
       rl_s*)  $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name "$TASK" --seed "${TASK##*_s}" \
-                  --reward cover --lr 5e-5 --milestones 1474 2948 ;;
-      rl2_s*) # shellcheck disable=SC2086
+                  --rollout harness --reward cover --lr 5e-5 --milestones 1474 2948 ;;
+      rl2_s*) $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name "$TASK" --seed "${TASK##*_s}" \
+                  --rollout harness --reward f1 --lr 2e-5 --milestones 1474 2948 ;;
+      rl3_s*) # shellcheck disable=SC2086
               $PY_TRAIN experiments/exp32_rl/rl_grpo.py --name "$TASK" --seed "${TASK##*_s}" \
-                  --reward f1 --lr "${RL_LR:-2e-5}" --milestones ${RL_MILESTONES:-1474 2948} ;;
+                  --rollout eval --reward f1 --lr "${RL_LR:-2e-5}" --milestones ${RL_MILESTONES:-1474 2948} ;;
     esac ;;
   results_E32)      # RL (F1 reward) at self-guidance's build compute (c1) and twice it (c2)
     views="base=runs/eval/base"
@@ -368,22 +375,26 @@ case "$TASK" in
       views="$views selfguided$sd=$r unguided$sd=$u"
     done
     for sd in 13 17 23; do
-      views="$views rlequal$sd=runs/eval/rl2_c1_s$sd rldouble$sd=runs/eval/rl2_c2_s$sd rlcover$sd=runs/eval/rl_c1_s$sd"
+      views="$views rlequal$sd=runs/eval/rl3_c1_s$sd rldouble$sd=runs/eval/rl3_c2_s$sd rlcover$sd=runs/eval/rl_c1_s$sd"
     done
+    for sd in 13 17; do views="$views rlharness$sd=runs/eval/rl2_c1_s$sd"; done
     # shellcheck disable=SC2086
     results E32 results/E32_rl/kit $views &&
       $PY_BASE experiments/exp20_correctness_filter/summarize.py --view runs/views/E32 \
           --results runs/results/E32/results.json --json-out runs/results/E32/summary.json \
           --primary rlequal:selfguided unguided:rlequal \
-          --secondary rldouble:selfguided unguided:rldouble rlequal:rldouble rlcover:rlequal \
+          --secondary rldouble:selfguided unguided:rldouble rlequal:rldouble rlcover:rlequal rlharness:rlequal \
           | tee runs/results/E32/summary.txt &&
-      $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl2_s13 runs/rl/rl2_s17 runs/rl/rl2_s23 \
-          runs/rl/rlcover_s13 runs/rl/rlcover_s17 runs/rl/rlcover_s23 \
+      $PY_BASE experiments/exp32_rl/rl_summary.py --runs runs/rl/rl3_s13 runs/rl/rl3_s17 runs/rl/rl3_s23 \
+          runs/rl/rl2_s13 runs/rl/rl2_s17 runs/rl/rl2_s23 runs/rl/rlcover_s13 runs/rl/rlcover_s17 runs/rl/rlcover_s23 \
           --json-out runs/results/E32/rl_curves.json | tee runs/results/E32/rl_curves.txt &&
-      for r in rl2_s13 rl2_s17 rl2_s23 rlcover_s13 rlcover_s17 rlcover_s23; do
+      for r in rl3_s13 rl3_s17 rl3_s23 rl2_s13 rl2_s17 rl2_s23 rlcover_s13 rlcover_s17 rlcover_s23; do
         cp "runs/rl/$r/rl_log.jsonl" "runs/results/E32/rl_log_$r.jsonl"; done &&
+      for r in rl3_s13 rl3_s17 rl3_s23; do cp "runs/rl/$r/dev_log.jsonl" "runs/results/E32/dev_log_$r.jsonl"; done &&
       $TOOLS publish runs/results/E32 results/E32_rl/kit --only summary.txt summary.json rl_curves.txt \
-          rl_curves.json rl_log_rl2_s13.jsonl rl_log_rl2_s17.jsonl rl_log_rl2_s23.jsonl \
+          rl_curves.json rl_log_rl3_s13.jsonl rl_log_rl3_s17.jsonl rl_log_rl3_s23.jsonl \
+          dev_log_rl3_s13.jsonl dev_log_rl3_s17.jsonl dev_log_rl3_s23.jsonl \
+          rl_log_rl2_s13.jsonl rl_log_rl2_s17.jsonl rl_log_rl2_s23.jsonl \
           rl_log_rlcover_s13.jsonl rl_log_rlcover_s17.jsonl rl_log_rlcover_s23.jsonl ;;
   prep_e29)         # E29: the self-guided split without the critic's rejected finishes
     for v in episodes targets; do

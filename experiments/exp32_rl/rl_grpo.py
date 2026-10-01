@@ -160,6 +160,95 @@ def collect(rnd_dir: Path, policy: str, datasets, a) -> Path:
     return eps / "episodes.jsonl.gz"
 
 
+# ------------------------------------------------------------------------------ v3 rollouts
+def chat(messages, model: str, max_tokens: int, temperature: float, ct_kwargs: dict):
+    """One chat request, built the way the evaluation loop builds it (tgd.vllm_backend), but
+    unseeded -- a fixed seed would make every copy in a group identical -- with top_p 1 when
+    sampling, and returning the unstripped text and the stop reason."""
+    body = {"model": model, "messages": messages, "max_tokens": max_tokens,
+            "temperature": temperature if temperature > 0 else 0.0}
+    if temperature > 0:
+        body["top_p"] = 1.0
+    if ct_kwargs:
+        body["chat_template_kwargs"] = ct_kwargs
+    last = None
+    for attempt in range(3):
+        try:
+            data = json.loads(vllm("/v1/chat/completions", body))
+            ch = data["choices"][0]
+            u = data.get("usage") or {}
+            return {"text": ch["message"].get("content") or "", "finish_reason": ch.get("finish_reason"),
+                    "usage": {"prompt_tokens": int(u.get("prompt_tokens") or 0),
+                              "completion_tokens": int(u.get("completion_tokens") or 0)}}
+        except Exception as e:                                   # noqa: BLE001
+            last = e
+            time.sleep(2 * (attempt + 1))
+    raise RuntimeError(f"vLLM request failed: {last}")
+
+
+def rollout_eval(rows, model: str, temperature: float, retrievers, ct_kwargs, a):
+    """Episodes under the evaluation protocol: the same state machine scripts/eval.py drives
+    (tgd.hf_agent_loop._EpisodeState -- plan turn, one invalid-action retry, a forced finish
+    with no grammar), the same system + user messages, budget and token cap. Every generation is
+    recorded in ``calls`` (messages, unstripped text, stop reason, token counts); the state
+    machine gets the stripped text, as in evaluation. ``rows`` are (dataset, question row)."""
+    from concurrent.futures import ThreadPoolExecutor
+    from tgd.hf_agent_loop import _EpisodeState, _messages
+    active = [(_EpisodeState(row, a.budget, False, True), ds, []) for ds, row in rows]
+    out = []
+    with ThreadPoolExecutor(max_workers=a.concurrency) as ex:
+        while active:
+            msgs = [_messages(st.next_prompt()) for st, _, _ in active]
+            res = list(ex.map(lambda m: chat(m, model, a.max_tokens, temperature, ct_kwargs), msgs))
+            nxt = []
+            for (st, ds, calls), m, r in zip(active, msgs, res):
+                calls.append({"messages": m, "text": r["text"], "finish_reason": r["finish_reason"],
+                              "usage": r["usage"]})
+                st.advance(r["text"].strip(), retrievers[ds], None,
+                           gen_stat={**r["usage"], "gen_s": 0.0, "batch_size": 1})
+                if st.done:
+                    rec = st.episode()
+                    rec.update(dataset=ds, calls=calls)
+                    out.append(rec)
+                else:
+                    nxt.append((st, ds, calls))
+            active = nxt
+    return out
+
+
+def eval_stats(episodes):
+    """What the evaluation loop measures (cover / EM / F1), plus how often an answer is given."""
+    n = max(len(episodes), 1)
+    fm = [e.get("final_metrics") or {} for e in episodes]
+    answered = sum((e.get("final_answer") or "").strip().lower() not in ("", "unknown") for e in episodes)
+    finished = sum(e.get("stop_reason") in ("finish", "budget_forced_finish") for e in episodes)
+    return {"n": len(episodes), "cover": round(sum(bool(m.get("cover_match")) for m in fm) / n, 4),
+            "em": round(sum(bool(m.get("exact_match")) for m in fm) / n, 4),
+            "f1": round(sum(float(m.get("f1") or 0) for m in fm) / n, 4),
+            "answered": round(answered / n, 4), "finished": round(finished / n, 4)}
+
+
+def sequences_from_calls(tok, weighted, ct_kwargs):
+    """Token ids for every recorded generation: the prompt rendered exactly as vLLM renders it
+    (system + user, the same chat-template keywords), the unstripped sampled text, and the end
+    token when generation stopped on it. Calls cut off at the token cap stay in, without the end
+    token, so degenerate run-on output carries its episode's advantage like everything else."""
+    eos = tok.eos_token_id
+    seqs, checks = [], []
+    for ep, adv in weighted:
+        for c in ep.get("calls") or []:
+            text = tok.apply_chat_template(c["messages"], add_generation_prompt=True, tokenize=False,
+                                           **ct_kwargs)
+            p = tok(text, add_special_tokens=False)["input_ids"]
+            comp = tok(c["text"], add_special_tokens=False)["input_ids"]
+            if c.get("finish_reason") == "stop" and eos is not None:
+                comp = comp + [eos]
+            if comp:
+                seqs.append((list(p), comp, adv))
+                checks.append((len(p), c["usage"]["prompt_tokens"], len(comp), c["usage"]["completion_tokens"]))
+    return seqs, checks
+
+
 def student_calls(ep):
     """Every call the student made in an episode, in order: its plan, then each step's calls
     (repairs and the forced-finish call included). Each is (prompt, response, usage)."""
@@ -194,7 +283,7 @@ def call_tokens(ep) -> int:
 def reward_of(ep, kind: str) -> float:
     fm = ep.get("final_metrics") or {}
     if kind == "cover":
-        return 1.0 if fm.get("answer_correct") else 0.0
+        return 1.0 if fm.get("answer_correct", fm.get("cover_match")) else 0.0
     if kind == "em":
         return 1.0 if fm.get("exact_match") else 0.0
     return float(fm.get("f1") or 0.0)
@@ -204,7 +293,7 @@ def answer_stats(episodes):
     fm = [ep.get("final_metrics") or {} for ep in episodes]
     words = sorted(len((ep.get("final_answer") or "").split()) for ep in episodes)
     n = max(len(episodes), 1)
-    return {"cover": round(sum(bool(m.get("answer_correct")) for m in fm) / n, 4),
+    return {"cover": round(sum(bool(m.get("answer_correct", m.get("cover_match"))) for m in fm) / n, 4),
             "em": round(sum(bool(m.get("exact_match")) for m in fm) / n, 4),
             "f1": round(sum(float(m.get("f1") or 0) for m in fm) / n, 4),
             "answer_words_median": words[len(words) // 2] if words else 0}
@@ -304,7 +393,16 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=32, help="questions per round")
     ap.add_argument("--group", type=int, default=8, help="episodes per question (GRPO group)")
     ap.add_argument("--temperature", type=float, default=1.0)
-    ap.add_argument("--max-tokens", type=int, default=3000, help="student max tokens per call")
+    ap.add_argument("--rollout", choices=["eval", "harness"], default="eval",
+                    help="eval: the evaluation loop's protocol (v3); harness: collect_episodes.py (v1, v2)")
+    ap.add_argument("--budget", type=int, default=3, help="tool steps (eval rollout; as in evaluation)")
+    ap.add_argument("--concurrency", type=int, default=64, help="requests in flight (eval rollout)")
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="student max tokens per call (default: 700 = evaluation's cap; 3000 for harness)")
+    ap.add_argument("--dev-every", type=int, default=10, help="evaluate on the dev questions every N rounds")
+    ap.add_argument("--gate-round", type=int, default=15,
+                    help="stop unless dev F1 beats the base model's (without answering less often) by then")
+    ap.add_argument("--dev-limit", type=int, default=None, help="cap the dev questions (smoke)")
     ap.add_argument("--shards", type=int, default=8, help="collection workers per dataset")
     ap.add_argument("--reward", choices=["f1", "em", "cover"], default="f1",
                     help="episode reward: answer token F1 (default), exact match, or the cover match")
@@ -317,14 +415,19 @@ def main() -> int:
     ap.add_argument("--max-rounds", type=int, default=10_000)
     ap.add_argument("--smoke", action="store_true", help="2 rounds of 4 questions x 4 episodes")
     a = ap.parse_args()
+    if a.max_tokens is None:
+        a.max_tokens = 700 if a.rollout == "eval" else 3000
     if a.smoke:
         a.batch, a.group, a.shards, a.max_rounds = 4, 4, 2, 2
         a.milestones = [1e9]
+        a.dev_limit, a.dev_every, a.gate_round = 8, 2, 2
 
     import torch
     from peft import LoraConfig, PeftModel, get_peft_model
     from transformers import AutoTokenizer
     from tgd.models import load_lm
+    from tgd import chat_template
+    from tgd.splits import is_dev
 
     random.seed(a.seed)
     torch.manual_seed(a.seed)
@@ -360,8 +463,32 @@ def main() -> int:
                                        tokenize=False)
         log(f"eos {tok.eos_token!r}; chat template renders the assistant turn as ...{full[-40:]!r}")
         assert tok.eos_token and tok.eos_token in full.split("ANSWER", 1)[1], "assistant turn does not end with eos"
+    ct_kwargs = chat_template.alignment_kwargs(tok)
     pool = trainable_questions(a.questions, a.per_dataset)
-    log(f"{len(pool)} trainable questions; {a.batch} x {a.group} episodes per round")
+    dev_rows, retrievers = [], {}
+    if a.rollout == "eval":
+        from agentsim.teacher_guidance.local_retrieval import HotpotLocalRetriever
+        dev_rows = [x for x in pool if is_dev(str(x[1].get("qid") or x[1]["id"]))]
+        pool = [x for x in pool if not is_dev(str(x[1].get("qid") or x[1]["id"]))]
+        dev_rows = dev_rows[:a.dev_limit] if a.dev_limit else dev_rows
+        retrievers = {ds: HotpotLocalRetriever(str(corpus_file(a.questions, ds))) for ds in DATASETS}
+    log(f"{len(pool)} trainable questions ({len(dev_rows)} dev questions held back for the gate); "
+        f"{a.batch} x {a.group} episodes per round; rollout {a.rollout}, max tokens {a.max_tokens}; "
+        f"chat-template kwargs {ct_kwargs}")
+
+    def dev_eval(model_name: str, rnd: int):
+        stats = eval_stats(rollout_eval(dev_rows, model_name, 0.0, retrievers, ct_kwargs, a))
+        stats.update(round=rnd, model=model_name)
+        with open(run / "dev_log.jsonl", "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(stats) + "\n")
+        log(f"   dev (evaluation protocol, greedy, {stats['n']} questions) after round {rnd}: "
+            f"F1 {stats['f1']:.3f} EM {stats['em']:.3f} cover {stats['cover']:.3f} "
+            f"answered {stats['answered']:.3f} finished {stats['finished']:.3f}")
+        return stats
+
+    if a.rollout == "eval" and "dev_base" not in state:
+        state["dev_base"] = dev_eval("student", 0)
+        save_json(state_f, state)
     policy = "student"
     if state["adapter"]:
         policy = f"{a.name}_r{state['round']}"
@@ -373,20 +500,45 @@ def main() -> int:
         t0 = time.time()
         rnd_dir = run / "rounds" / f"r{rnd:04d}"
         batch = batch_for_round(pool, rnd, a.batch, a.seed)
-        datasets = write_round_questions(batch, a.group, rnd_dir / "questions", a.questions)
-        eps_file = collect(rnd_dir, policy, datasets, a)
-        episodes = [json.loads(l) for l in gzip.open(eps_file, "rt", encoding="utf-8") if l.strip()]
+        if a.rollout == "eval":
+            eps_file = rnd_dir / "episodes.jsonl.gz"
+            if eps_file.exists():
+                episodes = [json.loads(l) for l in gzip.open(eps_file, "rt", encoding="utf-8") if l.strip()]
+            else:
+                rows = [(ds, {**r, "id": f"{r.get('qid') or r['id']}{SEP}{g}"})
+                        for ds, r in batch for g in range(a.group)]
+                episodes = rollout_eval(rows, policy, a.temperature, retrievers, ct_kwargs, a)
+                rnd_dir.mkdir(parents=True, exist_ok=True)
+                tmp = rnd_dir / "episodes.jsonl.gz.tmp"
+                with gzip.open(tmp, "wt", encoding="utf-8") as fh:
+                    for ep in episodes:
+                        fh.write(json.dumps(ep, ensure_ascii=False) + "\n")
+                os.replace(tmp, eps_file)
+        else:
+            datasets = write_round_questions(batch, a.group, rnd_dir / "questions", a.questions)
+            eps_file = collect(rnd_dir, policy, datasets, a)
+            episodes = [json.loads(l) for l in gzip.open(eps_file, "rt", encoding="utf-8") if l.strip()]
         expected = len(batch) * a.group
         if len(episodes) < 0.9 * expected:
             raise RuntimeError(f"round {rnd}: only {len(episodes)} of {expected} episodes")
         t_collect = time.time() - t0
-        c_tokens = sum(call_tokens(ep) for ep in episodes)
+        c_tokens = (sum(c["usage"]["prompt_tokens"] + c["usage"]["completion_tokens"]
+                        for ep in episodes for c in ep.get("calls") or [])
+                    if a.rollout == "eval" else sum(call_tokens(ep) for ep in episodes))
         reward = sum(reward_of(ep, a.reward) for ep in episodes) / len(episodes)
         weighted, n_groups, informative = advantages(episodes, a.group, a.reward)
         if a.smoke and not weighted:          # exercise the gradient path even if no group varies
-            weighted = [(ep, (1.0 if (ep.get("final_metrics") or {}).get("answer_correct") else 0.0) - 0.5)
-                        for ep in episodes]
-        seqs = build_sequences(tok, weighted, a.max_tokens)
+            weighted = [(ep, reward_of(ep, "cover") - 0.5) for ep in episodes]
+        if a.rollout == "eval":
+            seqs, checks = sequences_from_calls(tok, weighted, ct_kwargs)
+            if checks and (a.smoke or rnd == state_round0 + 1):
+                same_p = sum(x[0] == x[1] for x in checks) / len(checks)
+                near_c = sum(abs(x[2] - x[3]) <= 1 for x in checks) / len(checks)
+                log(f"   token check vs vLLM: prompt identical in {same_p:.1%} of {len(checks)} calls, "
+                    f"completion within 1 token in {near_c:.1%}")
+                assert same_p >= 0.98, "training prompts are not the prompts vLLM sampled from"
+        else:
+            seqs = build_sequences(tok, weighted, a.max_tokens)
         loss, gn, t_tokens = (0.0, 0.0, 0)
         if seqs:
             loss, gn, t_tokens = pg_step(model, opt, seqs, a, torch, check=a.smoke or rnd == state_round0 + 1)
@@ -444,6 +596,22 @@ def main() -> int:
             return 0
         policy = f"{a.name}_r{rnd}"
         register_adapter(policy, adapter_dir, keep=set())
+        if a.rollout == "eval" and (rnd % a.dev_every == 0 or rnd == a.gate_round):
+            dev = dev_eval(policy, rnd)
+            state.setdefault("dev", []).append(dev)
+            if rnd == a.gate_round:
+                base = state["dev_base"]
+                ok = dev["f1"] > base["f1"] and dev["answered"] >= base["answered"] - 0.02
+                log(f"   gate at round {rnd}: dev F1 {dev['f1']:.3f} vs base {base['f1']:.3f}, answered "
+                    f"{dev['answered']:.3f} vs base {base['answered']:.3f} -> {'pass' if ok else 'FAIL'}")
+                state["gate"] = {"round": rnd, "pass": ok, "dev": dev, "base": base}
+                if not ok and not a.smoke:
+                    state["done"] = True
+                    save_json(state_f, state)
+                    log(f"{a.name}: stopped by the gate -- under the evaluation protocol it does not beat "
+                        f"the untrained student")
+                    return 0
+            save_json(state_f, state)
     log(f"{a.name}: stopped at --max-rounds {a.max_rounds}")
     return 0 if a.smoke else 3
 

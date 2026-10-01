@@ -359,4 +359,4 @@ experiments:
     judge: Gemma-4-31B-it
     results: results/E32_rl
     paper: sec:main
-    next: "Stopped. Two versions failed (v1 reward-hacked the cover match; v2 learned under the collection harness's final-step grammar and never finishes at evaluation). A third version needs rollouts under the evaluation protocol."
+    next: "Pool: e32c_smoke, rl3_s{13,17,23} (v3: F1 reward, rollouts under the evaluation protocol, dev gate at round 15), eval_rl3_c*, results_E32. v1 (cover reward) and v2 (harness rollouts) failed; see the README."

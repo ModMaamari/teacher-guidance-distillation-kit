@@ -8,21 +8,27 @@ if it trails, Self-Guidance is the more sample-efficient use of the same answers
 **Design.** GRPO from the base student (`rl_grpo.py`), on the same harness, questions (the 7,252
 trainable ones), step budget and LoRA configuration (rank 32, alpha 64) as every SFT route:
 
-- Each round: 32 questions × 8 episodes sampled from the current policy at temperature 1.0,
-  through `collect_episodes.py --no-teacher` with the policy served by vLLM as a LoRA adapter.
+- Each round: 32 questions × 8 episodes sampled from the current policy at temperature 1.0
+  (top-p 1, unseeded) **under the evaluation protocol** (v3): the same episode state machine
+  `scripts/eval.py` drives (`tgd.hf_agent_loop._EpisodeState`: planning turn, one invalid-action
+  retry, a forced finish with no grammar), the same system + user messages, three steps, hidden
+  budget and 700-token cap. The policy is served by vLLM as a LoRA adapter swapped at runtime.
 - Reward: token F1 of the final answer against the gold answer. Advantage
   `(r - group mean) / (group std + eps)`; groups with no variance are skipped.
-- One on-policy gradient step per round on every student call of every episode (plan, steps,
-  repairs), on the exact prompt the policy saw and the text it sampled; calls cut off at the
-  token limit are left out; token-level loss normalisation, no KL term, AdamW lr 2e-5, gradient
-  clipping 1.0.
+- One on-policy gradient step per round on every generation of every episode (plan, steps,
+  retries), on the exact prompt the policy saw (checked token for token against vLLM's count)
+  and the unstripped text it sampled; calls cut off at the cap stay in, without an end token;
+  token-level loss normalisation, no KL term, AdamW lr 2e-5, gradient clipping 1.0.
+- A gate: the dev questions of the trainable pool (~3 %, held back from training) are evaluated
+  greedily under the evaluation protocol before training and every 10 rounds. At round 15 the run
+  stops unless dev F1 beats the untrained student's without answering less often.
 - Compute counted as in E23: collection 2 × 3.4B × tokens, training 6 × 3.4B × trained tokens.
-  The adapter is published at **1,474 PFLOPs** (`rl2_c1`, Self-Guidance's whole build) and at
-  **2,948** (`rl2_c2`, twice that), so RL is compared at equal compute and given a second chance
+  The adapter is published at **1,474 PFLOPs** (`rl3_c1`, Self-Guidance's whole build) and at
+  **2,948** (`rl3_c2`, twice that), so RL is compared at equal compute and given a second chance
   at double.
 
 Three seeds (13, 17, 23). Compared with the six self-guided and six unguided students of E25;
-primary contrasts `rl2_c1 -> self-guided` and `unguided -> rl2_c1`, Holm over the two.
+primary contrasts `rl3_c1 -> self-guided` and `unguided -> rl3_c1`, Holm over the two.
 
 **What each outcome means, written before the runs.**
 - *Self-guided > RL at equal compute:* critique-guided data is the more compute-efficient use of
@@ -64,6 +70,7 @@ spending the budget.
 common practice, not tuned; RL typically needs more updates than SFT, which the 2× checkpoint
 partly addresses. Training starts from the base student, not from an SFT model.
 
-**Run.** Pool tasks `e32b_smoke` (two tiny rounds end to end), `rl2_s{13,17,23}` (resumable by
-round), `eval_rl2_c{1,2}_s*`, `judge_*`, `results_E32`. Curves: `runs/rl/rl2_s*/rl_log.jsonl`.
-First version: `e32_smoke`, `rl_s*` (cover reward), `eval_rl_c1_s*`.
+**Run (v3).** Pool tasks `e32c_smoke` (two tiny rounds and the dev evaluation end to end),
+`rl3_s{13,17,23}` (resumable by round), `eval_rl3_c{1,2}_s*`, `judge_*`, `results_E32`. Curves:
+`runs/rl/rl3_s*/rl_log.jsonl` (training) and `dev_log.jsonl` (evaluation protocol).
+Earlier versions: `rl_s*` (v1, cover reward), `rl2_s*` (v2, F1 reward, harness rollouts).
