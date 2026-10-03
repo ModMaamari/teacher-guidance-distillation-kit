@@ -57,8 +57,8 @@ There are none at present.
 1. Complete and verify the AI-use statement (required by ICLR).
 2. Add the anonymous code link in the reproducibility statement.
 
-**Page budget:** the main text now fills page 10, about one full page over ICLR's nine after
-E28–E31 were added; the statements and appendices follow and do not count. The
+**Page budget:** the main text now runs onto page 11, about 1.2 pages over ICLR's nine after
+E28–E32 were added; the statements and appendices follow and do not count. The
 target venue is not decided yet, so nothing was cut; the first candidate is the "Scope of the
 evidence" paragraph in §4. Check with:
 
@@ -143,10 +143,12 @@ These are the best starting point: every number in them is traceable to a publis
 
 ---
 
-## 6. State as of 2026-09-29, 18:00
+## 6. State as of 2026-10-04
 
-- 32 of 33 experiments finished and in the paper. E32 (outcome-reward RL, GRPO) is running; its
-  first version was reward-hacked and is documented in `experiments/exp32_rl/README.md`. Until it
-  reports, the paper's scope paragraph says RL is not compared.
-- Paper builds cleanly, no TBDs; the main text fills page 10 (one page over nine).
-- The ICLR 2027 deadline has passed; the plan is a resubmission to another venue, not yet chosen.
+- All 33 experiments finished and in the paper. E32 (outcome-reward RL) changed the framing:
+  GRPO beats self-guided data by 4.5 points at equal compute, so the abstract, introduction and
+  conclusion now present Self-Guidance as the best *supervised* teacher-free route, not the best
+  route overall. Read `results/E32_rl/README.md` before writing about it.
+- E32 on the external benchmarks is running (`results_E32new`); not yet in the paper.
+- Paper builds cleanly, no TBDs; the main text runs onto page 11 (see the page budget above).
+- The plan is a resubmission to another venue, not yet chosen.
