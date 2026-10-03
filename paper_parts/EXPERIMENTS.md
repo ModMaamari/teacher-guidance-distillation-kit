@@ -1,8 +1,8 @@
 # Every experiment and what it found
 
-Status as of 2026-09-29, 18:00 (E26 revised 2026-09-24; E27 completed, E28 and E29 added
-2026-09-26; E30 added 2026-09-27; E31 added and E32 restarted 2026-09-29). 32 of 33 experiments
-are finished; E32 (outcome-reward RL) is running. Each entry gives the question, the result, and what limits it.
+Status as of 2026-10-04 (E26 revised 2026-09-24; E27 completed, E28 and E29 added 2026-09-26;
+E30 added 2026-09-27; E31 added 2026-09-29; E32 added 2026-10-04). All 33 experiments are finished;
+E32 on the external benchmarks is running. Each entry gives the question, the result, and what limits it.
 
 **How to read the numbers.** The metric is **judge-correct accuracy**: the percentage of the 747
 held-out questions (HotpotQA 189, 2WikiMultihopQA 170, MuSiQue 203, StrategyQA 185) whose final
@@ -47,7 +47,7 @@ collection-time string match (`cover_match`), not a judge, unless stated.
 | E29 | Does the gain survive removing the critic's retry channel? | done |
 | E30 | Does self-guidance beat the same compute spent on more unguided attempts? | done |
 | E31 | Does STaR (answer-hinted rationalization) match self-guidance? | done |
-| E32 | Does outcome-reward RL (GRPO) match self-guidance at equal compute? | running |
+| E32 | Does outcome-reward RL (GRPO) match self-guidance at equal compute? | done |
 
 ---
 
@@ -409,16 +409,31 @@ STaR-2 is not significantly above unguided rollouts either (+1.5, p 0.080). Rati
 solved questions do not buy accuracy. **Caveats.** In domain only; STaR-1 has three seeds; the
 grounding gate is stricter than STaR's.
 
-## E32 — Outcome-reward RL (GRPO) at self-guidance's compute (running)
+## E32 — Outcome-reward RL (GRPO) at self-guidance's compute
 
-GRPO from the base student through the same harness: 32 questions × 8 episodes per round, one
-on-policy step per round, adapters published at 1,474 PFLOPs (self-guidance's build) and 2,948.
-**First version failed, and that is itself a finding:** rewarded by the cover match, the policy
-learned to answer at length until some phrase contained the gold string (exact match 0.24 → 0.00
-while the cover reward held; median answer 10 → 30 words) and all three seeds collapsed; the
-equal-compute checkpoints score 0.0, 0.0 and 9.1 %, below the untrained student. The rerun rewards
-answer F1, drops calls cut off at the token limit and uses a lower learning rate. Expected
-2026-09-30/10-01.
+GRPO from the base student: 32 questions × 8 episodes per round sampled under the evaluation
+protocol, rewarded by answer F1, one on-policy step per round; adapters published at 1,474 PFLOPs
+(self-guidance's whole build) and 2,948.
+
+| Training | Build PFLOPs | Seeds | Mean | vs self-guided |
+|---|---|---|---|---|
+| **RL, equal compute** | 1,474 | 3 | **69.2 ± 1.6** | **+4.5** (CI +2.1 to +6.8, p 0.0002, Holm 0.0002) |
+| **RL, twice the compute** | 2,948 | 3 | **70.8 ± 1.0** | +6.1 (p 0.0001) |
+| Self-guided | 1,474 | 6 | 64.8 ± 1.2 | — |
+| Unguided self-rollouts | 859 | 6 | 62.5 ± 1.4 | −2.3 |
+| *Teacher rollouts (E24)* | 2,233 | 3 | 71.1 ± 1.6 | +6.2 |
+
+RL beats self-guidance at every seed and on every dataset, and at twice the compute reaches the
+teacher's own rollouts with no teacher. Not a judge artefact: the length-insensitive cover match
+agrees (63.6–67.2 vs 60.6–63.2), and the judge is, if anything, stricter with RL's one-word answers.
+It also uses 27 % fewer tokens per question at inference.
+
+**It took three versions.** v1 rewarded the cover match and was reward-hacked (verbose answers
+containing the gold string) and collapsed: 0.0 / 0.0 / 9.1 %. v2 rewarded F1 but sampled in the
+collection harness, whose final-step grammar forces a finish, and never learned to finish under
+evaluation: 0.4 / 5.5 %. v3 samples under the evaluation protocol and gates on a dev evaluation at
+round 15 (all seeds passed: dev F1 0.13 → 0.53–0.58). **Caveats.** Three seeds; in domain (external
+benchmarks queued); one configuration, untuned; RL starts from the base student.
 
 ---
 

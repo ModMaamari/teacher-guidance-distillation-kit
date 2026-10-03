@@ -1,6 +1,6 @@
 # What this project found, strongest first
 
-Status as of 2026-09-29, 18:00; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
+Status as of 2026-10-04; finding 1 (outcome-reward RL) added 2026-10-04 at the top, as it now ranks first; findings 2 and 8 revised 2026-09-24 after the E26 rerun; findings
 1, 4 and 16 extended 2026-09-26 with E27's teacher-rollout arm, E28 and E29; finding 4 with E30 on
 2026-09-27. Findings are ordered
 by how much they should change what a practitioner or a reviewer believes: first what the evidence supports most strongly and most
@@ -13,7 +13,26 @@ Granite-4.1-3B. Teacher: DeepSeek-V4-Flash (284B total, 13B active).
 
 ---
 
-## 1. Imitating a capable model's own trajectories beats every form of critique — by a wide, reproducible margin
+## 1. Outcome-reward RL is the strongest teacher-free route — it beats self-guidance by 4.5 points at equal compute
+
+**Evidence.** GRPO from the base student, rewarded by answer F1 and sampled under the evaluation
+protocol, reaches **69.2 ± 1.6** at Self-Guidance's whole build compute (1,474 PFLOPs) against
+**64.8 ± 1.2** for self-guided data: **+4.5** (CI +2.1 to +6.8, p 0.0002, Holm 0.0002), ahead at every
+seed and on every dataset; +6.8 over unguided self-rollouts. At twice the compute it reaches
+**70.8 ± 1.0**, the level of the 284B teacher's own rollouts (71.1) with no teacher. The
+length-insensitive cover match agrees (about +3.5), so it is not the judge rewarding RL's one-word
+answers. It is also cheaper at inference (3,774 vs 5,176 tokens per question).
+
+**Supported by.** E32 (three seeds per arm). External benchmarks queued.
+
+**Why it matters, and the caution.** It reorders the paper's comparison: Self-Guidance beats the
+supervised self-training routes (its own filtered rollouts, three attempts at equal compute, STaR)
+but not outcome-reward RL. It took three versions to get there -- a lenient reward was hacked, and
+rollouts outside the evaluation protocol taught the policy never to finish -- whereas Self-Guidance
+is plain supervised fine-tuning that worked first time. That difference in engineering risk, not
+accuracy, is what is left of Self-Guidance's case against RL.
+
+## 1b. Imitating a capable model's own trajectories beats every form of critique — by a wide, reproducible margin
 
 **Evidence.** At matched supervision (~1,400 episodes, three seeds) the teacher's own rollouts
 train a **68.2 ± 1.6** student, against 62.0 ± 0.8 for the student's own rollouts (**+6.2**, CI +3.6
@@ -96,7 +115,7 @@ compute; it is not shown to beat it.
 **Supported by.** E17 (single seed, +3.2/+4.4), E21 (three seeds, inconclusive), E25 (six seeds,
 established), E27 (external benchmarks, weak), E28 (not the critique text), E29 (not the retry
 channel), E30 (not compute: three unguided attempts at the same build compute, six seeds), E31
-(STaR: ahead, not significantly), E32 (outcome-reward RL: running).
+(STaR: ahead, not significantly), E32 (outcome-reward RL beats it: see finding 1).
 
 **Why it matters, and the caution.** The headline — a small model can improve itself with no
 teacher — stands. The specific claim that privileged self-critique adds signal *beyond* keeping its
@@ -252,6 +271,10 @@ where our own were not.
   training episodes well (E20, E22), but a policy optimised against it learned verbose answers that
   contain the gold string -- exact match 0.24 → 0.00 while the reward held -- and collapsed to 0-9 %
   judge-correct (E32, first version). Rewarding answer F1 removes the incentive.
+- **RL must sample under the protocol it is evaluated with.** Rollouts collected in a harness that
+  forces the last step through a finish-only grammar trained a policy that scored F1 0.6-0.7 on its
+  own episodes and 0.4-5.5 % under evaluation, where nothing forces a finish: it had never had to
+  finish on its own (E32, second version). Sampling through the evaluation loop fixed it.
 - **Evaluation directories accumulate test sets.** Aggregating an arm's whole directory silently
   pooled a new benchmark with the held-out questions in one result table (base read 20.0 instead of
   27.3) until the tooling was changed to select test sets explicitly.
@@ -260,8 +283,7 @@ where our own were not.
 
 ## Still running
 
-**E32**, outcome-reward RL (GRPO, F1 reward) at 1× and 2× self-guidance's build compute, three
-seeds; expected 2026-09-30/10-01. Until it reports, the paper says RL is not compared.
+E32 on the external benchmarks (MultiHop-RAG, FRAMES): does RL's in-domain lead transfer?
 
 ## What is not claimed
 

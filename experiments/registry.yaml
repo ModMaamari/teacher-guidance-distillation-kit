@@ -355,8 +355,8 @@ experiments:
     folder: experiments/exp32_rl
     question: Does outcome-reward RL (GRPO) from the base student match self-guidance at equal compute?
     tier: 1
-    status: running
+    status: done
     judge: Gemma-4-31B-it
     results: results/E32_rl
     paper: sec:main
-    next: "Pool: e32c_smoke, rl3_s{13,17,23} (v3: F1 reward, rollouts under the evaluation protocol, dev gate at round 15), eval_rl3_c*, results_E32. v1 (cover reward) and v2 (harness rollouts) failed; see the README."
+    next: "External benchmarks queued (results_E32new). RL at equal compute 69.2 vs self-guided 64.8 (+4.5, p 0.0002); at 2x 70.8."
