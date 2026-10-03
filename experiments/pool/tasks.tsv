@@ -404,3 +404,8 @@ judge_rl3_c1_s23	0	1	0.3	1	done:eval_rl3_c1_s23
 eval_rl3_c2_s23	25	16	0.6	1	file:runs/train/rl3_c2_s23/adapter/.done
 judge_rl3_c2_s23	0	1	0.3	1	done:eval_rl3_c2_s23
 results_E32	0	4	0.5	1	done:judge_rl_c1_s13,done:judge_rl_c1_s17,done:judge_rl_c1_s23,done:judge_rl2_c1_s13,done:judge_rl2_c1_s17,done:judge_rl3_c1_s13,done:judge_rl3_c2_s13,done:judge_rl3_c1_s17,done:judge_rl3_c2_s17,done:judge_rl3_c1_s23,done:judge_rl3_c2_s23
+evalnew_multihoprag_rl3	28	24	2	1	done:e27_smoke_multihoprag
+judgenew32_multihoprag	0	2	0.8	1	done:evalnew_multihoprag_rl3
+evalnew_framesqa_rl3	28	24	2	1	done:e27_smoke_framesqa
+judgenew32_framesqa	0	2	0.8	1	done:evalnew_framesqa_rl3
+results_E32new	0	4	0.5	1	done:judgenew32_multihoprag,done:judgenew32_framesqa

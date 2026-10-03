@@ -201,6 +201,8 @@ case "$TASK" in
                  for sd in 17 23 29 31 37; do specs="$specs selfdist_full_s$sd=selfdist_full_s$sd:runs/train/selfdist_full_s$sd/adapter"; done ;;
       teachdist) specs=""
                  for sd in 13 17 23; do specs="$specs teachdist_full_s$sd=teachdist_full_s$sd:runs/train/teachdist_full_s$sd/adapter"; done ;;
+      rl3)       specs=""                 # E32's RL students at self-guidance's build compute
+                 for sd in 13 17 23; do specs="$specs rl3_c1_s$sd=rl3_c1_s$sd:runs/train/rl3_c1_s$sd/adapter"; done ;;
       k3firstA|k3firstB|k3match|k3all)    # E30's students; the six first-attempt seeds in two halves
                  case "$fam" in k3firstA) v=first; seeds="13 17 23" ;; k3firstB) v=first; seeds="29 31 37" ;;
                                 k3match) v=match; seeds="13 17 23" ;; k3all) v=all; seeds="13 17 23" ;; esac
@@ -210,8 +212,8 @@ case "$TASK" in
     esac
     # shellcheck disable=SC2086
     evals "$specs" "newtest_$ds" ;;
-  judgenew30_*)     # E30 on the new benchmarks: same verdict file as E27; judged episodes are skipped
-    ds=${TASK#judgenew30_}
+  judgenew30_*|judgenew32_*)   # E30/E32 on the new benchmarks: same verdict file as E27; judged episodes are skipped
+    ds=${TASK#judgenew3?_}
     judge "runs/judge/new_$ds" "runs/eval/*/newtest_$ds/episodes.jsonl" "$JUDGE" ;;
   judgenew_*)       # E27: judge every arm's episodes on one new benchmark
     ds=${TASK#judgenew_}
@@ -396,6 +398,27 @@ case "$TASK" in
           dev_log_rl3_s13.jsonl dev_log_rl3_s17.jsonl dev_log_rl3_s23.jsonl \
           rl_log_rl2_s13.jsonl rl_log_rl2_s17.jsonl rl_log_rl2_s23.jsonl \
           rl_log_rlcover_s13.jsonl rl_log_rlcover_s17.jsonl rl_log_rlcover_s23.jsonl ;;
+  results_E32new)   # E32's RL students on MultiHop-RAG and FRAMES, against E27's and E30's
+    for ds in multihoprag framesqa; do
+      v="runs/views/E32new_$ds"; rm -rf "$v"; mkdir -p "$v"
+      link() { mkdir -p "$v/$1" && ln -sfn "$KIT/$2/newtest_$ds" "$v/$1/newtest_$ds"; }
+      for sd in 13 17 23 29 31 37; do
+        [ "$sd" = 13 ] && { link selfguided13 runs/eval/selftaught; link unguided13 runs/eval/selfdist_full; } ||
+          { link "selfguided$sd" "runs/eval/selftaught_s$sd"; link "unguided$sd" "runs/eval/selfdist_full_s$sd"; }
+      done
+      for sd in 13 17 23; do link "rlequal$sd" "runs/eval/rl3_c1_s$sd"; link "teachdist$sd" "runs/eval/teachdist_full_s$sd"; done
+      link base runs/eval/base
+      cat "runs/judge/new_$ds/verdicts.jsonl" > "$v/verdicts.jsonl" || exit 1
+      $PY_BASE scripts/collect_results.py --runs "$v" --judge "$v/verdicts.jsonl" \
+          --out "runs/results/E32new_$ds" || exit 1
+      mkdir -p runs/results/E32
+      $PY_BASE experiments/exp20_correctness_filter/summarize.py --view "$v" \
+          --results "runs/results/E32new_$ds/results.json" \
+          --primary rlequal:selfguided unguided:rlequal --secondary rlequal:teachdist \
+          --json-out "runs/results/E32/summary_$ds.json" | tee "runs/results/E32/summary_$ds.txt" || exit 1
+    done
+    $TOOLS publish runs/results/E32 results/E32_rl/kit \
+        --only summary_multihoprag.txt summary_multihoprag.json summary_framesqa.txt summary_framesqa.json ;;
   prep_e29)         # E29: the self-guided split without the critic's rejected finishes
     for v in episodes targets; do
       d=data/splits_self_retry_$v

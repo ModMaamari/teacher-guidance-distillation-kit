@@ -1,0 +1,162 @@
+[
+ {
+  "run": "rl3_s13",
+  "rounds": 229,
+  "pflops": 2951.414206800001,
+  "collect_pflops": 1548.9142680000007,
+  "train_pflops": 1402.4999388000015,
+  "reward_first5": 0.194,
+  "reward_last5": 0.693,
+  "informative_share": 0.303,
+  "milestones": {
+   "1474.0": {
+    "round": 104,
+    "reward_last5": 0.6934
+   },
+   "2948.0": {
+    "round": 229,
+    "reward_last5": 0.693
+   }
+  },
+  "done": true
+ },
+ {
+  "run": "rl3_s17",
+  "rounds": 203,
+  "pflops": 2964.9842324000006,
+  "collect_pflops": 1378.039815199999,
+  "train_pflops": 1586.9444171999999,
+  "reward_first5": 0.2466,
+  "reward_last5": 0.6427,
+  "informative_share": 0.386,
+  "milestones": {
+   "1474.0": {
+    "round": 99,
+    "reward_last5": 0.6222
+   },
+   "2948.0": {
+    "round": 203,
+    "reward_last5": 0.6427
+   }
+  },
+  "done": true
+ },
+ {
+  "run": "rl3_s23",
+  "rounds": 164,
+  "pflops": 2952.0223647999987,
+  "collect_pflops": 1209.3430215999992,
+  "train_pflops": 1742.6793432000002,
+  "reward_first5": 0.1802,
+  "reward_last5": 0.6953,
+  "informative_share": 0.476,
+  "milestones": {
+   "1474.0": {
+    "round": 81,
+    "reward_last5": 0.6038
+   },
+   "2948.0": {
+    "round": 164,
+    "reward_last5": 0.6953
+   }
+  },
+  "done": true
+ },
+ {
+  "run": "rl2_s13",
+  "rounds": 79,
+  "pflops": 1708.9904024,
+  "collect_pflops": 823.5492919999999,
+  "train_pflops": 885.4411104,
+  "reward_first5": 0.2093,
+  "reward_last5": 0.5923,
+  "informative_share": 0.463,
+  "milestones": {
+   "1474.0": {
+    "round": 70,
+    "reward_last5": 0.5419
+   }
+  },
+  "done": false
+ },
+ {
+  "run": "rl2_s17",
+  "rounds": 82,
+  "pflops": 1615.527714,
+  "collect_pflops": 813.7322136000005,
+  "train_pflops": 801.7955004000002,
+  "reward_first5": 0.2081,
+  "reward_last5": 0.6503,
+  "informative_share": 0.455,
+  "milestones": {
+   "1474.0": {
+    "round": 75,
+    "reward_last5": 0.5825
+   }
+  },
+  "done": false
+ },
+ {
+  "run": "rl2_s23",
+  "rounds": 52,
+  "pflops": 1022.14302,
+  "collect_pflops": 583.3205580000001,
+  "train_pflops": 438.822462,
+  "reward_first5": 0.2138,
+  "reward_last5": 0.4691,
+  "informative_share": 0.486,
+  "milestones": {},
+  "done": false
+ },
+ {
+  "run": "rlcover_s13",
+  "rounds": 105,
+  "pflops": 1932.8844008,
+  "collect_pflops": 1217.3350208000004,
+  "train_pflops": 715.5493800000002,
+  "reward_first5": 0.5648,
+  "reward_last5": 0.0016,
+  "informative_share": 0.243,
+  "milestones": {
+   "1474.0": {
+    "round": 87,
+    "reward_last5": 0.0
+   }
+  },
+  "done": false
+ },
+ {
+  "run": "rlcover_s17",
+  "rounds": 79,
+  "pflops": 1982.4843419999995,
+  "collect_pflops": 1199.1650808,
+  "train_pflops": 783.3192612000003,
+  "reward_first5": 0.5391,
+  "reward_last5": 0.0,
+  "informative_share": 0.304,
+  "milestones": {
+   "1474.0": {
+    "round": 65,
+    "reward_last5": 0.0453
+   }
+  },
+  "done": false
+ },
+ {
+  "run": "rlcover_s23",
+  "rounds": 123,
+  "pflops": 2487.7697184,
+  "collect_pflops": 1263.3293844,
+  "train_pflops": 1224.4403339999997,
+  "reward_first5": 0.5094,
+  "reward_last5": 0.414,
+  "informative_share": 0.341,
+  "milestones": {
+   "1474.0": {
+    "round": 76,
+    "reward_last5": 0.5211
+   }
+  },
+  "done": false
+ }
+]
