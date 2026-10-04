@@ -1,0 +1,243 @@
+{
+  "families": {
+    "base": {
+      "arms": [
+        "base"
+      ],
+      "acc": [
+        23.67
+      ],
+      "mean": 23.67,
+      "sd": null,
+      "steps": 2.93,
+      "tokens": 5449,
+      "voluntary_finish": 7.2,
+      "median_words": 1.0
+    },
+    "rlequal": {
+      "arms": [
+        "rlequal13",
+        "rlequal17",
+        "rlequal23"
+      ],
+      "acc": [
+        71.0,
+        72.0,
+        72.33
+      ],
+      "mean": 71.78,
+      "sd": 0.69,
+      "steps": 2.85,
+      "tokens": 4051,
+      "voluntary_finish": 15.5,
+      "median_words": 1.0
+    },
+    "selfguided": {
+      "arms": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "acc": [
+        64.0,
+        64.67,
+        62.33,
+        63.5,
+        64.33,
+        63.17
+      ],
+      "mean": 63.67,
+      "sd": 0.85,
+      "steps": 2.9,
+      "tokens": 5584,
+      "voluntary_finish": 9.8,
+      "median_words": 55.5
+    },
+    "teachdist": {
+      "arms": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ],
+      "acc": [
+        66.0,
+        64.83,
+        68.67
+      ],
+      "mean": 66.5,
+      "sd": 1.97,
+      "steps": 3.0,
+      "tokens": 5486,
+      "voluntary_finish": 0.1,
+      "median_words": 48.333333333333336
+    },
+    "unguided": {
+      "arms": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "acc": [
+        64.33,
+        62.33,
+        63.67,
+        60.0,
+        62.33,
+        60.5
+      ],
+      "mean": 62.19,
+      "sd": 1.7,
+      "steps": 2.84,
+      "tokens": 5020,
+      "voluntary_finish": 15.7,
+      "median_words": 51.5
+    }
+  },
+  "per_seed": {
+    "rlequal13 -> selfguided13": {
+      "diff": -7.0,
+      "ci95": [
+        -11.17,
+        -2.83
+      ],
+      "p": 0.001586
+    },
+    "rlequal17 -> selfguided17": {
+      "diff": -7.33,
+      "ci95": [
+        -11.67,
+        -2.83
+      ],
+      "p": 0.001839
+    },
+    "rlequal23 -> selfguided23": {
+      "diff": -10.0,
+      "ci95": [
+        -14.330000000000002,
+        -5.5
+      ],
+      "p": 1.6e-05
+    },
+    "unguided13 -> rlequal13": {
+      "diff": 6.67,
+      "ci95": [
+        2.5,
+        10.83
+      ],
+      "p": 0.002225
+    },
+    "unguided17 -> rlequal17": {
+      "diff": 9.67,
+      "ci95": [
+        5.17,
+        14.17
+      ],
+      "p": 4.1e-05
+    },
+    "unguided23 -> rlequal23": {
+      "diff": 8.67,
+      "ci95": [
+        4.33,
+        13.0
+      ],
+      "p": 0.000142
+    },
+    "rlequal13 -> teachdist13": {
+      "diff": -5.0,
+      "ci95": [
+        -9.17,
+        -1.0
+      ],
+      "p": 0.020754
+    },
+    "rlequal17 -> teachdist17": {
+      "diff": -7.17,
+      "ci95": [
+        -11.5,
+        -2.67
+      ],
+      "p": 0.001935
+    },
+    "rlequal23 -> teachdist23": {
+      "diff": -3.67,
+      "ci95": [
+        -7.670000000000001,
+        0.33
+      ],
+      "p": 0.088175
+    }
+  },
+  "seed_averaged": {
+    "rlequal -> selfguided": {
+      "diff": -8.11,
+      "ci95": [
+        -11.58,
+        -4.72
+      ],
+      "p": 0.0001,
+      "n": 600,
+      "a": [
+        "rlequal13",
+        "rlequal17",
+        "rlequal23"
+      ],
+      "b": [
+        "selfguided13",
+        "selfguided17",
+        "selfguided23",
+        "selfguided29",
+        "selfguided31",
+        "selfguided37"
+      ],
+      "holm": 0.0002
+    },
+    "unguided -> rlequal": {
+      "diff": 9.58,
+      "ci95": [
+        6.17,
+        13.06
+      ],
+      "p": 0.0001,
+      "n": 600,
+      "a": [
+        "unguided13",
+        "unguided17",
+        "unguided23",
+        "unguided29",
+        "unguided31",
+        "unguided37"
+      ],
+      "b": [
+        "rlequal13",
+        "rlequal17",
+        "rlequal23"
+      ],
+      "holm": 0.0002
+    },
+    "rlequal -> teachdist": {
+      "diff": -5.28,
+      "ci95": [
+        -8.22,
+        -2.33
+      ],
+      "p": 0.0005,
+      "n": 600,
+      "a": [
+        "rlequal13",
+        "rlequal17",
+        "rlequal23"
+      ],
+      "b": [
+        "teachdist13",
+        "teachdist17",
+        "teachdist23"
+      ]
+    }
+  }
+}

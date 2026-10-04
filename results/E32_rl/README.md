@@ -42,6 +42,24 @@ HotpotQA 70.2 vs 67.4, MuSiQue 48.8 vs 46.5, StrategyQA 75.3 vs 71.9.
 **Cheaper at inference too.** 3,774 tokens and 2.81 steps per question against 5,176 and 2.89; it
 ends 18.9 % of episodes itself, against 10.8 %.
 
+**Out of domain: a large lead on MultiHop-RAG, none on FRAMES.** The three equal-compute RL
+students, without retraining, on E27's external benchmarks (judge-correct, Gemma-4-31B-it):
+
+| Training | MultiHop-RAG (600) | FRAMES (598) |
+|---|---|---|
+| Base student | 23.7 | 7.0 |
+| **RL, equal compute (3 seeds)** | **71.8 ± 0.7** | 29.9 ± 0.6 |
+| Self-guided (6 seeds) | 63.7 ± 0.8 | 29.7 ± 0.9 |
+| Unguided self-rollouts (6 seeds) | 62.2 ± 1.7 | 29.2 ± 1.2 |
+| Teacher's own rollouts (3 seeds) | 66.5 ± 2.0 | 30.6 ± 0.8 |
+
+On MultiHop-RAG RL leads self-guided data by **+8.1** (CI +4.7 to +11.6, p 0.0001, Holm 0.0002) and
+the teacher's rollouts by +5.3 (p 0.0005); the cover match agrees (69.7 vs 60.5, level with the
+teacher's 69.6). On FRAMES it is level with self-guided data under the judge (+0.2, p 0.85), but the
+cover match puts it 7.9 points below (22.9 vs 30.8): the two metrics disagree on FRAMES for the
+one-word answers. Files: `kit/summary_multihoprag.txt`/`.json`, `kit/summary_framesqa.txt`/`.json`
+(pool tasks `evalnew_<ds>_rl3`, `judgenew32_<ds>`, `results_E32new`).
+
 **How the run went.** Each round samples 32 questions × 8 episodes from the current policy under
 the evaluation protocol and takes one GRPO step (F1 reward, group-normalised advantage, no KL). The
 dev questions (held back from training, evaluated greedily under the evaluation protocol) went
@@ -72,7 +90,6 @@ tokens, training 6 × 3.4B × tokens); dev evaluations are not counted. Pool tas
 `kit/rl_curves.txt`/`.json`, `kit/rl_log_*.jsonl` (every round of every run, v1-v3),
 `kit/dev_log_rl3_s*.jsonl` (the dev evaluations).
 
-**Caveats.** Three seeds per RL arm. In domain; the external benchmarks are queued
-(`evalnew_*_rl3`, `results_E32new`). One RL configuration, not tuned; a stronger one could only
+**Caveats.** Three seeds per RL arm. Out of domain the lead holds on MultiHop-RAG, not on FRAMES. One RL configuration, not tuned; a stronger one could only
 widen the gap. RL starts from the base student; starting it from a self-guided student was not
 tried.

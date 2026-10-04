@@ -432,8 +432,10 @@ It also uses 27 % fewer tokens per question at inference.
 containing the gold string) and collapsed: 0.0 / 0.0 / 9.1 %. v2 rewarded F1 but sampled in the
 collection harness, whose final-step grammar forces a finish, and never learned to finish under
 evaluation: 0.4 / 5.5 %. v3 samples under the evaluation protocol and gates on a dev evaluation at
-round 15 (all seeds passed: dev F1 0.13 → 0.53–0.58). **Caveats.** Three seeds; in domain (external
-benchmarks queued); one configuration, untuned; RL starts from the base student.
+round 15 (all seeds passed: dev F1 0.13 → 0.53–0.58). Out of domain: +8.1 over self-guided on
+MultiHop-RAG (71.8 vs 63.7, p 0.0001; also +5.3 over the teacher's rollouts), level on FRAMES (+0.2,
+p 0.85; the cover match disagrees there). **Caveats.** Three seeds; one configuration, untuned; RL
+starts from the base student.
 
 ---
 

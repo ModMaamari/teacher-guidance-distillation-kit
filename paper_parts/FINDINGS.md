@@ -23,7 +23,10 @@ seed and on every dataset; +6.8 over unguided self-rollouts. At twice the comput
 length-insensitive cover match agrees (+3.2 points), so it is not the judge rewarding RL's one-word
 answers. It is also cheaper at inference (3,774 vs 5,176 tokens per question).
 
-**Supported by.** E32 (three seeds per arm). External benchmarks queued.
+Out of domain it leads self-guided data by +8.1 on MultiHop-RAG (and the teacher's rollouts by +5.3)
+and is level on FRAMES.
+
+**Supported by.** E32 (three seeds per arm; external benchmarks included).
 
 **Why it matters, and the caution.** It reorders the paper's comparison: Self-Guidance beats the
 supervised self-training routes (its own filtered rollouts, three attempts at equal compute, STaR)

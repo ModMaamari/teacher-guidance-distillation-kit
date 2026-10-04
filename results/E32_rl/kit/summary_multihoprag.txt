@@ -1,0 +1,24 @@
+metric: judge-correct accuracy (%) on the held-out questions; steps and tokens per question
+
+  family                     seeds    mean    sd  steps  tokens vol.fin  words
+  base                        23.7    23.7     -   2.93   5,449     7.2    1.0
+  rlequal       71.0 / 72.0 / 72.3    71.8   0.7   2.85   4,051    15.5    1.0
+  selfguided64.0 / 64.7 / 62.3 / 63.5 / 64.3 / 63.2    63.7   0.8   2.90   5,584     9.8   55.5
+  teachdist     66.0 / 64.8 / 68.7    66.5   2.0   3.00   5,486     0.1   48.3
+  unguided  64.3 / 62.3 / 63.7 / 60.0 / 62.3 / 60.5    62.2   1.7   2.84   5,020    15.7   51.5
+
+per seed (b - a, pooled paired bootstrap 95 % CI, exact McNemar):
+     rlequal13 -> selfguided13   -7.0  [-11.2, -2.8]  p 0.0016
+     rlequal17 -> selfguided17   -7.3  [-11.7, -2.8]  p 0.0018
+     rlequal23 -> selfguided23  -10.0  [-14.3, -5.5]  p 0.0000
+    unguided13 -> rlequal13      +6.7  [+2.5, +10.8]  p 0.0022
+    unguided17 -> rlequal17      +9.7  [+5.2, +14.2]  p 0.0000
+    unguided23 -> rlequal23      +8.7  [+4.3, +13.0]  p 0.0001
+     rlequal13 -> teachdist13    -5.0  [-9.2, -1.0]  p 0.0208
+     rlequal17 -> teachdist17    -7.2  [-11.5, -2.7]  p 0.0019
+     rlequal23 -> teachdist23    -3.7  [-7.7, +0.3]  p 0.0882
+
+seed-averaged (each question averaged over the seeds of each family):
+  rlequal -> selfguided      -8.1  [-11.6, -4.7]  p 0.0001  Holm 0.0002  (n 600, seeds 3 vs 6)
+  unguided -> rlequal        +9.6  [+6.2, +13.1]  p 0.0001  Holm 0.0002  (n 600, seeds 6 vs 3)
+  rlequal -> teachdist       -5.3  [-8.2, -2.3]  p 0.0005  (n 600, seeds 3 vs 3)
