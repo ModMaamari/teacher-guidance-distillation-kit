@@ -35,7 +35,7 @@ and judge verdict each sample came from), `kit/swaps.txt` (the judge-swap report
 - **Labelling.** Labelled blind in `label_app.html` (question, gold answer and model answer only;
   no arm, no verdict) against the judge's own rubric. 4 rows were marked "can't tell" and are left
   out.
-- **Swap judges.** They saw the same prompt as the primary judge. Qwen left 2 answers unresolved
+- **Swap judges.** They saw the same prompt as the primary judge. Qwen left 1 answer unresolved
   after retries, so its agreement is on 2,987.
 - **Analysis.** `03_agreement.py`; pool tasks `judge_e00_kimi`, `judge_e00_qwen`, `e03_swaps`,
   `e03_agreement`.

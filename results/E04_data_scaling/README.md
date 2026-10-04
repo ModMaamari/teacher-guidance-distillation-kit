@@ -14,7 +14,7 @@ held-out questions:
 | 4,000 | 2,188 | 8,186 | 61.3 % | 57.8–64.7 |
 | 7,252 (all) | 3,959 | 14,458 | 62.1 % | 58.6–65.5 |
 
-Half of the full gain appears with 500 episodes. Of all the pairwise differences between sizes,
+Most of the full gain (87 %) appears with 500 episodes. Of all the pairwise differences between sizes,
 only 500 vs all (+4.5 points, p 0.008) and 500 vs 4,000 (+3.8, p 0.02) are significant. Seed
 noise is about 0.3 points (E02). Figure data: `kit/figure_scaling.csv`; table: `kit/RESULTS.md`,
 `kit/table.tex`.

@@ -28,7 +28,7 @@ sign-flip p; Holm over the two planned primary contrasts:
 | one attempt → `first` | +0.3 | −0.8 to +1.4 | 0.61 | — |
 
 Over seeds, a Welch test on the twelve per-seed accuracies of self-guided and `first` gives
-p 0.010. Self-guided leads `first` at five of six seeds (+4.3, +2.0, +0.7, −0.1, +2.7, +2.4).
+p 0.009 (from answer counts). Self-guided leads `first` at five of six seeds (+4.3, +2.0, +0.7, −0.1, +2.7, +2.4).
 This is the first pre-stated outcome in `experiments/exp30_compute_matched/README.md`: *better
 than the same compute spent on more self-samples.*
 

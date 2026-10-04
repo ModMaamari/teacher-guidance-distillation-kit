@@ -20,7 +20,7 @@ protocol, reaches **69.2 ± 1.6** at Self-Guidance's whole build compute (1,474 
 **64.8 ± 1.2** for self-guided data: **+4.5** (CI +2.1 to +6.8, p 0.0002, Holm 0.0002), ahead at every
 seed and on every dataset; +6.8 over unguided self-rollouts. At twice the compute it reaches
 **70.8 ± 1.0**, the level of the 284B teacher's own rollouts (71.1) with no teacher. The
-length-insensitive cover match agrees (about +3.5), so it is not the judge rewarding RL's one-word
+length-insensitive cover match agrees (+3.2 points), so it is not the judge rewarding RL's one-word
 answers. It is also cheaper at inference (3,774 vs 5,176 tokens per question).
 
 **Supported by.** E32 (three seeds per arm). External benchmarks queued.
@@ -102,7 +102,7 @@ affected targets 64.4 (−0.5, CI −2.0 to +0.9). Both intervals exclude a loss
 episode. Spending that compute on three unguided attempts per question instead (768 against 790
 PFLOPs; 1,478 against 1,474 with training) and keeping the first correct attempt trains a 62.8 ±
 0.5 student over six seeds: self-guided leads by **+2.0** (CI +0.4 to +3.6, **p 0.017**, Welch over
-seeds p 0.010). The attempts solve more questions (61.2 % against 53.0 %), but the extra ones add
+seeds p 0.009). The attempts solve more questions (61.2 % against 53.0 %), but the extra ones add
 +0.3 points (p 0.61); keeping every correct attempt, three times the data, reaches 63.4. Out of
 domain the same students give +1.1 (MultiHop-RAG, p 0.19) and +0.6 (FRAMES, p 0.52): the same
 direction, not significant, like the rest of this finding.

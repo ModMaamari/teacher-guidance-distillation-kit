@@ -381,7 +381,7 @@ collection against self-guidance's 790; with training, the `first` build costs 1
 | Every correct attempt, ~3× the data (`all`) | 4,440 | 3 | 63.4 ± 1.0 | +1.3 (p 0.15) |
 | One unguided attempt (E25) | 3,753 | 6 | 62.5 ± 1.4 | +2.3 (p 0.008) |
 
-Welch over the twelve per-seed accuracies of self-guided and `first`: p 0.010; self-guided leads at
+Welch over the twelve per-seed accuracies of self-guided and `first`: p 0.009; self-guided leads at
 five of six seeds. Three attempts solve more trainable questions at least once (61.2 % against
 53.0 % for one self-guided episode; 863 questions only the attempts solve, 264 only self-guidance),
 yet the extra 687 solved questions add +0.3 points over one attempt (p 0.61). Self-guidance is
@@ -400,7 +400,7 @@ is kept only if nothing it wrote names the answer before a retrieved document do
 |---|---|---|---|---|---|
 | **Self-guided** | 3,818 | 1,474 | 6 | **64.8 ± 1.2** | — |
 | STaR, 2 iterations | 7,000 | 2,725 | 6 | 64.0 ± 1.3 | +0.8 (CI −1.1 to +2.6, p 0.42) |
-| STaR, 1 iteration | 6,971 | 1,367 | 3 | 63.0 ± 0.6 | +1.7 (p 0.092; Welch over seeds 0.026) |
+| STaR, 1 iteration | 6,971 | 1,367 | 3 | 63.0 ± 0.6 | +1.7 (p 0.092; Welch over seeds 0.027) |
 | Unguided self-rollouts | 3,753 | 859 | 6 | 62.5 ± 1.4 | +2.3 (p 0.008) |
 
 At equal compute STaR trails by 1.7; at 1.85 times the compute by 0.8; neither is significant, and

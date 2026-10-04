@@ -2,9 +2,11 @@
 
 **Question.** Which available model grades final answers most accurately?
 
-**Answer.** Gemma-4-31B-it: 98.6 % accuracy, Cohen's κ 0.97, accepts 3.4 % of incorrect answers and
+**Answer.** Gemma-4-31B-it, the most accurate model other than the teacher: 98.6 % accuracy, Cohen's κ 0.97, accepts 3.4 % of incorrect answers and
 rejects none of the correct ones; Kimi-K2.6, the judge behind E00 and E13, scores 94.5 % and accepts
-11.9 % of incorrect answers. `scores.json` has all 14 models.
+11.9 % of incorrect answers. `scores.json` has all 14 deployments (13 models; Gemma-4-31B-it on two endpoints). DeepSeek-V4-Flash-0731,
+the teacher, graded all 145 correctly but is not used as the judge, because its own answers are among
+those graded.
 
 **Protocol.** 145 question–answer pairs with known labels (86 correct, 59 incorrect), drawn from
 GLM-dataset answers: an easy set (exact matches, verbose yes/no answers, answers swapped between

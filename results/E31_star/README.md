@@ -28,13 +28,13 @@ sign-flip p; Holm over the two planned primary contrasts:
 | STaR-1 → STaR-2 | +0.9 | −0.6 to +2.5 | 0.26 | — |
 
 Over seeds (Welch on the per-seed accuracies): self-guided vs STaR-2 p 0.33; STaR-2 vs unguided
-p 0.076; self-guided vs STaR-1 p 0.026 (6 vs 3 seeds). Seed pairs STaR-2 → self-guided: +3.4,
+p 0.076; self-guided vs STaR-1 p 0.027 (6 vs 3 seeds, from answer counts). Seed pairs STaR-2 → self-guided: +3.4,
 +1.1, −0.8, −1.7, −0.5, +3.4.
 
 **Reading, against the outcomes stated before the runs.** The pre-stated middle case applies:
 *STaR ≈ self-guided*. Neither primary contrast is significant; self-guided is ahead in point
 estimate at both STaR iterations. At the same build compute (STaR-1, 1,367 against 1,474 PFLOPs),
-STaR trails by 1.7 (p 0.092 over questions, 0.026 over seeds); spending 1.85 times the compute on a
+STaR trails by 1.7 (p 0.092 over questions, 0.027 over seeds); spending 1.85 times the compute on a
 second iteration narrows the gap to 0.8. STaR is itself not significantly better than the
 student's own filtered rollouts (+1.5, p 0.080). The paper can say that Self-Guidance is at least
 as good as STaR at lower compute, not that it beats it.
